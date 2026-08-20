@@ -206,7 +206,20 @@ img{display:block;max-width:100%}
   padding-left:calc(var(--gutter) - var(--avatar-inset));
   overflow-x:auto;scrollbar-width:none}
 .artist-list::-webkit-scrollbar{display:none}
+/* Figma: 셀 60×79 / 갭 2 / 아바타 48(좌우 6·상하 8) / 라벨 60×15 */
 .artist{display:flex;flex-direction:column;align-items:center;flex:none;width:60px}
+/* 스크롤 진입 시 좌 → 우 로 아바타가 올라오고, 라벨이 뒤따라 뜬다 */
+.artist>.avatar,.avatar-add{opacity:0;transform:translateY(14px) scale(.84);
+  transition:opacity .34s ease var(--d),
+             transform .5s cubic-bezier(.34,1.45,.6,1) var(--d)}
+.artist-list.is-in .artist>.avatar,.artist-list.is-in .avatar-add{opacity:1;transform:none}
+.artist-label{opacity:0;transform:translateY(6px);
+  transition:opacity .3s ease calc(var(--d) + 110ms),
+             transform .34s cubic-bezier(.22,1,.36,1) calc(var(--d) + 110ms)}
+.artist-list.is-in .artist-label{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .artist>.avatar,.avatar-add,.artist-label{transition:none;opacity:1;transform:none}
+}
 .avatar{display:block;border-radius:var(--rounded-full);overflow:hidden;
   border:1px solid var(--border-thumbnail);background:var(--bg-muted)}
 .avatar--48{width:48px;height:48px}
@@ -277,16 +290,19 @@ img{display:block;max-width:100%}
   padding:2px var(--gutter) 0}
 .stand{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-12)}
-.stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);
-  width:100%;opacity:0;transform:translateY(12px);
-  transition:opacity .45s ease var(--d),transform .5s cubic-bezier(.34,1.15,.64,1) var(--d)}
-.podium.is-in .stand-top{opacity:1;transform:none}
-.stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center}
+.stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);width:100%}
+/* ① 아바타 + 순위 뱃지 : 아래에서 위로 */
+.stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center;
+  opacity:0;transform:translateY(18px);
+  transition:opacity .36s ease var(--d-avatar),
+             transform .46s cubic-bezier(.34,1.3,.64,1) var(--d-avatar)}
+.podium.is-in .stand-avatar{opacity:1;transform:none}
 .stand-avatar .avatar{margin:0 0 -4px}
+/* ④ 1위 왕관 */
 .crown{position:absolute;top:-15px;left:50%;font-size:20px;line-height:1;
   opacity:0;transform:translate(-50%,6px) scale(.6);
-  transition:opacity .3s ease calc(var(--d) + 430ms),
-             transform .45s cubic-bezier(.34,1.6,.64,1) calc(var(--d) + 430ms)}
+  transition:opacity .3s ease var(--d-crown),
+             transform .45s cubic-bezier(.34,1.6,.64,1) var(--d-crown)}
 .podium.is-in .crown{opacity:1;transform:translate(-50%,0) scale(1)}
 .rank{padding:2px 6px;border-radius:var(--rounded-full);
   font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
@@ -294,7 +310,11 @@ img{display:block;max-width:100%}
 .rank--first{background:var(--brand1-default);font-size:12px;padding:2px 8px;min-width:36px}
 .rank--second{background:var(--brand1-subtle)}
 .rank--third{background:var(--bg-darkgray-soft)}
-.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%}
+.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .4s ease var(--d-meta),
+             transform .4s cubic-bezier(.22,1,.36,1) var(--d-meta)}
+.podium.is-in .stand-meta{opacity:1;transform:none}
 .stand-name{width:100%;font-size:14px;font-weight:600;line-height:1.4;
   letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stand-count{display:flex;align-items:center;justify-content:center;gap:2px;
@@ -308,7 +328,7 @@ img{display:block;max-width:100%}
 .stand-block-wrap{width:100%;height:var(--h);display:flex;align-items:flex-end}
 .stand-block{width:100%;height:0;border-radius:var(--rounded-lg) var(--rounded-lg) 0 0;
   background:linear-gradient(180deg,var(--bg-gray) 0%,var(--bg-subtler) 100%);
-  transition:height .75s cubic-bezier(.22,1,.36,1) var(--d)}
+  transition:height .75s cubic-bezier(.22,1,.36,1) var(--d-graph)}
 .podium.is-in .stand-block{height:100%}
 .stand--second{--h:70px}
 .stand--first{--h:120px}
@@ -316,8 +336,8 @@ img{display:block;max-width:100%}
 .stand--first .stand-block{background:linear-gradient(180deg,var(--bg-primary) 0%,var(--blue-50) 100%)}
 .stand--third .stand-block{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
 @media (prefers-reduced-motion:reduce){
-  .stand-top,.stand-block,.crown{transition:none}
-  .podium .stand-top{opacity:1;transform:none}
+  .stand-avatar,.stand-meta,.stand-block,.crown{transition:none}
+  .podium .stand-avatar,.podium .stand-meta{opacity:1;transform:none}
   .podium .crown{opacity:1;transform:translate(-50%,0) scale(1)}
   .podium .stand-block{height:100%}
 }
@@ -356,6 +376,7 @@ img{display:block;max-width:100%}
 
 /* ---------- Footer ---------- */
 .footer{background:var(--bg-darkgray-strong);color:var(--text-muted);
+  margin-top:56px;                       /* 직전 섹션 여백 28 + 56 = 84 (기존의 3배) */
   padding:var(--spacing-32) var(--gutter) var(--spacing-40);
   display:flex;flex-direction:column;gap:var(--spacing-20)}
 .ft-logo svg{width:150px;height:auto;opacity:.9}
@@ -448,22 +469,22 @@ img{display:block;max-width:100%}
   <div class="sec-head-text"><h2 class="sec-title">Who&#x27;s Your Bias?</h2><p class="sec-sub">당신의 최애를 찜해보세요!</p></div>
   <button class="text-btn" type="button">찜하러 가기<svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.27 5.21C8.98 4.92 8.5 4.93 8.21 5.23C7.92 5.52 7.93 6 8.23 6.29L14.17 12.07L8.37 17.71C8.07 18 8.07 18.48 8.35 18.77C8.64 19.07 9.12 19.08 9.42 18.79L15.77 12.61C15.92 12.47 16 12.27 16 12.07C16 11.87 15.92 11.67 15.77 11.53L9.27 5.21Z"/></svg></button>
 </div>
-    <div class="artist-list"><button class="artist" type="button">
+    <div class="artist-list" id="artist-list"><button class="artist" type="button" style="--d:0ms">
   <span class="avatar avatar--48"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAHADASIAAhEBAxEB/8QAGQABAQADAQAAAAAAAAAAAAAAAAUDBgcE/8QAORAAAQMEAAIHBQMNAAAAAAAAAAECAwQFBhEHEhMhIjFRYXEIIzKRoRVBshQXNjdSVnR1gZOjsbP/xAAcAQEAAgMBAQEAAAAAAAAAAAAAAQIDBAUGBwj/xAAwEQACAQIEAwYEBwAAAAAAAAAAAQIDEQQSIVETMZEFMkFhcaEUIkLBQ1JigcLR8P/aAAwDAQACEQMRAD8A52AD9DnzYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAF634HlN2ooq2gx+41VLMm45YoVVr03rqX1QxVa1Okr1JJLzdi0Kcpu0Vcgg2b82Wa/uvdv7Ck+TE79DZ/tqS0VrbaqI78rWP3elXSLv1XRjjjMPLu1E/DmubLuhUXOL6EkFqmwrJKy1pdaex18tAsbpUqGxKrORN7dvwTS/IxW3FL9eaCW4W60VlXRxK5JJ4o9saqJtdr5IqKW+Ko2bzrTR6rnsRwZ/lZKBYseH5Bksb5bPZ62uiYunSRR9lF8Nr1b8jFe8ZvWNyRx3i11dC6RNs6aPSP9F7lJWJpOfCU1m2ur9COFPLns7bkwDQMxQAAAAAAHWeEnE/IIbvj+JtWj+zFm6Drh95yrzOXtb79+RyY2vhT+sbH/4tPwuOZ2xhqVbCVOLFOybV/B2ept4GrOnWjkdrtL3Ou8Y+KeRYRktNbrStEkEtG2d3TQc68yvenftOrTUPNjki372crnTr2n0kFSi+sb1lT6aNY9pL9N6H+Ws/6SGyezyrLxh+SWCV2o3ydaeDZYlYv4Tx08LSodjUcXCKUlKEm97Nr7najWnPHToyd000v9+x0DEoKWjxSw4xKiJLU2ZZFTyRrEf9ZTRcUY/GPZ8u9Q5OSWVlYm1/aV6wp/pC3dLyyh44Y1aWP1Ey1SwKn3IruZyJ/iaeXjZFFjXCt9rpnJyVNa1iJ3b5pHTL9UOVh4ydWlRl+NKE36Zp39rG5UaUJTX0Jx9kU6CmutRwhs8fD6rpKarSmhVHORva6vetRVRUR6u3tVTv36mjcSM3uT8ETG8wxq4Q3l6NVlc5kaQOla7fOxWrrat2i68V6tFC24Bd7Ph9FfeGmQ3Oaoq0jnfSSzx9DI1W9rTVajedHdXX4KneXs5luD+ClY7NYqSK6rEicsetdNz+71rac2tb15/cbVB0aWKg1lqJ1fONRNvx3S6PyMU1OdJp3j8vrFr+zk9ureHzeGNRT1cEK5UscqRvWGRXc3OvJ2k7Pw6OeL3nQ7dbcAfwxqKurqoUylI5VjiWoejuZHrydj4fh0c8XvPd9nZc1bLn7z738f07HnsVe0L25eH38wADqGoAAAD0UFfVWushraKeSnqYXc8csa6cxfFDzgiUVJWfIJtO6KF6v91yOqZVXevnrp2MSNskztqjdquvTar8zJY8nvWNOmdZ7nU0CzoiSLC7XPret+m1+ZLBjdCm4cJxWXa2nQvxJ5s99dyrPlV8qbzHe5rpVSXKLXJVOf7xukVE0v8AVfmZL3mOQZHTx093vFZXQxv6RjJn7RrtKm/XSqRgVWGopqSgrrlotPTYnjTs1mepcx/N8kxVjo7NeKqjicvMsTVR0ar48rkVN+ejFkGXX7KpGPvV1qa3o+tjZHaYzzRqaRF89EgELC0VU4ygs29lfrzHGqZcmZ22voNgA2DGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/Z" alt="투어스"></span>
   <span class="artist-label">투어스</span>
-</button><button class="artist" type="button">
+</button><button class="artist" type="button" style="--d:70ms">
   <span class="avatar avatar--48"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAHADASIAAhEBAxEB/8QAHAABAAMBAAMBAAAAAAAAAAAAAAQFBgMBAgcI/8QAMRAAAQQCAQMCBAYABwAAAAAAAQACAwQFEQYSITETQQcWImEUFSNCVpUkUVJxgZGh/8QAGAEBAAMBAAAAAAAAAAAAAAAAAAECAwT/xAAlEQEAAgIBAwMFAQAAAAAAAAAAAQIDERIhMUFhgZEEE3GhwfD/2gAMAwEAAhEDEQA/APyoiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIrPAccyfJr7KeNqvme4/U/X0Rj3c53gAKa1m06giNq1zXN11AjY2NjyvC+hfGigzFZnD4+NxeyrioYQ4/u6XOG//F89V82P7d5pPha1eM6ERFmqIiICIiDW8Jq1LeK5JFdtspQGlH1WHRGT0/8AER/tHfv47f5qbgeCMs5Orkcfm8fkMVUlbNdnZ1RvqxtPUXPjeAdaaQNb7qu4bmYcNjs/K8UpJX1I2xQW2B7Jj67CR0nzobP/ABtSMX8Q8t+c44OlqU8dHYYZKlaBkED2E9L+sNH1AtJH1bXbjnFqnP8A3X8tYmvTaOMZBybIZjkN24zFYn8U57pTH1uc+RznNjjYNdTtbPkAAbJXDJcaonFS5bBZQ5GrXc1tmOWH0ZoOo6a4t2QWk9tg9iQD5Wjw2brUYs1x3F5WhRLci+xRtW4mS152DbOguc1wb2DSHePIJ7rhyLN5CngbFO7yLGWrVwtjNTGV4HM9IHZMkrGjXcDTWk/fSmaU4zM9+vX1+f4ajSHa4Xh8TUx9vLchNdt+pFZihhq+tL9TdkkdQDWg9gSdnR7LrkLedxUeHxkeefd4/Yc11R0G445Wh/1Nc3seoE9w7eu3tpTeT8fqZqvg5IMzj6lyPE1GzV70vogt6Ntcxx7Hse48gj32qnJWqNVmBwFG4y9+CsunntRg+m6WRzAWs33LWhg7+5JS1YpvUa7ee/p3JjTU/GzG2cx8QMbj6cfqWLFVkcbd62TI/wAn2H3WVZxTjtmyMZV5XHJkiehjnVS2pJJ/pEvVvRPYOLdLdfE/Nx8c+KuGykzHPigqj1A0Au6XOkaSN9tgEkf7KqbkcjFY/Ey8y41+VNPV68NSu6w5vsBB6fUH/Y6APvpb5qUnLebdZ3+vmF7RHKdspgeFOykWZdevx4s4h0YsGw0kMBc5rt679QI0AAdk6VRma2Lq2GMxWQnvQ9G3SS1/RIds9gOo9taO/ur2PMDIYHltizbD7N2xVkHqFrXy/qPJPSO2/BOuwWSXDk4RWIrHv7yxnWugiIsFRERBY4bMuw00kraOPudbenpuVxM1vfewD4P3Vt89S/x7jP8AWMWYRaVy2rGolMWmGn+epf49xn+sYuNzmUlyrNXOD4/CJWFnqQ49jHt37tcPB+6zyKZzXnynlLb8hzLsLexcooY+56mEpN6btcStb+mDsA+D91AZz2aN4ezj/GmuadgjGs2Csy57n66nE6Ghs+AvVTbPbe4nRN58NlkvihlMxOJ8li8Dcma3oEk9Br3Ab3rZPjuf+1E+epP47xn+tYswiT9RkmdzJzlp/nqT+O8Z/rWKnzGXdmbDJ3UqFPpZ0dFOARMPcnZA9+/lQEVbZbWjUyibTIiIs0CIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIg//Z" alt="케플러"></span>
   <span class="artist-label">케플러</span>
-</button><button class="artist" type="button">
+</button><button class="artist" type="button" style="--d:140ms">
   <span class="avatar avatar--48"><img src="data:image/jpeg;base64,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" alt="베이비몬스터"></span>
   <span class="artist-label">베이비몬스터</span>
-</button><button class="artist" type="button">
+</button><button class="artist" type="button" style="--d:210ms">
   <span class="avatar avatar--48"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAHADASIAAhEBAxEB/8QAHAABAQACAwEBAAAAAAAAAAAAAAYHCAECBQQD/8QAMRAAAAUEAgADBQkBAQAAAAAAAAECAwQFBgcREiEIEzEVIkF0sxQWNjdhcXWRoVGB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ANVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUlhWDWsj132HQUR1zPJW/p50m08U632f7kAmwF3kbDN1YtjQpNxNQ0NzVrba8iQThmaSIz3ouvUhRUjwuZErdFh1iJHpZxJkZEpo1TUkfBaSUWy10ej9AGIgFfjvFtxZQnzINvNxVvQ2iddJ94my4mrj0Z+vY5yNiu48XS4cS4m4qHZjanWiYeJwtJPR716dmAjwGXqp4W8iUeiy6xKYpZRIkZcp00zSM+CUmo9Frs9EMeWZaFUvu5IlvUZLKp0vn5ZPOcE+6g1ns/h0kwHiAMh5CwVeGMaMzV7gagoivSCjINiSTiuZpUouiL00k+xjwAAAAAAAAX+E8kRcV3p94JkB+c19ldj+UyskK2rj3s/2EAMg4QxvCyne33fnzZMJn7K7I81hKTVtPHRe91rsBTZ8zxTswU+kRYVGl09UB11xSnnUrJfJKS0Wi/Qbf43/Kq2f4SL9BI1E8QGCaTiCn0eVTqtOnKnvOtrKQhBEkkpSZa4/uNu8b/lVbP8JF+gkBrb4KPxfcnyDf1R38bn4ltn5J76hDp4KPxfcnyDf1R38bndy2z8k99QgHvn4pqRf8E7Ii27PiSK817IbkuvoUhlTxeUS1ERbMiNWzIu+h9+J/CzVsdX/S7nkXHAmNQjd5Mtx1pUvk0pHRmei7Vv8A8Hyr8LdBsGnKveHXqpKlUJn2s1HebbJt1bKfNJCjItkkzSRHrvRj9sS+KSu5EyBSrYl0CmRWJpu83mXHDWni0pZaIz16pIgGSs64rmZctWHRIdSj09cecmWbjzalkoiQtOiIvj7/APg0/wAy4SnYcVSUzavGqPtInjT5LSkcPL4b3v13z/wbfZ5ynPxJacOt0+nxZzsicmKpuQpSUkk21q2XH47SX9jT7MObKlmJVKVUaXCgHTSdJH2da1c/M4b3y/5wL+wGNwAAAAAAFFYt+VvHVc9tUB5pmb5SmOTrROFxVrfR9fAhOgAt8hZiu3J8aHHuSXGfbhLUtkmo6WjI1ERHvj6+hChpXicyPRaPDpEOowUxIcdEVpKoLZmTaUkkiM9d9F6jE4AKzH+T7kxnOlzbckMMPS2yadN1hLpGkj30R+nY5yDlG5MnS4cq45DD7sNtTbRtMJa0kz2e9evZCSABlip+J3I9Xo8ukSqhBVElx1xXUphNkZtqSaTIj110fqIGz7tqtjXFEuCiuttT4nPyluNktJckGk/dPo+lGPFABf3/AJwvPJdIZpNxTIr8Vl8pKEtRUNmSySpJHsv0UfQgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//Z" alt="아일릿"></span>
   <span class="artist-label">아일릿</span>
-</button><button class="artist" type="button">
+</button><button class="artist" type="button" style="--d:280ms">
   <span class="avatar avatar--48"><img src="data:image/jpeg;base64,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" alt="코르티스"></span>
   <span class="artist-label">코르티스</span>
-</button><span class="artist artist--add"><span class="avatar-add" role="button" aria-label="아티스트 더보기"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12.06 4C12.48 4 12.81 4.34 12.81 4.75V11.19H19.25C19.66 11.19 20 11.52 20 11.94C20 12.35 19.66 12.69 19.25 12.69H12.81V19.25C12.81 19.66 12.48 20 12.06 20C11.65 20 11.31 19.66 11.31 19.25V12.69H4.75C4.34 12.69 4 12.35 4 11.94C4 11.52 4.34 11.19 4.75 11.19H11.31V4.75C11.31 4.34 11.65 4 12.06 4Z"/></svg></span></span><i class="row-end"></i></div>
+</button><span class="artist artist--add" style="--d:350ms"><span class="avatar-add" role="button" aria-label="아티스트 더보기"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12.06 4C12.48 4 12.81 4.34 12.81 4.75V11.19H19.25C19.66 11.19 20 11.52 20 11.94C20 12.35 19.66 12.69 19.25 12.69H12.81V19.25C12.81 19.66 12.48 20 12.06 20C11.65 20 11.31 19.66 11.31 19.25V12.69H4.75C4.34 12.69 4 12.35 4 11.94C4 11.52 4.34 11.19 4.75 11.19H11.31V4.75C11.31 4.34 11.65 4 12.06 4Z"/></svg></span></span><i class="row-end"></i></div>
   </section>
 
   <section class="sec">
@@ -615,7 +636,7 @@ img{display:block;max-width:100%}
   <div class="sec-head-text"><h2 class="sec-title">Fan&#x27;s Pick!</h2><p class="sec-sub">팬들이 선택한 최애 TOP 3를 확인해 보세요</p></div>
   <button class="text-btn" type="button">찜하러 가기<svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.27 5.21C8.98 4.92 8.5 4.93 8.21 5.23C7.92 5.52 7.93 6 8.23 6.29L14.17 12.07L8.37 17.71C8.07 18 8.07 18.48 8.35 18.77C8.64 19.07 9.12 19.08 9.42 18.79L15.77 12.61C15.92 12.47 16 12.27 16 12.07C16 11.87 15.92 11.67 15.77 11.53L9.27 5.21Z"/></svg></button>
 </div>
-    <div class="podium" id="podium"><div class="stand stand--second" style="--d:180ms" data-delay="180">
+    <div class="podium" id="podium"><div class="stand stand--second" style="--d-avatar:180ms;--d-graph:440ms;--d-meta:480ms;--d-crown:740ms" data-delay="480">
   <div class="stand-top">
     <div class="stand-avatar">
       <span class="avatar avatar--48"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAHADASIAAhEBAxEB/8QAHAABAAMBAAMBAAAAAAAAAAAAAAQFBgMBAgcI/8QAMRAAAQQCAQMCBAYABwAAAAAAAQACAwQFEQYSITETQQcWImEUFSNCVpUkUVJxgZGh/8QAGAEBAAMBAAAAAAAAAAAAAAAAAAECAwT/xAAlEQEAAgIBAwMFAQAAAAAAAAAAAQIDERIhMUFhgZEEE3GhwfD/2gAMAwEAAhEDEQA/APyoiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIrPAccyfJr7KeNqvme4/U/X0Rj3c53gAKa1m06giNq1zXN11AjY2NjyvC+hfGigzFZnD4+NxeyrioYQ4/u6XOG//F89V82P7d5pPha1eM6ERFmqIiICIiDW8Jq1LeK5JFdtspQGlH1WHRGT0/8AER/tHfv47f5qbgeCMs5Orkcfm8fkMVUlbNdnZ1RvqxtPUXPjeAdaaQNb7qu4bmYcNjs/K8UpJX1I2xQW2B7Jj67CR0nzobP/ABtSMX8Q8t+c44OlqU8dHYYZKlaBkED2E9L+sNH1AtJH1bXbjnFqnP8A3X8tYmvTaOMZBybIZjkN24zFYn8U57pTH1uc+RznNjjYNdTtbPkAAbJXDJcaonFS5bBZQ5GrXc1tmOWH0ZoOo6a4t2QWk9tg9iQD5Wjw2brUYs1x3F5WhRLci+xRtW4mS152DbOguc1wb2DSHePIJ7rhyLN5CngbFO7yLGWrVwtjNTGV4HM9IHZMkrGjXcDTWk/fSmaU4zM9+vX1+f4ajSHa4Xh8TUx9vLchNdt+pFZihhq+tL9TdkkdQDWg9gSdnR7LrkLedxUeHxkeefd4/Yc11R0G445Wh/1Nc3seoE9w7eu3tpTeT8fqZqvg5IMzj6lyPE1GzV70vogt6Ntcxx7Hse48gj32qnJWqNVmBwFG4y9+CsunntRg+m6WRzAWs33LWhg7+5JS1YpvUa7ee/p3JjTU/GzG2cx8QMbj6cfqWLFVkcbd62TI/wAn2H3WVZxTjtmyMZV5XHJkiehjnVS2pJJ/pEvVvRPYOLdLdfE/Nx8c+KuGykzHPigqj1A0Au6XOkaSN9tgEkf7KqbkcjFY/Ey8y41+VNPV68NSu6w5vsBB6fUH/Y6APvpb5qUnLebdZ3+vmF7RHKdspgeFOykWZdevx4s4h0YsGw0kMBc5rt679QI0AAdk6VRma2Lq2GMxWQnvQ9G3SS1/RIds9gOo9taO/ur2PMDIYHltizbD7N2xVkHqFrXy/qPJPSO2/BOuwWSXDk4RWIrHv7yxnWugiIsFRERBY4bMuw00kraOPudbenpuVxM1vfewD4P3Vt89S/x7jP8AWMWYRaVy2rGolMWmGn+epf49xn+sYuNzmUlyrNXOD4/CJWFnqQ49jHt37tcPB+6zyKZzXnynlLb8hzLsLexcooY+56mEpN6btcStb+mDsA+D91AZz2aN4ezj/GmuadgjGs2Csy57n66nE6Ghs+AvVTbPbe4nRN58NlkvihlMxOJ8li8Dcma3oEk9Br3Ab3rZPjuf+1E+epP47xn+tYswiT9RkmdzJzlp/nqT+O8Z/rWKnzGXdmbDJ3UqFPpZ0dFOARMPcnZA9+/lQEVbZbWjUyibTIiIs0CIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIg//Z" alt="케플러"></span>
@@ -627,7 +648,7 @@ img{display:block;max-width:100%}
     </div>
   </div>
   <div class="stand-block-wrap"><div class="stand-block"></div></div>
-</div><div class="stand stand--first" style="--d:360ms" data-delay="360">
+</div><div class="stand stand--first" style="--d-avatar:360ms;--d-graph:620ms;--d-meta:660ms;--d-crown:920ms" data-delay="660">
   <div class="stand-top">
     <div class="stand-avatar"><span class="crown">👑</span>
       <span class="avatar avatar--48"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAHADASIAAhEBAxEB/8QAGQABAQADAQAAAAAAAAAAAAAAAAUDBgcE/8QAORAAAQMEAAIHBQMNAAAAAAAAAAECAwQFBhEHEhMhIjFRYXEIIzKRoRVBshQXNjdSVnR1gZOjsbP/xAAcAQEAAgMBAQEAAAAAAAAAAAAAAQIDBAUGBwj/xAAwEQACAQIEAwYEBwAAAAAAAAAAAQIDEQQSIVETMZEFMkFhcaEUIkLBQ1JigcLR8P/aAAwDAQACEQMRAD8A52AD9DnzYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAF634HlN2ooq2gx+41VLMm45YoVVr03rqX1QxVa1Okr1JJLzdi0Kcpu0Vcgg2b82Wa/uvdv7Ck+TE79DZ/tqS0VrbaqI78rWP3elXSLv1XRjjjMPLu1E/DmubLuhUXOL6EkFqmwrJKy1pdaex18tAsbpUqGxKrORN7dvwTS/IxW3FL9eaCW4W60VlXRxK5JJ4o9saqJtdr5IqKW+Ko2bzrTR6rnsRwZ/lZKBYseH5Bksb5bPZ62uiYunSRR9lF8Nr1b8jFe8ZvWNyRx3i11dC6RNs6aPSP9F7lJWJpOfCU1m2ur9COFPLns7bkwDQMxQAAAAAAHWeEnE/IIbvj+JtWj+zFm6Drh95yrzOXtb79+RyY2vhT+sbH/4tPwuOZ2xhqVbCVOLFOybV/B2ept4GrOnWjkdrtL3Ou8Y+KeRYRktNbrStEkEtG2d3TQc68yvenftOrTUPNjki372crnTr2n0kFSi+sb1lT6aNY9pL9N6H+Ws/6SGyezyrLxh+SWCV2o3ydaeDZYlYv4Tx08LSodjUcXCKUlKEm97Nr7najWnPHToyd000v9+x0DEoKWjxSw4xKiJLU2ZZFTyRrEf9ZTRcUY/GPZ8u9Q5OSWVlYm1/aV6wp/pC3dLyyh44Y1aWP1Ey1SwKn3IruZyJ/iaeXjZFFjXCt9rpnJyVNa1iJ3b5pHTL9UOVh4ydWlRl+NKE36Zp39rG5UaUJTX0Jx9kU6CmutRwhs8fD6rpKarSmhVHORva6vetRVRUR6u3tVTv36mjcSM3uT8ETG8wxq4Q3l6NVlc5kaQOla7fOxWrrat2i68V6tFC24Bd7Ph9FfeGmQ3Oaoq0jnfSSzx9DI1W9rTVajedHdXX4KneXs5luD+ClY7NYqSK6rEicsetdNz+71rac2tb15/cbVB0aWKg1lqJ1fONRNvx3S6PyMU1OdJp3j8vrFr+zk9ureHzeGNRT1cEK5UscqRvWGRXc3OvJ2k7Pw6OeL3nQ7dbcAfwxqKurqoUylI5VjiWoejuZHrydj4fh0c8XvPd9nZc1bLn7z738f07HnsVe0L25eH38wADqGoAAAD0UFfVWushraKeSnqYXc8csa6cxfFDzgiUVJWfIJtO6KF6v91yOqZVXevnrp2MSNskztqjdquvTar8zJY8nvWNOmdZ7nU0CzoiSLC7XPret+m1+ZLBjdCm4cJxWXa2nQvxJ5s99dyrPlV8qbzHe5rpVSXKLXJVOf7xukVE0v8AVfmZL3mOQZHTx093vFZXQxv6RjJn7RrtKm/XSqRgVWGopqSgrrlotPTYnjTs1mepcx/N8kxVjo7NeKqjicvMsTVR0ar48rkVN+ejFkGXX7KpGPvV1qa3o+tjZHaYzzRqaRF89EgELC0VU4ygs29lfrzHGqZcmZ22voNgA2DGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/Z" alt="투어스"></span>
@@ -639,7 +660,7 @@ img{display:block;max-width:100%}
     </div>
   </div>
   <div class="stand-block-wrap"><div class="stand-block"></div></div>
-</div><div class="stand stand--third" style="--d:0ms" data-delay="0">
+</div><div class="stand stand--third" style="--d-avatar:0ms;--d-graph:260ms;--d-meta:300ms;--d-crown:560ms" data-delay="300">
   <div class="stand-top">
     <div class="stand-avatar">
       <span class="avatar avatar--48"><img src="data:image/jpeg;base64,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" alt="베이비몬스터"></span>
@@ -1742,6 +1763,20 @@ img{display:block;max-width:100%}
   },{passive:true});
 })();
 
+// ----- Who's Your Bias: 아바타 → 라벨 순으로 좌에서 우로 등장 -----
+(function(){
+  var list=document.getElementById('artist-list');
+  if(!list) return;
+  if(!('IntersectionObserver' in window)){ list.classList.add('is-in'); return; }
+  new IntersectionObserver(function(entries,obs){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      list.classList.add('is-in');
+      obs.disconnect();                 // 한 번만 재생
+    });
+  },{threshold:.3}).observe(list);
+})();
+
 // ----- Fan's Pick: 순위가 순차적으로 차오르는 인터랙션 -----
 (function(){
   var podium=document.getElementById('podium');
@@ -1761,7 +1796,7 @@ img{display:block;max-width:100%}
       el.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString();  // easeOutCubic
       if(p<1) requestAnimationFrame(step);
     }
-    timers.push(setTimeout(function(){ requestAnimationFrame(step); }, delay+150));
+    timers.push(setTimeout(function(){ requestAnimationFrame(step); }, delay));
   }
   function run(){
     if(podium.classList.contains('is-in')) return;

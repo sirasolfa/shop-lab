@@ -201,32 +201,49 @@ def build_banners() -> str:
     return "".join(out)
 
 
+ARTIST_STAGGER = 70  # 셀당 등장 간격(ms) — 좌 → 우
+
+
 def build_artists() -> str:
     cells = []
-    for key, name in ARTISTS:
+    for i, (key, name) in enumerate(ARTISTS):
         img = datauri(ASSETS / "artist" / f"{key}.jpg")
         cells.append(
-            f"""<button class="artist" type="button">
+            f"""<button class="artist" type="button" style="--d:{i * ARTIST_STAGGER}ms">
   <span class="avatar avatar--48"><img src="{img}" alt="{esc(name)}"></span>
   <span class="artist-label">{esc(name)}</span>
 </button>"""
         )
     cells.append(
-        '<span class="artist artist--add"><span class="avatar-add" role="button" '
-        'aria-label="아티스트 더보기">' + icon("Plus", 24) + "</span></span>"
+        f'<span class="artist artist--add" style="--d:{len(ARTISTS) * ARTIST_STAGGER}ms">'
+        '<span class="avatar-add" role="button" aria-label="아티스트 더보기">'
+        + icon("Plus", 24) + "</span></span>"
     )
-    return f'<div class="artist-list">{"".join(cells)}<i class="row-end"></i></div>'
+    return f'<div class="artist-list" id="artist-list">{"".join(cells)}<i class="row-end"></i></div>'
+
+
+# Fan's Pick 등장 타임라인 (스탠드별 오프셋 D 에 더해지는 값)
+AVATAR_IN = 0     # ① 아바타 + 순위 뱃지가 아래에서 올라옴
+GRAPH_IN = 260    # ② 그래프(시상대) 차오름
+META_IN = 300     # ③ 이름 + 하트 카운트 텍스트, 카운팅 시작
+CROWN_IN = 560    # ④ 1위 왕관
 
 
 def build_podium() -> str:
     stands = []
-    order = {"third": 0, "second": 1, "first": 2}  # 3위 → 2위 → 1위 순으로 차오름
+    order = {"third": 0, "second": 1, "first": 2}  # 3위 → 2위 → 1위 순으로 진행
     for p in PODIUM:
         img = datauri(ASSETS / "artist" / f"{p['key']}.jpg")
         crown = '<span class="crown">👑</span>' if p["place"] == "first" else ""
-        delay = order[p["place"]] * 180
+        d = order[p["place"]] * 180
+        style = (
+            f"--d-avatar:{d + AVATAR_IN}ms;"
+            f"--d-graph:{d + GRAPH_IN}ms;"
+            f"--d-meta:{d + META_IN}ms;"
+            f"--d-crown:{d + CROWN_IN}ms"
+        )
         stands.append(
-            f"""<div class="stand stand--{p['place']}" style="--d:{delay}ms" data-delay="{delay}">
+            f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d + META_IN}">
   <div class="stand-top">
     <div class="stand-avatar">{crown}
       <span class="avatar avatar--48"><img src="{img}" alt="{esc(p['name'])}"></span>
@@ -538,7 +555,20 @@ img{display:block;max-width:100%}
   padding-left:calc(var(--gutter) - var(--avatar-inset));
   overflow-x:auto;scrollbar-width:none}
 .artist-list::-webkit-scrollbar{display:none}
+/* Figma: 셀 60×79 / 갭 2 / 아바타 48(좌우 6·상하 8) / 라벨 60×15 */
 .artist{display:flex;flex-direction:column;align-items:center;flex:none;width:60px}
+/* 스크롤 진입 시 좌 → 우 로 아바타가 올라오고, 라벨이 뒤따라 뜬다 */
+.artist>.avatar,.avatar-add{opacity:0;transform:translateY(14px) scale(.84);
+  transition:opacity .34s ease var(--d),
+             transform .5s cubic-bezier(.34,1.45,.6,1) var(--d)}
+.artist-list.is-in .artist>.avatar,.artist-list.is-in .avatar-add{opacity:1;transform:none}
+.artist-label{opacity:0;transform:translateY(6px);
+  transition:opacity .3s ease calc(var(--d) + 110ms),
+             transform .34s cubic-bezier(.22,1,.36,1) calc(var(--d) + 110ms)}
+.artist-list.is-in .artist-label{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .artist>.avatar,.avatar-add,.artist-label{transition:none;opacity:1;transform:none}
+}
 .avatar{display:block;border-radius:var(--rounded-full);overflow:hidden;
   border:1px solid var(--border-thumbnail);background:var(--bg-muted)}
 .avatar--48{width:48px;height:48px}
@@ -609,16 +639,19 @@ img{display:block;max-width:100%}
   padding:2px var(--gutter) 0}
 .stand{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-12)}
-.stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);
-  width:100%;opacity:0;transform:translateY(12px);
-  transition:opacity .45s ease var(--d),transform .5s cubic-bezier(.34,1.15,.64,1) var(--d)}
-.podium.is-in .stand-top{opacity:1;transform:none}
-.stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center}
+.stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);width:100%}
+/* ① 아바타 + 순위 뱃지 : 아래에서 위로 */
+.stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center;
+  opacity:0;transform:translateY(18px);
+  transition:opacity .36s ease var(--d-avatar),
+             transform .46s cubic-bezier(.34,1.3,.64,1) var(--d-avatar)}
+.podium.is-in .stand-avatar{opacity:1;transform:none}
 .stand-avatar .avatar{margin:0 0 -4px}
+/* ④ 1위 왕관 */
 .crown{position:absolute;top:-15px;left:50%;font-size:20px;line-height:1;
   opacity:0;transform:translate(-50%,6px) scale(.6);
-  transition:opacity .3s ease calc(var(--d) + 430ms),
-             transform .45s cubic-bezier(.34,1.6,.64,1) calc(var(--d) + 430ms)}
+  transition:opacity .3s ease var(--d-crown),
+             transform .45s cubic-bezier(.34,1.6,.64,1) var(--d-crown)}
 .podium.is-in .crown{opacity:1;transform:translate(-50%,0) scale(1)}
 .rank{padding:2px 6px;border-radius:var(--rounded-full);
   font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
@@ -626,7 +659,11 @@ img{display:block;max-width:100%}
 .rank--first{background:var(--brand1-default);font-size:12px;padding:2px 8px;min-width:36px}
 .rank--second{background:var(--brand1-subtle)}
 .rank--third{background:var(--bg-darkgray-soft)}
-.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%}
+.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .4s ease var(--d-meta),
+             transform .4s cubic-bezier(.22,1,.36,1) var(--d-meta)}
+.podium.is-in .stand-meta{opacity:1;transform:none}
 .stand-name{width:100%;font-size:14px;font-weight:600;line-height:1.4;
   letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stand-count{display:flex;align-items:center;justify-content:center;gap:2px;
@@ -640,7 +677,7 @@ img{display:block;max-width:100%}
 .stand-block-wrap{width:100%;height:var(--h);display:flex;align-items:flex-end}
 .stand-block{width:100%;height:0;border-radius:var(--rounded-lg) var(--rounded-lg) 0 0;
   background:linear-gradient(180deg,var(--bg-gray) 0%,var(--bg-subtler) 100%);
-  transition:height .75s cubic-bezier(.22,1,.36,1) var(--d)}
+  transition:height .75s cubic-bezier(.22,1,.36,1) var(--d-graph)}
 .podium.is-in .stand-block{height:100%}
 .stand--second{--h:70px}
 .stand--first{--h:120px}
@@ -648,8 +685,8 @@ img{display:block;max-width:100%}
 .stand--first .stand-block{background:linear-gradient(180deg,var(--bg-primary) 0%,var(--blue-50) 100%)}
 .stand--third .stand-block{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
 @media (prefers-reduced-motion:reduce){
-  .stand-top,.stand-block,.crown{transition:none}
-  .podium .stand-top{opacity:1;transform:none}
+  .stand-avatar,.stand-meta,.stand-block,.crown{transition:none}
+  .podium .stand-avatar,.podium .stand-meta{opacity:1;transform:none}
   .podium .crown{opacity:1;transform:translate(-50%,0) scale(1)}
   .podium .stand-block{height:100%}
 }
@@ -688,6 +725,7 @@ img{display:block;max-width:100%}
 
 /* ---------- Footer ---------- */
 .footer{background:var(--bg-darkgray-strong);color:var(--text-muted);
+  margin-top:56px;                       /* 직전 섹션 여백 28 + 56 = 84 (기존의 3배) */
   padding:var(--spacing-32) var(--gutter) var(--spacing-40);
   display:flex;flex-direction:column;gap:var(--spacing-20)}
 .ft-logo svg{width:150px;height:auto;opacity:.9}
@@ -825,6 +863,20 @@ JS = """
   },{passive:true});
 })();
 
+// ----- Who's Your Bias: 아바타 → 라벨 순으로 좌에서 우로 등장 -----
+(function(){
+  var list=document.getElementById('artist-list');
+  if(!list) return;
+  if(!('IntersectionObserver' in window)){ list.classList.add('is-in'); return; }
+  new IntersectionObserver(function(entries,obs){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      list.classList.add('is-in');
+      obs.disconnect();                 // 한 번만 재생
+    });
+  },{threshold:.3}).observe(list);
+})();
+
 // ----- Fan's Pick: 순위가 순차적으로 차오르는 인터랙션 -----
 (function(){
   var podium=document.getElementById('podium');
@@ -844,7 +896,7 @@ JS = """
       el.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString();  // easeOutCubic
       if(p<1) requestAnimationFrame(step);
     }
-    timers.push(setTimeout(function(){ requestAnimationFrame(step); }, delay+150));
+    timers.push(setTimeout(function(){ requestAnimationFrame(step); }, delay));
   }
   function run(){
     if(podium.classList.contains('is-in')) return;
