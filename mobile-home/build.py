@@ -174,7 +174,7 @@ CAT_TABS = [
 
 MAIN_BANNERS = [
     dict(kind="coupon", label="WELCOME COUPON",
-         title="회원가입만 해도<br>전상품 <b>1,000원</b> 즉시 할인!", img="main1"),
+         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!", img="main1"),
     dict(kind="zo", label="서툴러서 더 완벽한 친구들",
          title="ZO&FRIENDS<br>LUCKY COLLECTION", img="main2"),
     dict(kind="km", label="전집중, 귀살대 주목!",
@@ -189,7 +189,8 @@ def build_banners() -> str:
         src = datauri(ASSETS / "banner" / f"{b['img']}{ext}")
         bg = f'<div class="mb-bg mb-bg--{b["kind"]}"><img src="{src}" alt=""></div>'
         out.append(
-            f"""<div class="mb-slide">
+            f"""<div class="mb-slide" data-slide="{i}" role="button" tabindex="0"
+     aria-label="메인 배너 {i + 1} — 눌러서 배너 등록 화면 열기">
   {bg}
   <div class="mb-dim"></div>
   <div class="mb-bottom">
@@ -312,28 +313,129 @@ def build_cat_tabs() -> str:
 
 
 def build_footer() -> str:
-    rows = [
-        ("상호", "(주)다날엔터테인먼트"),
-        ("대표이사", "현능호"),
-        ("주소", "(13595) 경기도 성남시 분당구 백현로 93, 11층(수내동, 후너스빌딩)"),
-        ("사업자등록번호", "129-86-70437"),
-        ("통신판매업신고번호", '2012-경기성남-0116 <a href="#">정보확인</a>'),
-        ("개인정보보호관리책임자", "현능호"),
-        ("호스팅 제공자", "아마존웹서비스(AWS)"),
-        ("CS센터/문의", '<a href="mailto:cs@novera.town">cs@novera.town</a>'),
-    ]
-    info = "".join(
-        f'<div class="ft-row"><dt>{esc(k)}</dt><dd>{v}</dd></div>' for k, v in rows
-    )
+    """Figma Footer(5257:59492). 메뉴 13/600 #888e9c, 개인정보처리방침만 14/600 #a6acb7.
+    <b> 태그는 쓰지 않는다 — Pretendard Variable 에서 bolder 가 900 으로 해석됨."""
+    menu = ["공지사항", "FAQ", "이용약관"]
+    menu_html = "".join(f'<a class="ft-menu-item" href="#">{esc(m)}</a>' for m in menu)
+    menu_html += '<a class="ft-menu-item ft-menu-item--strong" href="#">개인정보처리방침</a>'
+
+    def pair(label, value, link=None):
+        v = f'<span class="ft-val">{value}</span>'
+        if link:
+            v += f'<a class="ft-link" href="{link[1]}">{esc(link[0])}</a>'
+        return f'<span class="ft-pair"><span class="ft-key">{esc(label)}</span>{v}</span>'
+
+    sep = ""
+    row1 = sep.join([
+        pair("상호", "(주)다날엔터테인먼트"),
+        pair("대표이사", "현능호"),
+        pair("주소", "(13595) 경기도 성남시 분당구 백현로 93, 11층(수내동, 후너스빌딩)"),
+        pair("사업자등록번호", "129-86-70437"),
+        pair("통신판매업신고번호", "2012-경기성남-0116", ("정보확인", "#")),
+    ])
+    row2 = sep.join([
+        pair("개인정보보호관리책임자", "현능호"),
+        pair("호스팅 제공자", "아마존웹서비스(AWS)"),
+        f'<span class="ft-pair"><span class="ft-key">CS센터/문의</span>'
+        f'<a class="ft-link" href="mailto:cs@novera.town">cs@novera.town</a></span>',
+    ])
+
     return f"""<footer class="footer">
-  <div class="ft-logo">{brand_svg('danal')}</div>
-  <nav class="ft-links">
-    <a href="#">공지사항</a><a href="#">FAQ</a><a href="#">이용약관</a><a href="#"><b>개인정보처리방침</b></a>
-  </nav>
-  <dl class="ft-info">{info}</dl>
-  <div class="ft-sns"><a href="#" aria-label="X">{brand_svg('x')}</a><a href="#" aria-label="Instagram">{brand_svg('insta')}</a></div>
-  <p class="ft-copy">ⓒ 2026. 다날엔터테인먼트. all rights reserved.</p>
+  <div class="ft-divider"></div>
+  <div class="ft-contents">
+    <div class="ft-top">
+      <div class="ft-logo">{brand_svg('danal')}</div>
+      <nav class="ft-menu">{menu_html}</nav>
+    </div>
+    <div class="ft-info">
+      <div class="ft-info-row">{row1}</div>
+      <div class="ft-info-row">{row2}</div>
+    </div>
+    <div class="ft-sns">
+      <a class="ft-sns-item" href="#" aria-label="X">{brand_svg('x')}</a>
+      <a class="ft-sns-item" href="#" aria-label="Instagram">{brand_svg('insta')}</a>
+    </div>
+    <div class="ft-rights">
+      <div class="ft-divider"></div>
+      <p class="ft-copy">© 2026 DANAL Entertainment.Co., Ltd. All rights reserved.</p>
+    </div>
+  </div>
 </footer>"""
+
+
+def build_banner_sheet() -> str:
+    """메인 배너를 누르면 열리는 어드민 등록 시트.
+    배경 이미지 + 텍스트만 입력하면 딤/타이포/페이지네이션은 자동 합성된다."""
+    return f"""<div class="scrim" id="bnScrim" hidden></div>
+<section class="sheet" id="bnSheet" role="dialog" aria-modal="true" aria-labelledby="bnSheetTitle" hidden>
+  <div class="sheet-grip"></div>
+  <header class="sheet-head">
+    <div class="sheet-head-text">
+      <h2 class="sheet-title" id="bnSheetTitle">메인 배너 등록</h2>
+      <p class="sheet-desc">배경 이미지와 텍스트만 입력하면 나머지는 자동으로 만들어져요.</p>
+    </div>
+    <button class="sheet-close" type="button" id="bnClose" aria-label="닫기">{icon('X', 20)}</button>
+  </header>
+
+  <div class="sheet-body">
+    <div class="field">
+      <p class="field-label">미리보기</p>
+      <div class="bn-preview" id="bnPreview">
+        <div class="mb-bg mb-bg--coupon"><img id="bnPvImg" src="" alt=""></div>
+        <div class="mb-dim"></div>
+        <div class="mb-bottom">
+          <div class="mb-text">
+            <p class="mb-label" id="bnPvLabel"></p>
+            <p class="mb-title" id="bnPvTitle"></p>
+          </div>
+          <div class="mb-page"><span class="mb-page-cur" id="bnPvPage">01</span><span class="mb-page-sep">|</span><span class="mb-page-tot">{len(MAIN_BANNERS):02d}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <p class="field-label">배경 이미지<span class="field-req">필수</span></p>
+      <label class="upload" for="bnFile">
+        <input type="file" id="bnFile" accept="image/*" hidden>
+        <span class="upload-thumb"><img id="bnThumb" src="" alt=""></span>
+        <span class="upload-text">
+          <span class="upload-title">이미지 업로드</span>
+          <span class="upload-hint">권장 750×640 (2x) · JPG / PNG / WebP</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="field">
+      <p class="field-label">라벨<span class="field-hint">1줄 · 최대 24자</span></p>
+      <input class="input" id="bnLabel" maxlength="24" placeholder="예) WELCOME COUPON">
+    </div>
+
+    <div class="field">
+      <p class="field-label">타이틀<span class="field-hint">최대 2줄</span></p>
+      <textarea class="input input--area" id="bnTitle" rows="2" maxlength="60"
+        placeholder="예) 회원가입만 해도&#10;전상품 1,000원 즉시 할인!"></textarea>
+    </div>
+
+    <div class="field">
+      <p class="field-label">연결 링크<span class="field-hint">선택</span></p>
+      <input class="input" id="bnLink" placeholder="https://shop.novera.town/...">
+    </div>
+
+    <div class="auto-note">
+      <p class="auto-note-title">{icon('Notice', 16)}자동으로 적용되는 항목</p>
+      <ul class="auto-note-list">
+        <li>하단 그라데이션 딤 (0% → 16% → 64%)</li>
+        <li>라벨 12·SemiBold / 타이틀 20·Bold 타이포와 좌우 여백</li>
+        <li>슬라이드 순번 페이지네이션과 4초 자동 롤링</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="sheet-foot">
+    <button class="btn btn--ghost" type="button" id="bnCancel">취소</button>
+    <button class="btn btn--solid" type="button" id="bnApply">배너 적용</button>
+  </footer>
+</section>"""
 
 
 def build_bottom_nav() -> str:
@@ -527,7 +629,9 @@ img{display:block;max-width:100%}
 .mb-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .mb-label{font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
   color:var(--alpha-white80)}
+/* Title/5 — 20 / Bold 700. <b> 를 쓰면 Pretendard Variable 에서 900 으로 렌더됨 */
 .mb-title{font-size:20px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
+.mb-title b,.mb-title strong{font-weight:700}
 .mb-page{display:flex;align-items:center;justify-content:center;gap:var(--spacing-4);
   padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
   font-variant-numeric:tabular-nums}
@@ -723,24 +827,45 @@ img{display:block;max-width:100%}
 .col-title{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-primary)}
 .col-desc{font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;color:var(--text-tertiary)}
 
-/* ---------- Footer ---------- */
-.footer{background:var(--bg-darkgray-strong);color:var(--text-muted);
+/* ---------- Footer (Figma 5257:59492) ---------- */
+/* 바깥 px 12 + 내부 px 8 = 좌우 거터 20 (본문과 동일) */
+.footer{background:var(--bg-darkgray-strong);
   margin-top:56px;                       /* 직전 섹션 여백 28 + 56 = 84 (기존의 3배) */
-  padding:var(--spacing-32) var(--gutter) var(--spacing-40);
-  display:flex;flex-direction:column;gap:var(--spacing-20)}
-.ft-logo svg{width:150px;height:auto;opacity:.9}
-.ft-links{display:flex;flex-wrap:wrap;gap:var(--spacing-20);
-  font-size:13px;font-weight:600;color:var(--gray-300)}
-.ft-info{display:flex;flex-direction:column;gap:var(--spacing-8)}
-.ft-row{display:flex;gap:var(--spacing-8);font-size:11px;line-height:1.5}
-.ft-row dt{font-weight:600;color:var(--gray-400);flex:none}
-.ft-row dd{color:var(--gray-600)}
-.ft-row a{text-decoration:underline}
-.ft-sns{display:flex;gap:var(--spacing-8)}
-.ft-sns a{width:36px;height:36px;border-radius:var(--rounded-sm);
-  background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center}
-.ft-sns svg{width:20px;height:20px}
-.ft-copy{font-size:10px;line-height:1.5;color:var(--gray-700)}
+  display:flex;flex-direction:column;align-items:center}
+.ft-divider{width:100%;height:1px;background:rgba(255,255,255,.08)}
+.ft-contents{width:100%;display:flex;flex-direction:column;gap:var(--spacing-16);
+  padding:var(--spacing-32) var(--spacing-12) var(--spacing-8)}
+.ft-top{display:flex;flex-direction:column;gap:var(--spacing-12)}
+.ft-logo{padding-left:var(--spacing-8)}
+.ft-logo svg{width:150px;height:40px;opacity:.9}
+.ft-menu{display:flex;flex-wrap:wrap;align-items:center;gap:var(--spacing-16)}
+/* Label/3 — 13 / SemiBold 600 / text-tertiary */
+.ft-menu-item{padding:var(--spacing-8);font-size:13px;font-weight:600;line-height:1.4;
+  letter-spacing:var(--tracking-1);color:var(--text-tertiary)}
+/* Action/2 — 14 / SemiBold 600 / text-muted (굵기가 아니라 크기·명도로 강조) */
+.ft-menu-item--strong{font-size:14px;font-weight:600;line-height:1.5;color:var(--text-muted)}
+.ft-info{display:flex;flex-direction:column;gap:var(--spacing-4);padding:0 var(--spacing-8)}
+.ft-info-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--spacing-8)}
+.ft-pair{display:flex;align-items:flex-start;gap:var(--spacing-8);
+  font-size:13px;line-height:1.4;color:var(--text-tertiary)}
+/* 구분선을 항목 안쪽에 붙여 줄바꿈 시 줄머리에 남지 않도록 */
+.ft-pair:not(:last-child)::after{content:'';flex:none;width:1px;height:8px;margin-top:5px;
+  background:var(--alpha-white24)}
+.ft-key{font-weight:600;letter-spacing:var(--tracking-1);flex:none}   /* Label/3 */
+.ft-val{font-weight:400}                                              /* Body/4 */
+/* Action/underline/3 — 12 / SemiBold 600 / underline */
+.ft-link{padding:2px var(--spacing-4);font-size:12px;font-weight:600;line-height:1.5;
+  letter-spacing:var(--tracking-1);color:var(--text-tertiary);text-decoration:underline}
+.ft-sns{display:flex;gap:var(--spacing-8);padding:0 var(--spacing-8)}
+.ft-sns-item{padding:var(--spacing-4);border-radius:var(--rounded-sm);
+  background:var(--bg-inverse);display:flex;align-items:center;justify-content:center;
+  color:var(--icon-inverse)}
+.ft-sns-item svg{width:24px;height:24px}
+.ft-rights{display:flex;flex-direction:column;padding:0 var(--spacing-8)}
+/* Caption/2 — 11 / Regular 400 / text-secondary */
+.ft-copy{padding:var(--spacing-12) 0;text-align:center;
+  font-size:11px;font-weight:400;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-secondary)}
 
 /* ---------- BottomNavigation ---------- */
 .bottomnav{
@@ -764,6 +889,82 @@ img{display:block;max-width:100%}
 .bn-home-indicator{display:flex;align-items:center;justify-content:center;padding:var(--spacing-8) 0}
 .bn-home-indicator span{width:120px;height:5px;border-radius:100px;background:var(--alpha-black40)}
 @media (prefers-reduced-motion:reduce){ .bottomnav{transition:none} }
+
+/* ---------- 어드민 배너 등록 시트 ---------- */
+.scrim{position:fixed;inset:0;z-index:50;background:var(--bg-dim);
+  opacity:0;transition:opacity .26s ease}
+.scrim.is-open{opacity:1}
+.sheet{
+  position:fixed;left:50%;bottom:0;z-index:51;width:100%;max-width:var(--maxw);
+  transform:translateX(-50%) translateY(100%);
+  transition:transform .32s cubic-bezier(.32,.72,0,1);
+  background:var(--bg-default);border-radius:var(--rounded-lg) var(--rounded-lg) 0 0;
+  max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 -8px 32px rgba(23,28,36,.18);
+}
+.sheet.is-open{transform:translateX(-50%) translateY(0)}
+.sheet-grip{width:36px;height:4px;border-radius:var(--rounded-full);
+  background:var(--bg-gray-strong,var(--gray-300));margin:var(--spacing-8) auto 0}
+.sheet-head{display:flex;align-items:flex-start;gap:var(--spacing-12);
+  padding:var(--spacing-12) var(--gutter) var(--spacing-16)}
+.sheet-head-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sheet-title{font-size:18px;font-weight:600;line-height:1.4;color:var(--text-primary)}
+.sheet-desc{font-size:12px;font-weight:400;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-tertiary)}
+.sheet-close{flex:none;padding:var(--spacing-8);margin:-8px -8px 0 0;color:var(--icon-secondary)}
+.sheet-body{flex:1;min-height:0;overflow-y:auto;padding:0 var(--gutter) var(--spacing-16);
+  display:flex;flex-direction:column;gap:var(--spacing-20)}
+.field{display:flex;flex-direction:column;gap:var(--spacing-8)}
+.field-label{display:flex;align-items:center;gap:var(--spacing-4);
+  font-size:13px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-secondary)}
+.field-req{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
+  background:var(--bg-negative);color:var(--text-negative);
+  font-size:10px;font-weight:600;line-height:1.5}
+.field-hint{font-size:11px;font-weight:400;color:var(--text-muted)}
+.bn-preview{position:relative;width:100%;aspect-ratio:375/320;overflow:hidden;
+  border-radius:var(--rounded-sm);background:var(--bg-muted)}
+.bn-preview .mb-bg img{width:100%;height:100%;object-fit:cover}
+.bn-preview .mb-bottom{bottom:20px}
+.upload{display:flex;align-items:center;gap:var(--spacing-12);padding:var(--spacing-12);
+  border:1px dashed var(--border-default);border-radius:var(--rounded-sm);
+  background:var(--bg-subtler);cursor:pointer}
+.upload-thumb{flex:none;width:56px;height:48px;border-radius:var(--rounded-xs);
+  overflow:hidden;background:var(--bg-gray)}
+.upload-thumb img{width:100%;height:100%;object-fit:cover}
+.upload-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.upload-title{font-size:13px;font-weight:600;line-height:1.4;color:var(--text-primary)}
+.upload-hint{font-size:11px;font-weight:400;line-height:1.4;color:var(--text-muted)}
+.input{width:100%;min-height:var(--componentSize-md-height);
+  padding:var(--spacing-12);border:1px solid var(--border-default);
+  border-radius:var(--rounded-sm);background:var(--bg-default);
+  font-family:inherit;font-size:14px;font-weight:400;line-height:1.4;color:var(--text-primary)}
+.input::placeholder{color:var(--text-disabled)}
+.input:focus{outline:none;border-color:var(--brand1-default);
+  box-shadow:0 0 0 3px var(--brand1-soft)}
+.input--area{resize:none;line-height:1.5}
+.auto-note{padding:var(--spacing-12);border-radius:var(--rounded-md);background:var(--bg-gray);
+  display:flex;flex-direction:column;gap:6px}
+.auto-note-title{display:flex;align-items:center;gap:var(--spacing-4);
+  font-size:13px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-secondary)}
+.auto-note-title .ico{color:var(--icon-secondary)}
+.auto-note-list{list-style:none;display:flex;flex-direction:column;gap:2px}
+.auto-note-list li{position:relative;padding-left:10px;
+  font-size:12px;font-weight:400;line-height:1.5;letter-spacing:var(--tracking-1);
+  color:var(--text-tertiary)}
+.auto-note-list li::before{content:'';position:absolute;left:2px;top:8px;
+  width:3px;height:3px;border-radius:var(--rounded-full);background:var(--text-disabled)}
+.sheet-foot{display:flex;gap:var(--spacing-8);padding:var(--spacing-12) var(--gutter);
+  padding-bottom:calc(var(--spacing-12) + env(safe-area-inset-bottom));
+  border-top:1px solid var(--gray-200);background:var(--bg-default)}
+.btn{flex:1;height:var(--componentSize-md-height);border-radius:var(--rounded-sm);
+  font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1)}
+.btn--ghost{background:var(--bg-gray);color:var(--text-secondary)}
+.btn--solid{background:var(--brand1-default);color:var(--text-inverse)}
+.btn--solid:active{background:var(--brand1-strong)}
+.mb-slide{cursor:pointer}
+@media (prefers-reduced-motion:reduce){ .sheet,.scrim{transition:none} }
 
 @media (max-width:374px){
   :root{--gutter:16px}
@@ -810,15 +1011,17 @@ JS = """
     track.style.transform = 'translateX(-'+(k*100)+'%)';
     if(!animate) void track.offsetWidth;   // reflow 를 강제해 다음 전환이 살아나게
   }
+  function sync(){ track.dataset.active = String(((idx-1)%n+n)%n); }
   function settle(){
     if(idx===n+1){ idx=1; place(idx,false); }        // 마지막 클론 → 첫 원본
     else if(idx===0){ idx=n; place(idx,false); }     // 첫 클론 → 마지막 원본
+    sync();
     moving=false;
     if(guard){ clearTimeout(guard); guard=null; }
   }
   function go(d){
     if(moving) return;
-    moving=true; idx+=d; place(idx,true);
+    moving=true; idx+=d; place(idx,true); sync();
     guard=setTimeout(settle, 700);                   // transitionend 미발생 대비
   }
   track.addEventListener('transitionend',function(e){
@@ -828,15 +1031,25 @@ JS = """
   function play(){ stop(); timer=setInterval(function(){ go(1); }, 4000); }
   function stop(){ if(timer) clearInterval(timer); timer=null; }
 
-  var x0=null,dx=0;
-  box.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; dx=0; stop(); },{passive:true});
-  box.addEventListener('touchmove',function(e){ if(x0!==null) dx=e.touches[0].clientX-x0; },{passive:true});
+  var x0=null,dx=0,swiped=false;
+  box.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; dx=0; swiped=false; stop(); },{passive:true});
+  box.addEventListener('touchmove',function(e){ if(x0!==null){ dx=e.touches[0].clientX-x0; if(Math.abs(dx)>10) swiped=true; } },{passive:true});
   box.addEventListener('touchend',function(){ if(Math.abs(dx)>40) go(dx<0?1:-1); x0=null; play(); });
   box.addEventListener('mouseenter',stop);
   box.addEventListener('mouseleave',play);
-  document.addEventListener('visibilitychange',function(){ document.hidden?stop():play(); });
+  document.addEventListener('visibilitychange',function(){ document.hidden?stop():isPaused||play(); });
 
-  place(idx,false);
+  var isPaused=false;
+  // 스와이프로 끝난 제스처는 클릭으로 취급하지 않는다
+  window.NoveraBanner={
+    active:function(){ return parseInt(track.dataset.active,10)||0; },
+    swiped:function(){ return swiped; },
+    pause:function(){ isPaused=true; stop(); },
+    resume:function(){ isPaused=false; play(); },
+    slidesFor:function(k){ return track.querySelectorAll('.mb-slide[data-slide="'+k+'"]'); }
+  };
+
+  place(idx,false); sync();
   play();
 })();
 
@@ -861,6 +1074,112 @@ JS = """
   window.addEventListener('scroll',function(){
     if(!ticking){ ticking=true; requestAnimationFrame(update); }
   },{passive:true});
+})();
+
+// ----- 메인 배너 클릭 → 어드민 배너 등록 시트 -----
+// 배경 이미지 + 라벨/타이틀만 입력하면 딤·타이포·페이지네이션은 자동 합성된다.
+(function(){
+  var sheet=document.getElementById('bnSheet'), scrim=document.getElementById('bnScrim');
+  if(!sheet||!scrim) return;
+  var elFile=document.getElementById('bnFile'), elThumb=document.getElementById('bnThumb'),
+      elLabel=document.getElementById('bnLabel'), elTitle=document.getElementById('bnTitle'),
+      elLink=document.getElementById('bnLink'),
+      pvImg=document.getElementById('bnPvImg'), pvLabel=document.getElementById('bnPvLabel'),
+      pvTitle=document.getElementById('bnPvTitle'), pvPage=document.getElementById('bnPvPage'),
+      preview=document.getElementById('bnPreview');
+  var target=0, uploaded=null, lastFocus=null;
+
+  function esc(t){ var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+  var NL=String.fromCharCode(10), BR=new RegExp('<br\\s*/?>','gi'), TAG=new RegExp('<[^>]+>','g');
+  function titleHtml(v){ return esc(v).split(NL).slice(0,2).join('<br>'); }
+
+  function paint(){
+    pvLabel.textContent = elLabel.value;
+    pvTitle.innerHTML = titleHtml(elTitle.value);
+    pvPage.textContent = String(target+1).padStart(2,'0');
+  }
+
+  function open(k){
+    target=k;
+    var src=window.NoveraBanner.slidesFor(k)[0];
+    if(!src) return;
+    // 현재 배너 값으로 폼 프리필
+    var bg=src.querySelector('.mb-bg');
+    var img=bg.querySelector('img');
+    elLabel.value=(src.querySelector('.mb-label').textContent||'').trim();
+    elTitle.value=(src.querySelector('.mb-title').innerHTML||'').replace(BR,NL).replace(TAG,'').trim();
+    elLink.value=src.getAttribute('data-href')||'';
+    uploaded=null;
+    var pvBg=preview.querySelector('.mb-bg');
+    pvBg.className='mb-bg '+[].filter.call(bg.classList,function(c){return c!=='mb-bg'}).join(' ');
+    pvBg.style.cssText=bg.style.cssText;
+    pvImg.src=img?img.src:''; elThumb.src=img?img.src:'';
+    pvImg.style.cssText=img?img.style.cssText:'';
+    paint();
+
+    lastFocus=document.activeElement;
+    scrim.hidden=false; sheet.hidden=false;
+    void sheet.offsetWidth;
+    scrim.classList.add('is-open'); sheet.classList.add('is-open');
+    document.body.style.overflow='hidden';
+    window.NoveraBanner.pause();
+    elLabel.focus({preventScroll:true});
+  }
+  function close(){
+    scrim.classList.remove('is-open'); sheet.classList.remove('is-open');
+    document.body.style.overflow='';
+    window.NoveraBanner.resume();
+    setTimeout(function(){ scrim.hidden=true; sheet.hidden=true; },320);
+    if(lastFocus&&lastFocus.focus) lastFocus.focus({preventScroll:true});
+  }
+  function apply(){
+    var slides=window.NoveraBanner.slidesFor(target);   // 원본 + 클론 함께 갱신
+    [].forEach.call(slides,function(sl){
+      sl.querySelector('.mb-label').textContent=elLabel.value;
+      sl.querySelector('.mb-title').innerHTML=titleHtml(elTitle.value);
+      if(elLink.value) sl.setAttribute('data-href',elLink.value);
+      if(uploaded){
+        var bg=sl.querySelector('.mb-bg');
+        bg.className='mb-bg mb-bg--coupon';            // 업로드 이미지는 전체 채움 규칙
+        bg.style.cssText='';
+        var im=bg.querySelector('img');
+        im.src=uploaded; im.style.cssText='';
+      }
+    });
+    close();
+  }
+
+  elFile.addEventListener('change',function(){
+    var f=elFile.files&&elFile.files[0];
+    if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      uploaded=r.result;
+      elThumb.src=uploaded;
+      var pvBg=preview.querySelector('.mb-bg');
+      pvBg.className='mb-bg mb-bg--coupon'; pvBg.style.cssText='';
+      pvImg.src=uploaded; pvImg.style.cssText='';
+    };
+    r.readAsDataURL(f);
+  });
+  elLabel.addEventListener('input',paint);
+  elTitle.addEventListener('input',paint);
+
+  document.getElementById('bnClose').addEventListener('click',close);
+  document.getElementById('bnCancel').addEventListener('click',close);
+  document.getElementById('bnApply').addEventListener('click',apply);
+  scrim.addEventListener('click',close);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!sheet.hidden) close(); });
+
+  document.querySelectorAll('.mb-slide').forEach(function(sl){
+    sl.addEventListener('click',function(){
+      if(window.NoveraBanner.swiped()) return;        // 스와이프 제스처는 무시
+      open(parseInt(sl.getAttribute('data-slide'),10)||0);
+    });
+    sl.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(parseInt(sl.getAttribute('data-slide'),10)||0); }
+    });
+  });
 })();
 
 // ----- Who's Your Bias: 아바타 → 라벨 순으로 좌에서 우로 등장 -----
@@ -997,13 +1316,13 @@ def build() -> str:
   </section>
 
   <section class="sec">
-    {section_header("New Arrival", "따끈따끈 새로운 상품을 만나보세요!")}
-    {product_row(S['new'])}
+    {section_header("Now Trending", "지금 이 순간, 핫한 인기 상품들만 모았어요")}
+    {product_row(S['trend'])}
   </section>
 
   <section class="sec">
-    {section_header("Now Trending", "지금 이 순간, 핫한 인기 상품들만 모았어요")}
-    {product_row(S['trend'])}
+    {section_header("New Arrival", "따끈따끈 새로운 상품을 만나보세요!")}
+    {product_row(S['new'])}
   </section>
 
   <div class="inline-banner">
@@ -1013,12 +1332,13 @@ def build() -> str:
   {build_collections()}
 
   <section class="sec">
-    {section_header("무료배송 상품", "배송비 부담 없이 바로 담아보세요")}
+    {section_header("Free Shipping", "배송비 부담 없이 바로 담아보세요")}
     {product_row(S['free'])}
   </section>
 
   {build_footer()}
   {build_bottom_nav()}
+  {build_banner_sheet()}
 </div>"""
 
     return f"""<!doctype html>
