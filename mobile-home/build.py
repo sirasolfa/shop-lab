@@ -195,11 +195,21 @@ def build_banners() -> str:
   <div class="mb-dim"></div>
   <div class="mb-bottom">
     <div class="mb-text"><p class="mb-label">{b['label']}</p><p class="mb-title">{b['title']}</p></div>
-    <div class="mb-page"><span class="mb-page-cur">{i + 1:02d}</span><span class="mb-page-sep">|</span><span class="mb-page-tot">{len(MAIN_BANNERS):02d}</span></div>
   </div>
 </div>"""
         )
     return "".join(out)
+
+
+def build_banner_pagination() -> str:
+    """페이지네이션은 슬라이드 콘텐츠에 속하지 않는 고정 오버레이 —
+    이미지와 함께 슬라이드되지 않고 같은 자리에서 숫자만 바뀐다.
+    (컨트롤 위젯이 콘텐츠처럼 밀려나가면 위치를 추적하기 어려워지므로 고정을 택함)"""
+    return (
+        '<div class="mb-pagination" id="mbPagination" aria-hidden="true">'
+        f'<span class="mb-page-cur">01</span><span class="mb-page-sep">|</span>'
+        f'<span class="mb-page-tot">{len(MAIN_BANNERS):02d}</span></div>'
+    )
 
 
 ARTIST_STAGGER = 70  # 셀당 등장 간격(ms) — 좌 → 우
@@ -224,10 +234,12 @@ def build_artists() -> str:
 
 
 # Fan's Pick 등장 타임라인 (스탠드별 오프셋 D 에 더해지는 값)
-AVATAR_IN = 0     # ① 아바타 + 순위 뱃지가 아래에서 올라옴
-GRAPH_IN = 260    # ② 그래프(시상대) 차오름
-META_IN = 300     # ③ 이름 + 하트 카운트 텍스트, 카운팅 시작
-CROWN_IN = 560    # ④ 1위 왕관
+# 그래프가 먼저 차오르고, 그래프가 올라가는 초반에 하트+숫자 카운팅이 시작되고,
+# 그래프가 다 올라갈 즈음에 아바타 · 아티스트 이름 · 순위 뱃지가 아래에서 올라온다.
+GRAPH_IN = 0      # ① 그래프(시상대)가 가장 먼저 차오르기 시작
+COUNT_IN = 150    # ② 그래프가 올라가기 시작한 직후 — 하트 아이콘 + 숫자 카운팅 시작
+AVATAR_IN = 550   # ③ 그래프 애니메이션(750ms)이 끝나갈 즈음 — 아바타 + 이름 + 순위 뱃지
+CROWN_IN = AVATAR_IN + 120  # ④ 아바타가 자리잡은 직후 1위 왕관 pop-in
 
 
 def build_podium() -> str:
@@ -238,13 +250,13 @@ def build_podium() -> str:
         crown = '<span class="crown">👑</span>' if p["place"] == "first" else ""
         d = order[p["place"]] * 180
         style = (
-            f"--d-avatar:{d + AVATAR_IN}ms;"
             f"--d-graph:{d + GRAPH_IN}ms;"
-            f"--d-meta:{d + META_IN}ms;"
+            f"--d-count:{d + COUNT_IN}ms;"
+            f"--d-avatar:{d + AVATAR_IN}ms;"
             f"--d-crown:{d + CROWN_IN}ms"
         )
         stands.append(
-            f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d + META_IN}">
+            f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d + COUNT_IN}">
   <div class="stand-top">
     <div class="stand-avatar">{crown}
       <span class="avatar avatar--48"><img src="{img}" alt="{esc(p['name'])}"></span>
@@ -383,12 +395,12 @@ def build_banner_sheet() -> str:
       <div class="bn-preview" id="bnPreview">
         <div class="mb-bg mb-bg--coupon"><img id="bnPvImg" src="" alt=""></div>
         <div class="mb-dim"></div>
-        <div class="mb-bottom">
+        <div class="mb-bottom mb-bottom--preview">
           <div class="mb-text">
             <p class="mb-label" id="bnPvLabel"></p>
             <p class="mb-title" id="bnPvTitle"></p>
           </div>
-          <div class="mb-page"><span class="mb-page-cur" id="bnPvPage">01</span><span class="mb-page-sep">|</span><span class="mb-page-tot">{len(MAIN_BANNERS):02d}</span></div>
+          <div class="mb-pagination-inline"><span class="mb-page-cur" id="bnPvPage">01</span><span class="mb-page-sep">|</span><span class="mb-page-tot">{len(MAIN_BANNERS):02d}</span></div>
         </div>
       </div>
     </div>
@@ -438,6 +450,32 @@ def build_banner_sheet() -> str:
   </footer>
 </section>
 <div class="bn-toast" id="bnToast">{icon('CircleCheckFill', 16)}<span id="bnToastMsg">배너가 적용되었어요</span></div>"""
+
+
+def build_gnb() -> str:
+    """데스크탑 GNB — Figma NDS TopNavigation(viewport=desktop) 컴포넌트를 기준으로 구현.
+    node 3725:37627 (Desktop/HOM/Default_KR) 실측: Header h80/px120, Menu h56/px120,
+    SearchField 360px, 아이콘 20px, lang Solid h32, 메뉴 6항목(ALBUM/MD/EVENT/COLLECTION/ARTIST/SPHERE+NEW).
+    라이브 사이트 실제 GNB는 'EVENT' 대신 'LIVE MD' 라벨을 쓰고 있어 -- 실제 서비스와
+    맞추기 위해 라이브 라벨/링크를 그대로 사용했다 (하단 표참고).
+      ALBUM      -> /categories/PCTGY1
+      MD         -> /categories/PCTGY2
+      LIVE MD    -> /categories/PCTGY3  (Figma 라벨은 EVENT)
+      COLLECTION -> /exhibitions
+      ARTIST     -> /artists
+      SPHERE(NEW)-> /kimetsu_ex_kr
+    로그인 버튼은 실제 로그인 페이지(/sign-in)로 연결."""
+    template = (pathlib.Path(__file__).parent / "assets" / "gnb.html").read_text(encoding="utf-8")
+    return (
+        template
+        .replace("__LOGO__", brand_svg("logo-novera-shop"))
+        .replace("__SEARCH_ICON__", icon("Search", 20))
+        .replace("__USER_ICON__", icon("User", 20))
+        .replace("__HEART_ICON__", icon("Heart", 20))
+        .replace("__BAG_ICON__", icon("Bag", 20))
+        .replace("__GLOBE_ICON__", icon("Globe", 18))
+        .replace("__CHEVRON_ICON__", icon("ChevronRight", 14, "gnb-caret"))
+    )
 
 
 def build_bottom_nav() -> str:
@@ -608,6 +646,40 @@ img{display:block;max-width:100%}
 .tabbar--collection .tabs{padding:0 var(--gutter)}
 .tabbar--collection .tab-label{padding:var(--spacing-8) var(--spacing-16)}
 
+/* ---------- GNB (Desktop TopNavigation, Figma 3725:37627) ---------- */
+/* 모바일에서는 숨겨두고 데스크탑 브레이크포인트에서만 노출 */
+.gnb{display:none}
+.dt-wrap{width:min(1200px,calc(100% - 48px));margin-inline:auto}
+.gnb-top{display:flex;align-items:center;justify-content:space-between;
+  height:80px;padding:16px 0;background:var(--bg-default)}
+.gnb-head{display:flex;align-items:center;gap:var(--spacing-24)}
+.gnb-logo{display:flex;flex:none}
+.gnb-logo svg{width:149px;height:18px}
+.gnb-search{display:flex;align-items:center;justify-content:space-between;gap:var(--spacing-8);
+  width:280px;height:44px;padding:var(--spacing-12);border:1px solid var(--border-default);
+  border-radius:var(--rounded-sm);color:var(--text-muted);font-size:14px;line-height:1.4}
+.gnb-search .ico{flex:none;color:var(--icon-secondary)}
+.gnb-actions{display:flex;align-items:center;gap:var(--spacing-8)}
+.gnb-icons{display:flex;align-items:center}
+.gnb-icon{display:flex;align-items:center;justify-content:center;padding:var(--spacing-12);
+  border-radius:var(--rounded-sm);color:var(--icon-primary)}
+.gnb-lang{display:flex;align-items:center;gap:6px;height:32px;padding:0 var(--spacing-8) 0 var(--spacing-12);
+  border-radius:var(--rounded-xs);background:var(--bg-gray);
+  font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);color:var(--text-secondary)}
+.gnb-lang .ico{color:var(--icon-secondary)}
+.gnb-caret{transform:rotate(90deg)}
+.gnb-login{display:flex;align-items:center;justify-content:center;height:32px;padding:0 var(--spacing-12);
+  border-radius:var(--rounded-xs);background:var(--bg-gray);
+  font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);color:var(--text-secondary)}
+.gnb-menu{display:flex;align-items:center;gap:var(--spacing-32);height:56px;background:var(--bg-default)}
+.gnb-menu-item{position:relative;display:flex;align-items:center;gap:var(--spacing-8);height:46px;
+  padding:var(--spacing-12) var(--spacing-8);font-size:16px;font-weight:600;line-height:1.4;
+  color:var(--text-primary)}
+.gnb-badge{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
+  background:var(--bg-negative);color:var(--text-negative);
+  font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5}
+.gnb-divider{height:1px;background:var(--gray-200)}
+
 /* ---------- Main Banner ---------- */
 .mainbanner{position:relative;height:320px;overflow:hidden;touch-action:pan-y}
 .mb-track{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1)}
@@ -623,20 +695,22 @@ img{display:block;max-width:100%}
   mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%)}
 .mb-dim{position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(0,0,0,0) 0%,var(--alpha-black16) 50%,var(--alpha-black64) 100%)}
-/* Figma: Bottom Container 는 좌우 거터가 아닌 고정 폭 320 중앙 정렬 */
-.mb-bottom{
-  position:absolute;left:0;right:0;bottom:28px;margin:0 auto;width:min(320px,calc(100% - 40px));
-  display:flex;align-items:flex-end;gap:var(--spacing-24);
-}
+/* Figma: Bottom Container 는 좌우 거터가 아닌 고정 폭 320 중앙 정렬.
+   페이지네이션은 .mb-track 밖으로 분리된 고정 오버레이 -- 텍스트(슬라이드 콘텐츠)와
+   같은 폭·같은 bottom 오프셋을 공유해서, 텍스트는 왼쪽에 붙고 페이지네이션은
+   오른쪽에 붙는 같은 줄처럼 보인다. 이 폭이 데스크탑에서 넓어지면 그 사이 간격만 커진다. */
+.mb-bottom{position:absolute;left:0;right:0;bottom:28px;margin:0 auto;
+  width:min(320px,calc(100% - 40px));display:flex}
 .mb-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .mb-label{font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
   color:var(--alpha-white80)}
 /* Title/5 — 20 / Bold 700. <b> 를 쓰면 Pretendard Variable 에서 900 으로 렌더됨 */
 .mb-title{font-size:20px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
 .mb-title b,.mb-title strong{font-weight:700}
-.mb-page{display:flex;align-items:center;justify-content:center;gap:var(--spacing-4);
-  padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
-  font-variant-numeric:tabular-nums}
+.mb-pagination{position:absolute;left:0;right:0;bottom:28px;margin:0 auto;
+  width:min(320px,calc(100% - 40px));display:flex;align-items:flex-end;justify-content:flex-end;
+  gap:var(--spacing-4);padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
+  font-variant-numeric:tabular-nums;pointer-events:none;z-index:2}
 .mb-page-cur{font-weight:600;color:var(--text-inverse)}
 .mb-page-sep,.mb-page-tot{color:var(--alpha-white40)}
 
@@ -719,9 +793,12 @@ img{display:block;max-width:100%}
 .pcard-title{display:flex;flex-direction:column;gap:2px}
 .pcard-brand{font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.4;
   color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* NDS ProductTitle-atomic 는 1줄/2줄 컴포넌트가 모두 있음 — 잘리지 않도록 2줄까지 허용.
+   min-height 로 2줄 자리를 항상 예약해 같은 행에서 1줄/2줄 상품명이 섞여도
+   가격 영역의 세로 위치가 흔들리지 않게 함 */
 .pcard-name{font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
-  color:var(--text-primary);
-  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  color:var(--text-primary);min-height:calc(14px * 1.4 * 2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pcard-price-area{display:flex;flex-direction:column;gap:var(--spacing-8)}
 .price{display:flex;flex-wrap:wrap;align-items:center;gap:2px}
 .price-cur{font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
@@ -746,14 +823,14 @@ img{display:block;max-width:100%}
 .stand{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-12)}
 .stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);width:100%}
-/* ① 아바타 + 순위 뱃지 : 아래에서 위로 */
+/* ③ 아바타 + 순위 뱃지 : 그래프가 끝나갈 즈음 아래에서 위로 */
 .stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center;
   opacity:0;transform:translateY(18px);
   transition:opacity .36s ease var(--d-avatar),
              transform .46s cubic-bezier(.34,1.3,.64,1) var(--d-avatar)}
 .podium.is-in .stand-avatar{opacity:1;transform:none}
 .stand-avatar .avatar{margin:0 0 -4px}
-/* ④ 1위 왕관 */
+/* ④ 1위 왕관 : 아바타가 자리잡은 직후 */
 .crown{position:absolute;top:-15px;left:50%;font-size:20px;line-height:1;
   opacity:0;transform:translate(-50%,6px) scale(.6);
   transition:opacity .3s ease var(--d-crown),
@@ -765,20 +842,26 @@ img{display:block;max-width:100%}
 .rank--first{background:var(--brand1-default);font-size:12px;padding:2px 8px;min-width:36px}
 .rank--second{background:var(--brand1-subtle)}
 .rank--third{background:var(--bg-darkgray-soft)}
-.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;
-  opacity:0;transform:translateY(8px);
-  transition:opacity .4s ease var(--d-meta),
-             transform .4s cubic-bezier(.22,1,.36,1) var(--d-meta)}
-.podium.is-in .stand-meta{opacity:1;transform:none}
+.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%}
+/* ③ 이름 : 아바타와 같은 타이밍(그래프가 끝나갈 즈음) */
 .stand-name{width:100%;font-size:14px;font-weight:600;line-height:1.4;
-  letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .32s ease var(--d-avatar),
+             transform .34s cubic-bezier(.22,1,.36,1) var(--d-avatar)}
+.podium.is-in .stand-name{opacity:1;transform:none}
+/* ② 하트 + 숫자 카운팅 : 그래프가 올라가기 시작한 직후 */
 .stand-count{display:flex;align-items:center;justify-content:center;gap:2px;
   font-size:12px;letter-spacing:var(--tracking-1);line-height:1.4;color:var(--text-tertiary);
-  font-variant-numeric:tabular-nums}
+  font-variant-numeric:tabular-nums;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .34s ease var(--d-count),
+             transform .36s cubic-bezier(.22,1,.36,1) var(--d-count)}
+.podium.is-in .stand-count{opacity:1;transform:none}
 .stand-count .ico{color:var(--icon-fill)}
 .stand--first .stand-count{font-weight:600;color:var(--brand1-default)}
 .stand--first .stand-count .ico{color:var(--brand1-default)}
-/* 시상대: 3위 → 2위 → 1위 순으로 아래에서 위로 차오름.
+/* 시상대: 3위 → 2위 → 1위 순으로, 그래프가 가장 먼저 아래에서 위로 차오름.
    래퍼가 최종 높이를 미리 점유하므로 애니메이션 중 아래 콘텐츠가 밀리지 않음 */
 .stand-block-wrap{width:100%;height:var(--h);display:flex;align-items:flex-end}
 .stand-block{width:100%;height:0;border-radius:var(--rounded-lg) var(--rounded-lg) 0 0;
@@ -791,8 +874,8 @@ img{display:block;max-width:100%}
 .stand--first .stand-block{background:linear-gradient(180deg,var(--bg-primary) 0%,var(--blue-50) 100%)}
 .stand--third .stand-block{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
 @media (prefers-reduced-motion:reduce){
-  .stand-avatar,.stand-meta,.stand-block,.crown{transition:none}
-  .podium .stand-avatar,.podium .stand-meta{opacity:1;transform:none}
+  .stand-avatar,.stand-name,.stand-count,.stand-block,.crown{transition:none}
+  .podium .stand-avatar,.podium .stand-name,.podium .stand-count{opacity:1;transform:none}
   .podium .crown{opacity:1;transform:translate(-50%,0) scale(1)}
   .podium .stand-block{height:100%}
 }
@@ -932,6 +1015,12 @@ img{display:block;max-width:100%}
   border-radius:var(--rounded-sm);background:var(--bg-muted)}
 .bn-preview .mb-bg img{width:100%;height:100%;object-fit:cover}
 .bn-preview .mb-bottom{bottom:20px}
+/* 등록 시트의 미리보기는 실제 배너와 달리 정적 목업이라 텍스트+페이지네이션을
+   한 줄(flex)로 같이 둔다 -- 실제 배너 쪽의 "고정 오버레이" 분리와는 무관 */
+.mb-bottom--preview{align-items:flex-end;gap:var(--spacing-24)}
+.mb-pagination-inline{display:flex;align-items:center;justify-content:center;gap:var(--spacing-4);
+  padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
+  font-variant-numeric:tabular-nums;flex:none}
 .upload{display:flex;align-items:center;gap:var(--spacing-12);padding:var(--spacing-12);
   border:1px dashed var(--border-default);border-radius:var(--rounded-sm);
   background:var(--bg-subtler);cursor:pointer}
@@ -995,6 +1084,50 @@ img{display:block;max-width:100%}
   :root{--gutter:16px}
   .pcard{flex-basis:132px} .pcard-img{width:132px;height:132px}
 }
+
+/* =========================================================================
+   Desktop 반응형 (1440px 기준 설계, 1200px 캡)
+   1440 뷰포트에서 --gutter 가 정확히 120px 이 되어 콘텐츠가 1200px 로 맞춰짐
+   (Figma TopNavigation 의 px-120 과 동일한 결과). 1024~1440 사이에서는 최소
+   24px 여백을 보장하고, 1440 을 넘는 와이드 모니터에서도 1200px 에서 더 안
+   늘어나고 중앙 정렬만 된다.
+   ========================================================================= */
+@media (min-width:1024px){
+  :root{
+    --gutter: max(24px, calc((100% - 1200px)/2));
+    --gutter-header: var(--gutter);
+    --gutter-tabs: var(--gutter);
+  }
+
+  /* 모바일의 "휴대폰 프레임" 카드 형태를 버리고 일반 웹페이지처럼 전체 폭 사용 */
+  .app{max-width:none;box-shadow:none;padding-bottom:0}
+  body{display:block}
+
+  /* 모바일 헤더 + 카테고리 탭 → 데스크탑 GNB 로 교체 */
+  .header,.tabbar--category{display:none}
+  .gnb{display:block}
+
+  /* 모바일 하단 탭바는 데스크탑에서 GNB 메뉴가 대신하므로 숨김 */
+  .bottomnav{display:none}
+
+  /* ---- 메인 배너 : 높이는 고정값으로 유지(뷰포트 폭에 따라 늘어나지 않음),
+     텍스트와 페이지네이션 박스만 넓혀서 그 사이 간격만 커지게 함 ---- */
+  .mainbanner{height:420px}
+  .mb-slide{height:420px}
+  .mb-bg--km img{height:280px}
+  .mb-bg--zo img{width:340px;height:270px;margin-top:56px}
+  .mb-bottom,.mb-pagination{width:min(1200px,calc(100% - 80px));bottom:40px}
+  .mb-label{font-size:13px}
+  .mb-title{font-size:28px}
+
+  /* ---- 상품 카드 : Figma 데스크탑 홈 상품 리스트 실측(280px, gap 20px) ---- */
+  .prow{gap:20px}
+  .pcard{flex-basis:280px}
+  .pcard-img{width:280px;height:280px}
+
+  /* ---- 컬렉션 히어로 배너도 프로모션 카드 폭에 맞춰 살짝 키움 ---- */
+  .col-hero{height:200px}
+}
 """
 
 # ---------------------------------------------------------------- JS
@@ -1016,6 +1149,7 @@ JS = """
 (function(){
   var track=document.querySelector('.mb-track');
   var box=document.querySelector('.mainbanner');
+  var pageCur=document.querySelector('#mbPagination .mb-page-cur');
   if(!track||!box) return;
   var real=[].slice.call(track.children);
   var n=real.length;
@@ -1036,7 +1170,11 @@ JS = """
     track.style.transform = 'translateX(-'+(k*100)+'%)';
     if(!animate) void track.offsetWidth;   // reflow 를 강제해 다음 전환이 살아나게
   }
-  function sync(){ track.dataset.active = String(((idx-1)%n+n)%n); }
+  function sync(){
+    var active=((idx-1)%n+n)%n;
+    track.dataset.active = String(active);
+    if(pageCur) pageCur.textContent = String(active+1).padStart(2,'0');
+  }
   function settle(){
     if(idx===n+1){ idx=1; place(idx,false); }        // 마지막 클론 → 첫 원본
     else if(idx===0){ idx=n; place(idx,false); }     // 첫 클론 → 마지막 원본
@@ -1384,10 +1522,12 @@ def build() -> str:
     </div>
   </header>
 
+{build_gnb()}
   {build_cat_tabs()}
 
   <section class="mainbanner">
     <div class="mb-track">{build_banners()}</div>
+    {build_banner_pagination()}
   </section>
 
   <section class="sec sec--bias">

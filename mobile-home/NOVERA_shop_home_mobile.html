@@ -155,6 +155,40 @@ img{display:block;max-width:100%}
 .tabbar--collection .tabs{padding:0 var(--gutter)}
 .tabbar--collection .tab-label{padding:var(--spacing-8) var(--spacing-16)}
 
+/* ---------- GNB (Desktop TopNavigation, Figma 3725:37627) ---------- */
+/* 모바일에서는 숨겨두고 데스크탑 브레이크포인트에서만 노출 */
+.gnb{display:none}
+.dt-wrap{width:min(1200px,calc(100% - 48px));margin-inline:auto}
+.gnb-top{display:flex;align-items:center;justify-content:space-between;
+  height:80px;padding:16px 0;background:var(--bg-default)}
+.gnb-head{display:flex;align-items:center;gap:var(--spacing-24)}
+.gnb-logo{display:flex;flex:none}
+.gnb-logo svg{width:149px;height:18px}
+.gnb-search{display:flex;align-items:center;justify-content:space-between;gap:var(--spacing-8);
+  width:280px;height:44px;padding:var(--spacing-12);border:1px solid var(--border-default);
+  border-radius:var(--rounded-sm);color:var(--text-muted);font-size:14px;line-height:1.4}
+.gnb-search .ico{flex:none;color:var(--icon-secondary)}
+.gnb-actions{display:flex;align-items:center;gap:var(--spacing-8)}
+.gnb-icons{display:flex;align-items:center}
+.gnb-icon{display:flex;align-items:center;justify-content:center;padding:var(--spacing-12);
+  border-radius:var(--rounded-sm);color:var(--icon-primary)}
+.gnb-lang{display:flex;align-items:center;gap:6px;height:32px;padding:0 var(--spacing-8) 0 var(--spacing-12);
+  border-radius:var(--rounded-xs);background:var(--bg-gray);
+  font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);color:var(--text-secondary)}
+.gnb-lang .ico{color:var(--icon-secondary)}
+.gnb-caret{transform:rotate(90deg)}
+.gnb-login{display:flex;align-items:center;justify-content:center;height:32px;padding:0 var(--spacing-12);
+  border-radius:var(--rounded-xs);background:var(--bg-gray);
+  font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);color:var(--text-secondary)}
+.gnb-menu{display:flex;align-items:center;gap:var(--spacing-32);height:56px;background:var(--bg-default)}
+.gnb-menu-item{position:relative;display:flex;align-items:center;gap:var(--spacing-8);height:46px;
+  padding:var(--spacing-12) var(--spacing-8);font-size:16px;font-weight:600;line-height:1.4;
+  color:var(--text-primary)}
+.gnb-badge{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
+  background:var(--bg-negative);color:var(--text-negative);
+  font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5}
+.gnb-divider{height:1px;background:var(--gray-200)}
+
 /* ---------- Main Banner ---------- */
 .mainbanner{position:relative;height:320px;overflow:hidden;touch-action:pan-y}
 .mb-track{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1)}
@@ -170,20 +204,22 @@ img{display:block;max-width:100%}
   mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%)}
 .mb-dim{position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(0,0,0,0) 0%,var(--alpha-black16) 50%,var(--alpha-black64) 100%)}
-/* Figma: Bottom Container 는 좌우 거터가 아닌 고정 폭 320 중앙 정렬 */
-.mb-bottom{
-  position:absolute;left:0;right:0;bottom:28px;margin:0 auto;width:min(320px,calc(100% - 40px));
-  display:flex;align-items:flex-end;gap:var(--spacing-24);
-}
+/* Figma: Bottom Container 는 좌우 거터가 아닌 고정 폭 320 중앙 정렬.
+   페이지네이션은 .mb-track 밖으로 분리된 고정 오버레이 -- 텍스트(슬라이드 콘텐츠)와
+   같은 폭·같은 bottom 오프셋을 공유해서, 텍스트는 왼쪽에 붙고 페이지네이션은
+   오른쪽에 붙는 같은 줄처럼 보인다. 이 폭이 데스크탑에서 넓어지면 그 사이 간격만 커진다. */
+.mb-bottom{position:absolute;left:0;right:0;bottom:28px;margin:0 auto;
+  width:min(320px,calc(100% - 40px));display:flex}
 .mb-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .mb-label{font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
   color:var(--alpha-white80)}
 /* Title/5 — 20 / Bold 700. <b> 를 쓰면 Pretendard Variable 에서 900 으로 렌더됨 */
 .mb-title{font-size:20px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
 .mb-title b,.mb-title strong{font-weight:700}
-.mb-page{display:flex;align-items:center;justify-content:center;gap:var(--spacing-4);
-  padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
-  font-variant-numeric:tabular-nums}
+.mb-pagination{position:absolute;left:0;right:0;bottom:28px;margin:0 auto;
+  width:min(320px,calc(100% - 40px));display:flex;align-items:flex-end;justify-content:flex-end;
+  gap:var(--spacing-4);padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
+  font-variant-numeric:tabular-nums;pointer-events:none;z-index:2}
 .mb-page-cur{font-weight:600;color:var(--text-inverse)}
 .mb-page-sep,.mb-page-tot{color:var(--alpha-white40)}
 
@@ -266,9 +302,12 @@ img{display:block;max-width:100%}
 .pcard-title{display:flex;flex-direction:column;gap:2px}
 .pcard-brand{font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.4;
   color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* NDS ProductTitle-atomic 는 1줄/2줄 컴포넌트가 모두 있음 — 잘리지 않도록 2줄까지 허용.
+   min-height 로 2줄 자리를 항상 예약해 같은 행에서 1줄/2줄 상품명이 섞여도
+   가격 영역의 세로 위치가 흔들리지 않게 함 */
 .pcard-name{font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
-  color:var(--text-primary);
-  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  color:var(--text-primary);min-height:calc(14px * 1.4 * 2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pcard-price-area{display:flex;flex-direction:column;gap:var(--spacing-8)}
 .price{display:flex;flex-wrap:wrap;align-items:center;gap:2px}
 .price-cur{font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
@@ -293,14 +332,14 @@ img{display:block;max-width:100%}
 .stand{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-12)}
 .stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);width:100%}
-/* ① 아바타 + 순위 뱃지 : 아래에서 위로 */
+/* ③ 아바타 + 순위 뱃지 : 그래프가 끝나갈 즈음 아래에서 위로 */
 .stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center;
   opacity:0;transform:translateY(18px);
   transition:opacity .36s ease var(--d-avatar),
              transform .46s cubic-bezier(.34,1.3,.64,1) var(--d-avatar)}
 .podium.is-in .stand-avatar{opacity:1;transform:none}
 .stand-avatar .avatar{margin:0 0 -4px}
-/* ④ 1위 왕관 */
+/* ④ 1위 왕관 : 아바타가 자리잡은 직후 */
 .crown{position:absolute;top:-15px;left:50%;font-size:20px;line-height:1;
   opacity:0;transform:translate(-50%,6px) scale(.6);
   transition:opacity .3s ease var(--d-crown),
@@ -312,20 +351,26 @@ img{display:block;max-width:100%}
 .rank--first{background:var(--brand1-default);font-size:12px;padding:2px 8px;min-width:36px}
 .rank--second{background:var(--brand1-subtle)}
 .rank--third{background:var(--bg-darkgray-soft)}
-.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;
-  opacity:0;transform:translateY(8px);
-  transition:opacity .4s ease var(--d-meta),
-             transform .4s cubic-bezier(.22,1,.36,1) var(--d-meta)}
-.podium.is-in .stand-meta{opacity:1;transform:none}
+.stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%}
+/* ③ 이름 : 아바타와 같은 타이밍(그래프가 끝나갈 즈음) */
 .stand-name{width:100%;font-size:14px;font-weight:600;line-height:1.4;
-  letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .32s ease var(--d-avatar),
+             transform .34s cubic-bezier(.22,1,.36,1) var(--d-avatar)}
+.podium.is-in .stand-name{opacity:1;transform:none}
+/* ② 하트 + 숫자 카운팅 : 그래프가 올라가기 시작한 직후 */
 .stand-count{display:flex;align-items:center;justify-content:center;gap:2px;
   font-size:12px;letter-spacing:var(--tracking-1);line-height:1.4;color:var(--text-tertiary);
-  font-variant-numeric:tabular-nums}
+  font-variant-numeric:tabular-nums;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .34s ease var(--d-count),
+             transform .36s cubic-bezier(.22,1,.36,1) var(--d-count)}
+.podium.is-in .stand-count{opacity:1;transform:none}
 .stand-count .ico{color:var(--icon-fill)}
 .stand--first .stand-count{font-weight:600;color:var(--brand1-default)}
 .stand--first .stand-count .ico{color:var(--brand1-default)}
-/* 시상대: 3위 → 2위 → 1위 순으로 아래에서 위로 차오름.
+/* 시상대: 3위 → 2위 → 1위 순으로, 그래프가 가장 먼저 아래에서 위로 차오름.
    래퍼가 최종 높이를 미리 점유하므로 애니메이션 중 아래 콘텐츠가 밀리지 않음 */
 .stand-block-wrap{width:100%;height:var(--h);display:flex;align-items:flex-end}
 .stand-block{width:100%;height:0;border-radius:var(--rounded-lg) var(--rounded-lg) 0 0;
@@ -338,8 +383,8 @@ img{display:block;max-width:100%}
 .stand--first .stand-block{background:linear-gradient(180deg,var(--bg-primary) 0%,var(--blue-50) 100%)}
 .stand--third .stand-block{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
 @media (prefers-reduced-motion:reduce){
-  .stand-avatar,.stand-meta,.stand-block,.crown{transition:none}
-  .podium .stand-avatar,.podium .stand-meta{opacity:1;transform:none}
+  .stand-avatar,.stand-name,.stand-count,.stand-block,.crown{transition:none}
+  .podium .stand-avatar,.podium .stand-name,.podium .stand-count{opacity:1;transform:none}
   .podium .crown{opacity:1;transform:translate(-50%,0) scale(1)}
   .podium .stand-block{height:100%}
 }
@@ -479,6 +524,12 @@ img{display:block;max-width:100%}
   border-radius:var(--rounded-sm);background:var(--bg-muted)}
 .bn-preview .mb-bg img{width:100%;height:100%;object-fit:cover}
 .bn-preview .mb-bottom{bottom:20px}
+/* 등록 시트의 미리보기는 실제 배너와 달리 정적 목업이라 텍스트+페이지네이션을
+   한 줄(flex)로 같이 둔다 -- 실제 배너 쪽의 "고정 오버레이" 분리와는 무관 */
+.mb-bottom--preview{align-items:flex-end;gap:var(--spacing-24)}
+.mb-pagination-inline{display:flex;align-items:center;justify-content:center;gap:var(--spacing-4);
+  padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
+  font-variant-numeric:tabular-nums;flex:none}
 .upload{display:flex;align-items:center;gap:var(--spacing-12);padding:var(--spacing-12);
   border:1px dashed var(--border-default);border-radius:var(--rounded-sm);
   background:var(--bg-subtler);cursor:pointer}
@@ -542,6 +593,50 @@ img{display:block;max-width:100%}
   :root{--gutter:16px}
   .pcard{flex-basis:132px} .pcard-img{width:132px;height:132px}
 }
+
+/* =========================================================================
+   Desktop 반응형 (1440px 기준 설계, 1200px 캡)
+   1440 뷰포트에서 --gutter 가 정확히 120px 이 되어 콘텐츠가 1200px 로 맞춰짐
+   (Figma TopNavigation 의 px-120 과 동일한 결과). 1024~1440 사이에서는 최소
+   24px 여백을 보장하고, 1440 을 넘는 와이드 모니터에서도 1200px 에서 더 안
+   늘어나고 중앙 정렬만 된다.
+   ========================================================================= */
+@media (min-width:1024px){
+  :root{
+    --gutter: max(24px, calc((100% - 1200px)/2));
+    --gutter-header: var(--gutter);
+    --gutter-tabs: var(--gutter);
+  }
+
+  /* 모바일의 "휴대폰 프레임" 카드 형태를 버리고 일반 웹페이지처럼 전체 폭 사용 */
+  .app{max-width:none;box-shadow:none;padding-bottom:0}
+  body{display:block}
+
+  /* 모바일 헤더 + 카테고리 탭 → 데스크탑 GNB 로 교체 */
+  .header,.tabbar--category{display:none}
+  .gnb{display:block}
+
+  /* 모바일 하단 탭바는 데스크탑에서 GNB 메뉴가 대신하므로 숨김 */
+  .bottomnav{display:none}
+
+  /* ---- 메인 배너 : 높이는 고정값으로 유지(뷰포트 폭에 따라 늘어나지 않음),
+     텍스트와 페이지네이션 박스만 넓혀서 그 사이 간격만 커지게 함 ---- */
+  .mainbanner{height:420px}
+  .mb-slide{height:420px}
+  .mb-bg--km img{height:280px}
+  .mb-bg--zo img{width:340px;height:270px;margin-top:56px}
+  .mb-bottom,.mb-pagination{width:min(1200px,calc(100% - 80px));bottom:40px}
+  .mb-label{font-size:13px}
+  .mb-title{font-size:28px}
+
+  /* ---- 상품 카드 : Figma 데스크탑 홈 상품 리스트 실측(280px, gap 20px) ---- */
+  .prow{gap:20px}
+  .pcard{flex-basis:280px}
+  .pcard-img{width:280px;height:280px}
+
+  /* ---- 컬렉션 히어로 배너도 프로모션 카드 폭에 맞춰 살짝 키움 ---- */
+  .col-hero{height:200px}
+}
 </style>
 </head>
 <body>
@@ -559,6 +654,35 @@ img{display:block;max-width:100%}
     </div>
   </header>
 
+  <header class="gnb">
+    <div class="gnb-top dt-wrap">
+      <div class="gnb-head">
+        <a class="gnb-logo" href="https://shop.novera.town/" target="_blank" rel="noreferrer"><svg width="200" height="25" viewBox="0 0 200 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.1506 3.88191C20.6777 3.0338 17.4666 3.55164 13.925 5.45174C13.6027 5.62707 13.2804 5.79832 12.9621 5.98589C12.6276 6.18568 12.293 6.38956 11.9666 6.60566C11.6238 6.82993 11.2893 7.06642 10.9547 7.31107C10.6201 7.55572 10.2733 7.82891 9.93874 8.09802C9.60416 8.36713 9.25735 8.66887 8.93094 8.96652C8.60453 9.26418 8.26179 9.59037 7.93946 9.91657C7.61713 10.2428 7.30704 10.573 7.0051 10.9156C6.70317 11.2581 6.4094 11.6087 6.12379 11.9675C5.8749 12.2815 5.63417 12.6036 5.4016 12.9298C4.07963 14.7932 2.85559 16.7667 1.95387 18.8748C1.61522 19.6699 1.30921 20.4976 1.15824 21.3498C1.05624 21.9288 1.0032 22.5771 1.24393 23.1276C1.48058 23.674 2.10484 23.8044 2.6271 23.8452C4.95279 24.0205 9.58784 22.6505 13.8312 21.0766C16.1651 20.2122 18.3806 19.2744 20.0249 18.467C24.7415 15.9716 23.236 20.0328 23.236 20.0328C25.121 15.2621 25.529 5.83502 22.1425 3.88191H22.1506Z" fill="#00D4FF"/><path d="M20.0281 18.4711C18.5021 19.2172 16.4784 20.0776 14.3281 20.8931C17.5025 22.414 20.3056 22.785 21.652 22.0062C22.3415 21.6107 22.8679 20.9012 23.2637 19.9879C23.4146 19.5353 24.4347 16.1387 20.0281 18.4711Z" fill="#02A3C3"/><path d="M1.46337 23.4374C1.37769 23.3518 1.30425 23.2499 1.2512 23.1276C1.01047 22.573 1.06352 21.9247 1.16552 21.3498C1.31649 20.4935 1.6225 19.6699 1.96115 18.8748C2.86286 16.7708 4.08691 14.7973 5.40888 12.9298C5.64145 12.6036 5.88218 12.2815 6.13107 11.9675C6.4126 11.6087 6.70637 11.258 7.01238 10.9155C7.31431 10.573 7.62848 10.2387 7.94674 9.91655C8.26907 9.59035 8.59956 9.27231 8.93821 8.9665C9.26871 8.66884 9.60328 8.37934 9.94601 8.098C10.2765 7.82888 10.6152 7.56385 10.962 7.31104C11.2925 7.0664 11.6311 6.83398 11.9738 6.60564C12.3003 6.38953 12.6308 6.18158 12.9694 5.98586C13.2877 5.7983 13.61 5.62705 13.9323 5.45172L13.9527 5.43948C12.1615 2.47108 9.80729 0.0816861 7.73865 0.102073C3.36064 0.142848 -2.38829 21.1867 1.48377 23.4701C1.48785 23.4701 1.49601 23.4782 1.50009 23.4823C1.50009 23.4823 1.48377 23.4578 1.47153 23.4456L1.46337 23.4374Z" fill="#FF2A2A"/><path d="M16.3554 15.7881C16.4329 15.6372 16.4982 15.4905 16.5512 15.3477C16.5839 15.2458 16.6124 15.1439 16.6369 15.0379V15.0256C16.7063 14.7728 16.7471 14.4996 16.7675 14.206V14.1938C16.7675 14.1653 16.7675 14.1327 16.7675 14.1C16.8776 12.4527 16.3472 10.5486 15.6087 8.78709C15.4578 8.41196 15.2905 8.03276 15.115 7.65763C14.7478 6.88699 14.3561 6.16527 13.9848 5.52919C13.9685 5.50065 13.9481 5.46803 13.9318 5.43948L13.9114 5.45172C13.589 5.62705 13.2667 5.7983 12.9485 5.98586C12.6139 6.18566 12.2793 6.38953 11.9529 6.60564C11.6102 6.8299 11.2756 7.06639 10.941 7.31104C10.5942 7.56385 10.2596 7.82888 9.92506 8.098C9.58233 8.37934 9.24368 8.66884 8.91727 8.9665C8.57861 9.27638 8.24812 9.59035 7.92579 9.91655C7.60346 10.2427 7.29336 10.573 6.99143 10.9155C6.6895 11.258 6.39573 11.6087 6.11012 11.9675C5.86123 12.2815 5.6205 12.6036 5.38793 12.9298C4.06596 14.7932 2.84192 16.7667 1.9402 18.8748C1.60155 19.6699 1.29554 20.4976 1.14457 21.3498C1.04257 21.9288 0.989526 22.5771 1.23025 23.1276C1.2833 23.2499 1.34858 23.3559 1.43426 23.4415C1.44242 23.4538 1.47098 23.4782 1.47506 23.4782C1.77292 23.7106 2.19317 23.8289 2.70727 23.8493C6.33861 23.9879 14.5642 19.2132 16.335 15.7881H16.3513H16.3554Z" fill="#5240FF"/><path d="M194.328 7.50684C195.375 7.50688 196.316 7.76125 197.153 8.26953C198.005 8.77783 198.679 9.49499 199.172 10.4219C199.665 11.3488 199.912 12.4104 199.912 13.6064C199.912 14.8025 199.665 15.8641 199.172 16.791C198.679 17.718 198.006 18.436 197.153 18.9443C196.316 19.4525 195.374 19.706 194.328 19.7061C193.491 19.7061 192.735 19.5343 192.062 19.1904C191.405 18.8466 190.859 18.346 190.426 17.6885V23.9229H187.959V7.6416H190.313V9.63672C190.732 8.94924 191.285 8.42615 191.973 8.06738C192.66 7.69361 193.446 7.50684 194.328 7.50684ZM152.015 7.64551C152.777 7.64554 153.539 7.7422 154.302 7.93652C155.064 8.13088 155.692 8.40027 156.186 8.74414L155.311 10.583C154.354 9.94031 153.248 9.6192 151.992 9.61914C151.155 9.61914 150.527 9.76095 150.108 10.0449C149.69 10.329 149.481 10.7026 149.48 11.166C149.48 11.6743 149.705 12.0329 150.153 12.2422C150.617 12.4515 151.334 12.6468 152.306 12.8262C153.218 13.0056 153.951 13.1924 154.504 13.3867C155.072 13.5811 155.557 13.9098 155.961 14.373C156.38 14.8216 156.589 15.457 156.589 16.2793C156.589 17.3408 156.14 18.2006 155.243 18.8584C154.361 19.5161 153.135 19.8447 151.565 19.8447C150.639 19.8447 149.742 19.7179 148.875 19.4639C148.008 19.2097 147.312 18.8811 146.789 18.4775L147.642 16.5938C148.135 16.9673 148.741 17.2736 149.458 17.5127C150.175 17.7518 150.908 17.8711 151.655 17.8711C153.375 17.8711 154.234 17.3558 154.234 16.3242C154.234 15.8458 154.01 15.5098 153.562 15.3154C153.128 15.1211 152.44 14.9408 151.498 14.7764C150.571 14.6119 149.816 14.4326 149.233 14.2383C148.665 14.0439 148.172 13.7154 147.753 13.252C147.334 12.7885 147.125 12.1304 147.125 11.2783C147.125 10.2019 147.551 9.32706 148.403 8.6543C149.27 7.98151 150.475 7.64551 152.015 7.64551ZM179.188 7.50684C180.339 7.50689 181.37 7.76877 182.282 8.29199C183.194 8.81521 183.904 9.54008 184.412 10.4668C184.935 11.3937 185.197 12.4403 185.197 13.6064C185.197 14.7726 184.935 15.8191 184.412 16.7461C183.904 17.673 183.194 18.3986 182.282 18.9219C181.37 19.4451 180.339 19.706 179.188 19.7061C178.037 19.7061 177.005 19.445 176.093 18.9219C175.181 18.3986 174.463 17.673 173.939 16.7461C173.416 15.8192 173.154 14.7726 173.154 13.6064C173.154 12.4403 173.416 11.3937 173.939 10.4668C174.463 9.53988 175.181 8.81525 176.093 8.29199C177.005 7.76877 178.036 7.50684 179.188 7.50684ZM38.791 4.66895L46.1846 14.3486V4.58691H49.0078V19.5723H46.7021L46.6416 19.4902L39.248 9.81055V19.5723H36.4199V4.58691H38.7295L38.791 4.66895ZM75.7812 4.71387L80.2939 15.5918L84.876 4.58691H87.7646L87.626 4.92188L81.5098 19.5723H78.8662L78.8174 19.4453L72.6357 4.58691H75.7285L75.7812 4.71387ZM102.209 7.09863H94.583V10.7402H101.36V13.2109H94.583V17.0557H102.479V19.5723H91.7559V4.58691H102.209V7.09863ZM133.328 4.73438H133.324L139.709 19.5723H136.694L135.262 16.0938H128.559L127.13 19.5723H124.177L124.319 19.2334L130.623 4.58691H133.263L133.328 4.73438ZM161.864 9.41309C162.298 8.80016 162.851 8.32891 163.523 8C164.196 7.67108 164.952 7.50684 165.789 7.50684C167.209 7.50691 168.338 7.94806 169.175 8.83008C170.027 9.69722 170.453 10.9831 170.453 12.6875V19.5723H168.009V13.0684C168.009 11.962 167.762 11.1323 167.269 10.5791C166.79 10.0261 166.095 9.7491 165.184 9.74902C164.167 9.74902 163.359 10.0785 162.761 10.7363C162.163 11.3791 161.864 12.2985 161.864 13.4941V19.5723H159.397V2.93164H161.864V9.41309ZM62.0645 4.58691C63.4597 4.58697 64.741 4.91343 65.8711 5.55762C67.0012 6.20593 67.9032 7.10756 68.5479 8.24512C69.1923 9.37844 69.5185 10.6708 69.5186 12.0771C69.5186 13.4838 69.1924 14.7767 68.5479 15.9102C67.9032 17.0478 67.0013 17.9534 65.8711 18.5977C64.741 19.2418 63.476 19.5673 62.0645 19.5674C60.6529 19.5674 59.3674 19.2417 58.2373 18.5977C57.1071 17.9534 56.2052 17.0478 55.5605 15.9102C54.9159 14.7766 54.5889 13.4839 54.5889 12.0771C54.5889 10.6707 54.916 9.38258 55.5605 8.24512C56.2052 7.1075 57.1071 6.20186 58.2373 5.55762C59.3674 4.91349 60.6692 4.58691 62.0645 4.58691ZM113.874 4.58691C115.722 4.58693 117.208 5.0687 118.293 6.01465C119.386 6.96875 119.941 8.29002 119.941 9.94531C119.941 11.0909 119.668 12.0899 119.125 12.9053V12.9014C118.631 13.6433 117.946 14.2141 117.081 14.6055L120.402 19.5635H117.269L114.355 15.2295C114.168 15.2499 114.005 15.2578 113.874 15.2578H110.903V19.5674H108.056V4.58691H113.874ZM179.188 9.63672C178.53 9.63672 177.931 9.80194 177.393 10.1309C176.855 10.4597 176.429 10.9229 176.115 11.5205C175.816 12.1185 175.666 12.8141 175.666 13.6064C175.666 14.3988 175.816 15.0944 176.115 15.6924C176.429 16.2902 176.855 16.7542 177.393 17.083C177.931 17.4119 178.53 17.5762 179.188 17.5762C179.86 17.5761 180.458 17.4118 180.981 17.083C181.52 16.7541 181.938 16.2904 182.237 15.6924C182.551 15.0944 182.708 14.3988 182.708 13.6064C182.708 12.8141 182.551 12.1185 182.237 11.5205C181.938 10.9227 181.519 10.4597 180.981 10.1309C180.458 9.802 179.86 9.63678 179.188 9.63672ZM193.924 9.63672C193.251 9.63678 192.646 9.802 192.107 10.1309C191.584 10.4597 191.165 10.9227 190.852 11.5205C190.553 12.1185 190.403 12.8141 190.403 13.6064C190.403 14.3988 190.553 15.0944 190.852 15.6924C191.166 16.2904 191.584 16.7541 192.107 17.083C192.646 17.4119 193.251 17.5761 193.924 17.5762C194.582 17.5762 195.181 17.4119 195.719 17.083C196.257 16.7541 196.676 16.2904 196.975 15.6924C197.289 15.0944 197.445 14.3988 197.445 13.6064C197.445 12.8141 197.289 12.1185 196.975 11.5205C196.676 10.9227 196.257 10.4597 195.719 10.1309C195.181 9.80194 194.582 9.63672 193.924 9.63672ZM62.0645 7.14355C61.1833 7.14355 60.3793 7.35586 59.6816 7.76758C58.9839 8.1794 58.4243 8.76652 58.0244 9.5127C57.6205 10.2629 57.417 11.1233 57.417 12.0732C57.417 13.0232 57.6206 13.8836 58.0244 14.6338C58.4243 15.38 58.9839 15.9671 59.6816 16.3789C60.3834 16.7948 61.1995 17.0029 62.0645 17.0029C62.9293 17.0029 63.7288 16.791 64.4346 16.3711C65.1404 15.9511 65.7037 15.364 66.1035 14.626C66.5075 13.888 66.7109 13.0272 66.7109 12.0771V12.0693C66.7109 11.1193 66.5075 10.2626 66.1035 9.52051C65.7037 8.78261 65.1404 8.19532 64.4346 7.77539C63.7289 7.35555 62.9455 7.14361 62.0645 7.14355ZM129.55 13.6797H134.299L131.925 7.94727L129.55 13.6797ZM110.907 12.75H113.776C114.857 12.7499 115.69 12.5019 116.249 12.0127C116.731 11.5918 117.003 11.0049 117.063 10.2695L117.077 9.94922C117.077 9.04415 116.8 8.34246 116.249 7.86133C115.69 7.37209 114.857 7.12311 113.776 7.12305H110.907V12.75Z" fill="#222230"/></svg></a>
+        <a class="gnb-search" href="https://shop.novera.town/search" target="_blank" rel="noreferrer">
+          <span>검색어를 입력해 주세요</span><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M10.43 3C14.53 3 17.86 6.33 17.86 10.43C17.86 12.21 17.23 13.85 16.19 15.13L20.78 19.72C21.07 20.01 21.08 20.49 20.78 20.78C20.49 21.07 20.01 21.07 19.72 20.78L15.13 16.19C13.85 17.23 12.21 17.86 10.43 17.86C6.33 17.86 3 14.53 3 10.43C3 6.33 6.33 3 10.43 3ZM10.43 4.5C7.15 4.5 4.5 7.15 4.5 10.43C4.5 13.7 7.15 16.36 10.43 16.36C13.7 16.36 16.36 13.7 16.36 10.43C16.36 7.15 13.7 4.5 10.43 4.5Z"/></svg>
+        </a>
+      </div>
+      <div class="gnb-actions">
+        <div class="gnb-icons">
+          <a class="gnb-icon" href="https://shop.novera.town/mypage/orders" target="_blank" rel="noreferrer" aria-label="마이페이지"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 13.68C14.23 13.68 16.3 14.11 17.84 14.94C19.38 15.78 20.5 17.08 20.5 18.79V19.05C20.5 19.25 20.5 19.44 20.49 19.6C20.47 19.77 20.44 19.98 20.34 20.18C20.19 20.46 19.96 20.69 19.68 20.84C19.48 20.94 19.28 20.97 19.1 20.99C18.94 21 18.75 21 18.55 21L5.45 21C5.25 21 5.06 21 4.89 20.99C4.72 20.97 4.52 20.94 4.32 20.84C4.04 20.69 3.8 20.46 3.66 20.18C3.56 19.98 3.52 19.78 3.51 19.6C3.5 19.44 3.5 19.25 3.5 19.05V18.79C3.5 17.08 4.62 15.78 6.16 14.94C7.7 14.11 9.77 13.68 12 13.68ZM12 15.18C9.94 15.18 8.14 15.58 6.88 16.26C5.61 16.95 5 17.83 5 18.79V19.05C5 19.27 5 19.4 5.01 19.48C5.01 19.49 5.01 19.49 5.01 19.49C5.01 19.49 5.01 19.49 5.02 19.49C5.1 19.5 5.23 19.5 5.45 19.5L18.55 19.5C18.77 19.5 18.9 19.5 18.98 19.49C18.99 19.49 18.99 19.49 18.99 19.49C18.99 19.49 18.99 19.48 18.99 19.48C19 19.39 19 19.27 19 19.05V18.79C19 17.83 18.39 16.95 17.12 16.26C15.86 15.58 14.05 15.18 12 15.18ZM12 3C14.55 3 16.62 5.07 16.62 7.63C16.62 10.19 14.55 12.26 12 12.26C9.44 12.26 7.37 10.19 7.37 7.63C7.37 5.07 9.44 3 12 3ZM12 4.5C10.27 4.5 8.87 5.9 8.87 7.63C8.87 9.36 10.27 10.76 12 10.76C13.72 10.76 15.12 9.36 15.12 7.63C15.12 5.9 13.72 4.5 12 4.5Z"/></svg></a>
+          <a class="gnb-icon" href="https://shop.novera.town/mypage/likes" target="_blank" rel="noreferrer" aria-label="위시리스트"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M15.78 4C18.72 4 21 6.44 21 9.42C21 10.82 20.49 12.01 19.7 13.12C18.92 14.2 17.83 15.24 16.64 16.36L16.63 16.36L13.18 19.54C12.51 20.15 11.48 20.15 10.81 19.54L7.37 16.36L7.36 16.36C6.17 15.24 5.08 14.2 4.3 13.12C3.51 12.01 3 10.82 3 9.42C3 6.44 5.28 4 8.22 4C9.72 4 11.06 4.64 12 5.67C12.94 4.64 14.28 4 15.78 4ZM15.78 5.5C14.46 5.5 13.3 6.21 12.64 7.3C12.5 7.52 12.26 7.66 12 7.66C11.74 7.66 11.49 7.52 11.36 7.3C10.7 6.21 9.54 5.5 8.22 5.5C6.17 5.5 4.5 7.21 4.5 9.42C4.5 10.43 4.85 11.31 5.52 12.24C6.2 13.18 7.17 14.13 8.39 15.26H8.38L11.83 18.43C11.93 18.52 12.07 18.52 12.17 18.43L15.61 15.26L16.48 14.44C17.29 13.66 17.97 12.95 18.48 12.24C19.15 11.31 19.5 10.43 19.5 9.42C19.5 7.21 17.83 5.5 15.78 5.5Z"/></svg></a>
+          <a class="gnb-icon" href="https://shop.novera.town/carts" target="_blank" rel="noreferrer" aria-label="장바구니"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 3C14.09 3 15.8 4.62 15.95 6.67H17.47C18.91 6.67 20.11 7.78 20.22 9.22L20.85 18.05C20.96 19.65 19.7 21 18.1 21H5.9C4.3 21 3.04 19.65 3.15 18.05L3.78 9.22C3.89 7.78 5.08 6.67 6.53 6.67H8.05C8.2 4.62 9.91 3 12 3ZM6.53 8.17C5.87 8.17 5.33 8.67 5.28 9.33L4.65 18.16C4.6 18.88 5.17 19.5 5.9 19.5H18.1C18.83 19.5 19.4 18.88 19.35 18.16L18.72 9.33C18.67 8.67 18.13 8.17 17.47 8.17H15.96V10.17C15.96 10.58 15.62 10.92 15.21 10.92C14.79 10.92 14.46 10.58 14.46 10.17V8.17H9.54V10.17C9.54 10.58 9.2 10.92 8.79 10.92C8.38 10.92 8.04 10.58 8.04 10.17V8.17H6.53ZM12 4.5C10.74 4.5 9.7 5.45 9.56 6.67H14.44C14.3 5.45 13.26 4.5 12 4.5Z"/></svg></a>
+        </div>
+        <button class="gnb-lang" type="button"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 2.25C17.38 2.25 21.75 6.62 21.75 12C21.75 17.39 17.38 21.75 12 21.75C6.62 21.75 2.25 17.39 2.25 12C2.25 6.62 6.62 2.25 12 2.25ZM9.25 15.75C9.8 17.72 10.76 19.3 11.92 20.25C11.95 20.25 11.97 20.25 12 20.25C12.03 20.25 12.05 20.25 12.08 20.25C13.24 19.3 14.2 17.72 14.75 15.75H9.25ZM4.65 15.75C5.65 17.71 7.41 19.22 9.55 19.88C8.72 18.74 8.09 17.33 7.7 15.75H4.65ZM16.3 15.75C15.91 17.33 15.28 18.74 14.45 19.88C16.58 19.22 18.35 17.71 19.35 15.75H16.3ZM4.06 9.75C3.86 10.47 3.75 11.22 3.75 12C3.75 12.78 3.86 13.54 4.06 14.25H7.41C7.3 13.52 7.25 12.77 7.25 12C7.25 11.23 7.3 10.48 7.41 9.75H4.06ZM8.92 9.75C8.81 10.47 8.75 11.22 8.75 12C8.75 12.78 8.81 13.53 8.92 14.25H15.08C15.19 13.53 15.25 12.78 15.25 12C15.25 11.22 15.19 10.47 15.08 9.75H8.92ZM16.59 9.75C16.7 10.48 16.75 11.23 16.75 12C16.75 12.77 16.7 13.52 16.59 14.25H19.94C20.14 13.54 20.25 12.78 20.25 12C20.25 11.22 20.14 10.47 19.94 9.75H16.59ZM9.55 4.12C7.41 4.78 5.65 6.29 4.65 8.25H7.7C8.09 6.67 8.72 5.26 9.55 4.12ZM11.92 3.75C10.76 4.7 9.8 6.28 9.25 8.25H14.75C14.2 6.28 13.24 4.7 12.08 3.75C12.05 3.75 12.03 3.75 12 3.75C11.97 3.75 11.95 3.75 11.92 3.75ZM14.45 4.12C15.27 5.26 15.91 6.67 16.3 8.25H19.35C18.35 6.29 16.58 4.78 14.45 4.12Z"/></svg><span>KO</span><svg class="ico gnb-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.27 5.21C8.98 4.92 8.5 4.93 8.21 5.23C7.92 5.52 7.93 6 8.23 6.29L14.17 12.07L8.37 17.71C8.07 18 8.07 18.48 8.35 18.77C8.64 19.07 9.12 19.08 9.42 18.79L15.77 12.61C15.92 12.47 16 12.27 16 12.07C16 11.87 15.92 11.67 15.77 11.53L9.27 5.21Z"/></svg></button>
+        <a class="gnb-login" href="https://shop.novera.town/sign-in" target="_blank" rel="noreferrer">로그인</a>
+      </div>
+    </div>
+    <nav class="gnb-menu dt-wrap">
+      <a class="gnb-menu-item" href="https://shop.novera.town/categories/PCTGY1" target="_blank" rel="noreferrer">ALBUM</a>
+      <a class="gnb-menu-item" href="https://shop.novera.town/categories/PCTGY2" target="_blank" rel="noreferrer">MD</a>
+      <a class="gnb-menu-item" href="https://shop.novera.town/categories/PCTGY3" target="_blank" rel="noreferrer">LIVE MD</a>
+      <a class="gnb-menu-item" href="https://shop.novera.town/exhibitions" target="_blank" rel="noreferrer">COLLECTION</a>
+      <a class="gnb-menu-item" href="https://shop.novera.town/artists" target="_blank" rel="noreferrer">ARTIST</a>
+      <a class="gnb-menu-item" href="https://shop.novera.town/kimetsu_ex_kr" target="_blank" rel="noreferrer">SPHERE<span class="gnb-badge">NEW</span></a>
+    </nav>
+    <div class="gnb-divider"></div>
+  </header>
+
   <nav class="tabbar tabbar--category"><div class="tabs"><div class="tabs-inner"><button class="tab is-active" type="button"><span class="tab-label">HOME</span><span class="tab-underline"></span></button><button class="tab" type="button"><span class="tab-label">LIVE MD<span class="tab-n">N</span></span><span class="tab-underline"></span></button><button class="tab" type="button"><span class="tab-label">COLLECTION</span><span class="tab-underline"></span></button><button class="tab" type="button"><span class="tab-label">ARTIST</span><span class="tab-underline"></span></button><button class="tab" type="button"><span class="tab-label">SPHERE<span class="tab-n">N</span></span><span class="tab-underline"></span></button></div></div></nav>
 
   <section class="mainbanner">
@@ -568,7 +692,6 @@ img{display:block;max-width:100%}
   <div class="mb-dim"></div>
   <div class="mb-bottom">
     <div class="mb-text"><p class="mb-label">WELCOME COUPON</p><p class="mb-title">회원가입만 해도<br>전상품 1,000원 즉시 할인!</p></div>
-    <div class="mb-page"><span class="mb-page-cur">01</span><span class="mb-page-sep">|</span><span class="mb-page-tot">03</span></div>
   </div>
 </div><div class="mb-slide" data-slide="1" role="button" tabindex="0"
      aria-label="메인 배너 2 — 눌러서 배너 등록 화면 열기">
@@ -576,7 +699,6 @@ img{display:block;max-width:100%}
   <div class="mb-dim"></div>
   <div class="mb-bottom">
     <div class="mb-text"><p class="mb-label">서툴러서 더 완벽한 친구들</p><p class="mb-title">ZO&FRIENDS<br>LUCKY COLLECTION</p></div>
-    <div class="mb-page"><span class="mb-page-cur">02</span><span class="mb-page-sep">|</span><span class="mb-page-tot">03</span></div>
   </div>
 </div><div class="mb-slide" data-slide="2" role="button" tabindex="0"
      aria-label="메인 배너 3 — 눌러서 배너 등록 화면 열기">
@@ -584,9 +706,9 @@ img{display:block;max-width:100%}
   <div class="mb-dim"></div>
   <div class="mb-bottom">
     <div class="mb-text"><p class="mb-label">전집중, 귀살대 주목!</p><p class="mb-title">귀멸의 칼날 굿즈<br>COLLECTION Open!</p></div>
-    <div class="mb-page"><span class="mb-page-cur">03</span><span class="mb-page-sep">|</span><span class="mb-page-tot">03</span></div>
   </div>
 </div></div>
+    <div class="mb-pagination" id="mbPagination" aria-hidden="true"><span class="mb-page-cur">01</span><span class="mb-page-sep">|</span><span class="mb-page-tot">03</span></div>
   </section>
 
   <section class="sec sec--bias">
@@ -761,7 +883,7 @@ img{display:block;max-width:100%}
   <div class="sec-head-text"><h2 class="sec-title">Fan&#x27;s Pick!</h2><p class="sec-sub">팬들이 선택한 최애 TOP 3를 확인해 보세요</p></div>
   <button class="text-btn" type="button">찜하러 가기<svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.27 5.21C8.98 4.92 8.5 4.93 8.21 5.23C7.92 5.52 7.93 6 8.23 6.29L14.17 12.07L8.37 17.71C8.07 18 8.07 18.48 8.35 18.77C8.64 19.07 9.12 19.08 9.42 18.79L15.77 12.61C15.92 12.47 16 12.27 16 12.07C16 11.87 15.92 11.67 15.77 11.53L9.27 5.21Z"/></svg></button>
 </div>
-    <div class="podium" id="podium"><div class="stand stand--second" style="--d-avatar:180ms;--d-graph:440ms;--d-meta:480ms;--d-crown:740ms" data-delay="480">
+    <div class="podium" id="podium"><div class="stand stand--second" style="--d-graph:180ms;--d-count:330ms;--d-avatar:730ms;--d-crown:850ms" data-delay="330">
   <div class="stand-top">
     <div class="stand-avatar">
       <span class="avatar avatar--48"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAHADASIAAhEBAxEB/8QAHAABAAMBAAMBAAAAAAAAAAAAAAQFBgMBAgcI/8QAMRAAAQQCAQMCBAYABwAAAAAAAQACAwQFEQYSITETQQcWImEUFSNCVpUkUVJxgZGh/8QAGAEBAAMBAAAAAAAAAAAAAAAAAAECAwT/xAAlEQEAAgIBAwMFAQAAAAAAAAAAAQIDERIhMUFhgZEEE3GhwfD/2gAMAwEAAhEDEQA/APyoiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIrPAccyfJr7KeNqvme4/U/X0Rj3c53gAKa1m06giNq1zXN11AjY2NjyvC+hfGigzFZnD4+NxeyrioYQ4/u6XOG//F89V82P7d5pPha1eM6ERFmqIiICIiDW8Jq1LeK5JFdtspQGlH1WHRGT0/8AER/tHfv47f5qbgeCMs5Orkcfm8fkMVUlbNdnZ1RvqxtPUXPjeAdaaQNb7qu4bmYcNjs/K8UpJX1I2xQW2B7Jj67CR0nzobP/ABtSMX8Q8t+c44OlqU8dHYYZKlaBkED2E9L+sNH1AtJH1bXbjnFqnP8A3X8tYmvTaOMZBybIZjkN24zFYn8U57pTH1uc+RznNjjYNdTtbPkAAbJXDJcaonFS5bBZQ5GrXc1tmOWH0ZoOo6a4t2QWk9tg9iQD5Wjw2brUYs1x3F5WhRLci+xRtW4mS152DbOguc1wb2DSHePIJ7rhyLN5CngbFO7yLGWrVwtjNTGV4HM9IHZMkrGjXcDTWk/fSmaU4zM9+vX1+f4ajSHa4Xh8TUx9vLchNdt+pFZihhq+tL9TdkkdQDWg9gSdnR7LrkLedxUeHxkeefd4/Yc11R0G445Wh/1Nc3seoE9w7eu3tpTeT8fqZqvg5IMzj6lyPE1GzV70vogt6Ntcxx7Hse48gj32qnJWqNVmBwFG4y9+CsunntRg+m6WRzAWs33LWhg7+5JS1YpvUa7ee/p3JjTU/GzG2cx8QMbj6cfqWLFVkcbd62TI/wAn2H3WVZxTjtmyMZV5XHJkiehjnVS2pJJ/pEvVvRPYOLdLdfE/Nx8c+KuGykzHPigqj1A0Au6XOkaSN9tgEkf7KqbkcjFY/Ey8y41+VNPV68NSu6w5vsBB6fUH/Y6APvpb5qUnLebdZ3+vmF7RHKdspgeFOykWZdevx4s4h0YsGw0kMBc5rt679QI0AAdk6VRma2Lq2GMxWQnvQ9G3SS1/RIds9gOo9taO/ur2PMDIYHltizbD7N2xVkHqFrXy/qPJPSO2/BOuwWSXDk4RWIrHv7yxnWugiIsFRERBY4bMuw00kraOPudbenpuVxM1vfewD4P3Vt89S/x7jP8AWMWYRaVy2rGolMWmGn+epf49xn+sYuNzmUlyrNXOD4/CJWFnqQ49jHt37tcPB+6zyKZzXnynlLb8hzLsLexcooY+56mEpN6btcStb+mDsA+D91AZz2aN4ezj/GmuadgjGs2Csy57n66nE6Ghs+AvVTbPbe4nRN58NlkvihlMxOJ8li8Dcma3oEk9Br3Ab3rZPjuf+1E+epP47xn+tYswiT9RkmdzJzlp/nqT+O8Z/rWKnzGXdmbDJ3UqFPpZ0dFOARMPcnZA9+/lQEVbZbWjUyibTIiIs0CIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIg//Z" alt="케플러"></span>
@@ -773,7 +895,7 @@ img{display:block;max-width:100%}
     </div>
   </div>
   <div class="stand-block-wrap"><div class="stand-block"></div></div>
-</div><div class="stand stand--first" style="--d-avatar:360ms;--d-graph:620ms;--d-meta:660ms;--d-crown:920ms" data-delay="660">
+</div><div class="stand stand--first" style="--d-graph:360ms;--d-count:510ms;--d-avatar:910ms;--d-crown:1030ms" data-delay="510">
   <div class="stand-top">
     <div class="stand-avatar"><span class="crown">👑</span>
       <span class="avatar avatar--48"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAHADASIAAhEBAxEB/8QAGQABAQADAQAAAAAAAAAAAAAAAAUDBgcE/8QAORAAAQMEAAIHBQMNAAAAAAAAAAECAwQFBhEHEhMhIjFRYXEIIzKRoRVBshQXNjdSVnR1gZOjsbP/xAAcAQEAAgMBAQEAAAAAAAAAAAAAAQIDBAUGBwj/xAAwEQACAQIEAwYEBwAAAAAAAAAAAQIDEQQSIVETMZEFMkFhcaEUIkLBQ1JigcLR8P/aAAwDAQACEQMRAD8A52AD9DnzYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAF634HlN2ooq2gx+41VLMm45YoVVr03rqX1QxVa1Okr1JJLzdi0Kcpu0Vcgg2b82Wa/uvdv7Ck+TE79DZ/tqS0VrbaqI78rWP3elXSLv1XRjjjMPLu1E/DmubLuhUXOL6EkFqmwrJKy1pdaex18tAsbpUqGxKrORN7dvwTS/IxW3FL9eaCW4W60VlXRxK5JJ4o9saqJtdr5IqKW+Ko2bzrTR6rnsRwZ/lZKBYseH5Bksb5bPZ62uiYunSRR9lF8Nr1b8jFe8ZvWNyRx3i11dC6RNs6aPSP9F7lJWJpOfCU1m2ur9COFPLns7bkwDQMxQAAAAAAHWeEnE/IIbvj+JtWj+zFm6Drh95yrzOXtb79+RyY2vhT+sbH/4tPwuOZ2xhqVbCVOLFOybV/B2ept4GrOnWjkdrtL3Ou8Y+KeRYRktNbrStEkEtG2d3TQc68yvenftOrTUPNjki372crnTr2n0kFSi+sb1lT6aNY9pL9N6H+Ws/6SGyezyrLxh+SWCV2o3ydaeDZYlYv4Tx08LSodjUcXCKUlKEm97Nr7najWnPHToyd000v9+x0DEoKWjxSw4xKiJLU2ZZFTyRrEf9ZTRcUY/GPZ8u9Q5OSWVlYm1/aV6wp/pC3dLyyh44Y1aWP1Ey1SwKn3IruZyJ/iaeXjZFFjXCt9rpnJyVNa1iJ3b5pHTL9UOVh4ydWlRl+NKE36Zp39rG5UaUJTX0Jx9kU6CmutRwhs8fD6rpKarSmhVHORva6vetRVRUR6u3tVTv36mjcSM3uT8ETG8wxq4Q3l6NVlc5kaQOla7fOxWrrat2i68V6tFC24Bd7Ph9FfeGmQ3Oaoq0jnfSSzx9DI1W9rTVajedHdXX4KneXs5luD+ClY7NYqSK6rEicsetdNz+71rac2tb15/cbVB0aWKg1lqJ1fONRNvx3S6PyMU1OdJp3j8vrFr+zk9ureHzeGNRT1cEK5UscqRvWGRXc3OvJ2k7Pw6OeL3nQ7dbcAfwxqKurqoUylI5VjiWoejuZHrydj4fh0c8XvPd9nZc1bLn7z738f07HnsVe0L25eH38wADqGoAAAD0UFfVWushraKeSnqYXc8csa6cxfFDzgiUVJWfIJtO6KF6v91yOqZVXevnrp2MSNskztqjdquvTar8zJY8nvWNOmdZ7nU0CzoiSLC7XPret+m1+ZLBjdCm4cJxWXa2nQvxJ5s99dyrPlV8qbzHe5rpVSXKLXJVOf7xukVE0v8AVfmZL3mOQZHTx093vFZXQxv6RjJn7RrtKm/XSqRgVWGopqSgrrlotPTYnjTs1mepcx/N8kxVjo7NeKqjicvMsTVR0ar48rkVN+ejFkGXX7KpGPvV1qa3o+tjZHaYzzRqaRF89EgELC0VU4ygs29lfrzHGqZcmZ22voNgA2DGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/Z" alt="투어스"></span>
@@ -785,7 +907,7 @@ img{display:block;max-width:100%}
     </div>
   </div>
   <div class="stand-block-wrap"><div class="stand-block"></div></div>
-</div><div class="stand stand--third" style="--d-avatar:0ms;--d-graph:260ms;--d-meta:300ms;--d-crown:560ms" data-delay="300">
+</div><div class="stand stand--third" style="--d-graph:0ms;--d-count:150ms;--d-avatar:550ms;--d-crown:670ms" data-delay="150">
   <div class="stand-top">
     <div class="stand-avatar">
       <span class="avatar avatar--48"><img src="data:image/jpeg;base64,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" alt="베이비몬스터"></span>
@@ -1825,12 +1947,12 @@ img{display:block;max-width:100%}
       <div class="bn-preview" id="bnPreview">
         <div class="mb-bg mb-bg--coupon"><img id="bnPvImg" src="" alt=""></div>
         <div class="mb-dim"></div>
-        <div class="mb-bottom">
+        <div class="mb-bottom mb-bottom--preview">
           <div class="mb-text">
             <p class="mb-label" id="bnPvLabel"></p>
             <p class="mb-title" id="bnPvTitle"></p>
           </div>
-          <div class="mb-page"><span class="mb-page-cur" id="bnPvPage">01</span><span class="mb-page-sep">|</span><span class="mb-page-tot">03</span></div>
+          <div class="mb-pagination-inline"><span class="mb-page-cur" id="bnPvPage">01</span><span class="mb-page-sep">|</span><span class="mb-page-tot">03</span></div>
         </div>
       </div>
     </div>
@@ -1899,6 +2021,7 @@ img{display:block;max-width:100%}
 (function(){
   var track=document.querySelector('.mb-track');
   var box=document.querySelector('.mainbanner');
+  var pageCur=document.querySelector('#mbPagination .mb-page-cur');
   if(!track||!box) return;
   var real=[].slice.call(track.children);
   var n=real.length;
@@ -1919,7 +2042,11 @@ img{display:block;max-width:100%}
     track.style.transform = 'translateX(-'+(k*100)+'%)';
     if(!animate) void track.offsetWidth;   // reflow 를 강제해 다음 전환이 살아나게
   }
-  function sync(){ track.dataset.active = String(((idx-1)%n+n)%n); }
+  function sync(){
+    var active=((idx-1)%n+n)%n;
+    track.dataset.active = String(active);
+    if(pageCur) pageCur.textContent = String(active+1).padStart(2,'0');
+  }
   function settle(){
     if(idx===n+1){ idx=1; place(idx,false); }        // 마지막 클론 → 첫 원본
     else if(idx===0){ idx=n; place(idx,false); }     // 첫 클론 → 마지막 원본
