@@ -471,6 +471,10 @@ img{display:block;max-width:100%}
   background:var(--bg-negative);color:var(--text-negative);
   font-size:10px;font-weight:600;line-height:1.5}
 .field-hint{font-size:11px;font-weight:400;color:var(--text-muted)}
+.field-count{margin-left:auto;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;
+  color:var(--text-muted)}
+.field-count.is-near{color:var(--text-warning)}
+.field-count.is-full{color:var(--text-negative)}
 .bn-preview{position:relative;width:100%;aspect-ratio:375/320;overflow:hidden;
   border-radius:var(--rounded-sm);background:var(--bg-muted)}
 .bn-preview .mb-bg img{width:100%;height:100%;object-fit:cover}
@@ -484,6 +488,15 @@ img{display:block;max-width:100%}
 .upload-text{display:flex;flex-direction:column;gap:2px;min-width:0}
 .upload-title{font-size:13px;font-weight:600;line-height:1.4;color:var(--text-primary)}
 .upload-hint{font-size:11px;font-weight:400;line-height:1.4;color:var(--text-muted)}
+/* 업로드 이미지 사이즈 자동 체크 결과 */
+.upload-check{display:flex;align-items:center;gap:6px;padding:6px var(--spacing-4) 0;
+  font-size:12px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1)}
+.upload-check .ico{flex:none}
+.upload-check--ok{color:var(--text-positive)}
+.upload-check--ok .ico{color:var(--icon-positive)}
+.upload-check--warn{color:var(--text-warning)}
+.upload-check--warn .ico{color:var(--icon-warning,var(--yellow-500))}
+.upload-check-dim{font-weight:400;color:var(--text-muted)}
 .input{width:100%;min-height:var(--componentSize-md-height);
   padding:var(--spacing-12);border:1px solid var(--border-default);
   border-radius:var(--rounded-sm);background:var(--bg-default);
@@ -512,6 +525,16 @@ img{display:block;max-width:100%}
 .btn--ghost{background:var(--bg-gray);color:var(--text-secondary)}
 .btn--solid{background:var(--brand1-default);color:var(--text-inverse)}
 .btn--solid:active{background:var(--brand1-strong)}
+.btn--solid:disabled{background:var(--bg-disabled,var(--gray-300));color:var(--text-disabled);
+  pointer-events:none}
+/* 적용 확인 토스트 */
+.bn-toast{position:fixed;left:50%;bottom:28px;z-index:52;transform:translateX(-50%) translateY(8px);
+  padding:10px 16px;border-radius:var(--rounded-full);background:var(--bg-darkgray-strong);
+  color:var(--text-inverse);font-size:13px;font-weight:600;letter-spacing:var(--tracking-1);
+  display:flex;align-items:center;gap:6px;opacity:0;pointer-events:none;
+  transition:opacity .22s ease,transform .22s ease;box-shadow:0 8px 24px rgba(23,28,36,.28)}
+.bn-toast.is-open{opacity:1;transform:translateX(-50%) translateY(0)}
+.bn-toast .ico{color:var(--icon-positive)}
 .mb-slide{cursor:pointer}
 @media (prefers-reduced-motion:reduce){ .sheet,.scrim{transition:none} }
 
@@ -1822,15 +1845,16 @@ img{display:block;max-width:100%}
           <span class="upload-hint">권장 750×640 (2x) · JPG / PNG / WebP</span>
         </span>
       </label>
+      <p class="upload-check" id="bnCheck" hidden></p>
     </div>
 
     <div class="field">
-      <p class="field-label">라벨<span class="field-hint">1줄 · 최대 24자</span></p>
+      <p class="field-label">라벨<span class="field-count" id="bnLabelCount">0/24</span></p>
       <input class="input" id="bnLabel" maxlength="24" placeholder="예) WELCOME COUPON">
     </div>
 
     <div class="field">
-      <p class="field-label">타이틀<span class="field-hint">최대 2줄</span></p>
+      <p class="field-label">타이틀<span class="field-count" id="bnTitleCount">0/60</span></p>
       <textarea class="input input--area" id="bnTitle" rows="2" maxlength="60"
         placeholder="예) 회원가입만 해도&#10;전상품 1,000원 즉시 할인!"></textarea>
     </div>
@@ -1855,6 +1879,7 @@ img{display:block;max-width:100%}
     <button class="btn btn--solid" type="button" id="bnApply">배너 적용</button>
   </footer>
 </section>
+<div class="bn-toast" id="bnToast"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM16.53 8.86C16.24 8.56 15.76 8.56 15.47 8.86L10.66 13.65L8.53 11.52C8.24 11.23 7.76 11.23 7.47 11.52C7.18 11.81 7.18 12.29 7.47 12.58L10.13 15.24C10.43 15.54 10.9 15.54 11.19 15.24L16.53 9.92C16.82 9.63 16.82 9.15 16.53 8.86Z"/></svg><span id="bnToastMsg">배너가 적용되었어요</span></div>
 </div>
 <script>
 // ----- 가로 스크롤 영역 초기화 -----
@@ -1965,21 +1990,86 @@ img{display:block;max-width:100%}
   var sheet=document.getElementById('bnSheet'), scrim=document.getElementById('bnScrim');
   if(!sheet||!scrim) return;
   var elFile=document.getElementById('bnFile'), elThumb=document.getElementById('bnThumb'),
+      elCheck=document.getElementById('bnCheck'),
       elLabel=document.getElementById('bnLabel'), elTitle=document.getElementById('bnTitle'),
       elLink=document.getElementById('bnLink'),
+      elLabelCount=document.getElementById('bnLabelCount'), elTitleCount=document.getElementById('bnTitleCount'),
       pvImg=document.getElementById('bnPvImg'), pvLabel=document.getElementById('bnPvLabel'),
       pvTitle=document.getElementById('bnPvTitle'), pvPage=document.getElementById('bnPvPage'),
-      preview=document.getElementById('bnPreview');
-  var target=0, uploaded=null, lastFocus=null;
+      preview=document.getElementById('bnPreview'),
+      toast=document.getElementById('bnToast'), toastMsg=document.getElementById('bnToastMsg');
+  var target=0, uploaded=null, lastFocus=null, toastTimer=null;
+
+  // Foundation/Icon — CircleCheckFill / CircleInfoFill (14px)
+  var ICON_OK='<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM16.53 8.86C16.24 8.56 15.76 8.56 15.47 8.86L10.66 13.65L8.53 11.52C8.24 11.23 7.76 11.23 7.47 11.52C7.18 11.81 7.18 12.29 7.47 12.58L10.13 15.24C10.43 15.54 10.9 15.54 11.19 15.24L16.53 9.92C16.82 9.63 16.82 9.15 16.53 8.86Z"/></svg>';
+  var ICON_WARN='<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM12 10.25C11.59 10.25 11.25 10.59 11.25 11V16C11.25 16.41 11.59 16.75 12 16.75C12.42 16.75 12.75 16.41 12.75 16V11C12.75 10.59 12.42 10.25 12 10.25ZM12 7.25C11.58 7.25 11.25 7.59 11.25 8C11.25 8.41 11.58 8.75 12 8.75H12C12.42 8.75 12.75 8.41 12.75 8C12.75 7.59 12.42 7.25 12 7.25H12Z"/></svg>';
+
+  var REC_W=750, REC_H=640, REC_RATIO=REC_W/REC_H;   // Main Banner @2x 권장 사이즈
 
   function esc(t){ var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
-  var NL=String.fromCharCode(10), BR=new RegExp('<br\s*/?>','gi'), TAG=new RegExp('<[^>]+>','g');
+  var NL=String.fromCharCode(10), BR=new RegExp('<br\s*/?>','gi');
   function titleHtml(v){ return esc(v).split(NL).slice(0,2).join('<br>'); }
+  // 배너의 innerHTML("ZO&amp;FRIENDS<br>...")을 그대로 읽으면 엔티티가 풀리지 않은 채
+  // textarea 값에 들어가 "ZO&amp;FRIENDS" 처럼 깨져 보인다. 임시 노드에 파싱시켜
+  // textContent 로 꺼내면 엔티티 디코딩과 태그 제거가 한 번에 된다.
+  function htmlToText(html){
+    var d=document.createElement('div');
+    d.innerHTML=html.replace(BR,NL);
+    return (d.textContent||'');
+  }
 
   function paint(){
     pvLabel.textContent = elLabel.value;
     pvTitle.innerHTML = titleHtml(elTitle.value);
     pvPage.textContent = String(target+1).padStart(2,'0');
+  }
+
+  function formatBytes(n){
+    if(n<1024) return n+'B';
+    if(n<1024*1024) return Math.round(n/1024)+'KB';
+    return (n/1024/1024).toFixed(1)+'MB';
+  }
+
+  // 업로드된 이미지의 실제 해상도·비율·용량을 읽어 배너 권장 규격과 비교
+  function checkImage(file){
+    var url=URL.createObjectURL(file);
+    var img=new Image();
+    img.onload=function(){
+      var w=img.naturalWidth, h=img.naturalHeight;
+      var sizeTxt=w+'×'+h+'px · '+formatBytes(file.size);
+      var lowRes=(w<REC_W||h<REC_H);
+      var offRatio=Math.abs((w/h)-REC_RATIO)/REC_RATIO>0.12;
+      var icon,label,cls;
+      if(lowRes){
+        cls='upload-check upload-check--warn';
+        icon=ICON_WARN; label='해상도가 낮아요 · 권장 '+REC_W+'×'+REC_H+'px 이상';
+      }else if(offRatio){
+        cls='upload-check upload-check--warn';
+        icon=ICON_WARN; label='비율이 달라요 · 가운데 기준으로 잘려 보여요';
+      }else{
+        cls='upload-check upload-check--ok';
+        icon=ICON_OK; label='적합한 이미지예요';
+      }
+      elCheck.className=cls;
+      elCheck.innerHTML=icon+'<span>'+label+' · <span class="upload-check-dim">'+sizeTxt+'</span></span>';
+      elCheck.hidden=false;
+      URL.revokeObjectURL(url);
+    };
+    img.src=url;
+  }
+
+  function updateCount(el,counter,max){
+    var n=el.value.length;
+    counter.textContent=n+'/'+max;
+    counter.classList.toggle('is-near', n>=Math.round(max*0.85)&&n<max);
+    counter.classList.toggle('is-full', n>=max);
+  }
+
+  function showToast(msg){
+    toastMsg.textContent=msg;
+    toast.classList.add('is-open');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-open'); },1800);
   }
 
   function open(k){
@@ -1990,9 +2080,12 @@ img{display:block;max-width:100%}
     var bg=src.querySelector('.mb-bg');
     var img=bg.querySelector('img');
     elLabel.value=(src.querySelector('.mb-label').textContent||'').trim();
-    elTitle.value=(src.querySelector('.mb-title').innerHTML||'').replace(BR,NL).replace(TAG,'').trim();
+    elTitle.value=htmlToText(src.querySelector('.mb-title').innerHTML||'').trim();
     elLink.value=src.getAttribute('data-href')||'';
     uploaded=null;
+    elCheck.hidden=true;
+    updateCount(elLabel, elLabelCount, 24);
+    updateCount(elTitle, elTitleCount, 60);
     var pvBg=preview.querySelector('.mb-bg');
     pvBg.className='mb-bg '+[].filter.call(bg.classList,function(c){return c!=='mb-bg'}).join(' ');
     pvBg.style.cssText=bg.style.cssText;
@@ -2029,12 +2122,14 @@ img{display:block;max-width:100%}
         im.src=uploaded; im.style.cssText='';
       }
     });
+    showToast('배너가 적용되었어요');
     close();
   }
 
   elFile.addEventListener('change',function(){
     var f=elFile.files&&elFile.files[0];
     if(!f) return;
+    checkImage(f);
     var r=new FileReader();
     r.onload=function(){
       uploaded=r.result;
@@ -2045,8 +2140,8 @@ img{display:block;max-width:100%}
     };
     r.readAsDataURL(f);
   });
-  elLabel.addEventListener('input',paint);
-  elTitle.addEventListener('input',paint);
+  elLabel.addEventListener('input',function(){ paint(); updateCount(elLabel, elLabelCount, 24); });
+  elTitle.addEventListener('input',function(){ paint(); updateCount(elTitle, elTitleCount, 60); });
 
   document.getElementById('bnClose').addEventListener('click',close);
   document.getElementById('bnCancel').addEventListener('click',close);
