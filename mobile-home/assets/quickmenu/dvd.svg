@@ -1,0 +1,25 @@
+<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dvdCase" x1="4" y1="6" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3A4568"/>
+      <stop offset="1" stop-color="#1B2138"/>
+    </linearGradient>
+    <linearGradient id="dvdDisc" x1="10" y1="8" x2="28" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD9EC"/>
+      <stop offset="0.5" stop-color="#C9B6FF"/>
+      <stop offset="1" stop-color="#8FA7FF"/>
+    </linearGradient>
+    <linearGradient id="dvdShine" x1="12" y1="9" x2="18" y2="15" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="18" cy="30.5" rx="8" ry="1.6" fill="#20264A" opacity="0.22"/>
+  <rect x="4.5" y="5.5" width="21" height="25" rx="3" fill="url(#dvdCase)"/>
+  <rect x="4.5" y="5.5" width="21" height="25" rx="3" fill="none" stroke="#000" stroke-opacity="0.25" stroke-width="0.6"/>
+  <circle cx="21.5" cy="18" r="10.5" fill="url(#dvdDisc)"/>
+  <path d="M13.5 11A10.4 10.4 0 0 1 21.5 7.5" stroke="url(#dvdShine)" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+  <circle cx="21.5" cy="18" r="3.6" fill="#2A2540"/>
+  <circle cx="21.5" cy="18" r="1.6" fill="#0D0B18"/>
+  <path d="M18.7 15.6l4.6 2.4-4.6 2.4v-4.8z" fill="#ffffff" opacity="0.92"/>
+</svg>

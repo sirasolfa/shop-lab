@@ -1,0 +1,21 @@
+<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cdBody" x1="5" y1="6" x2="31" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EAF1FF"/>
+      <stop offset="0.35" stop-color="#B9D4FF"/>
+      <stop offset="0.62" stop-color="#8FD9E8"/>
+      <stop offset="1" stop-color="#6EC0FF"/>
+    </linearGradient>
+    <linearGradient id="cdShine" x1="8" y1="8" x2="18" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="18" cy="30.5" rx="8" ry="1.6" fill="#4E7FD1" opacity="0.22"/>
+  <circle cx="18" cy="17" r="13" fill="url(#cdBody)"/>
+  <circle cx="18" cy="17" r="13" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="0.6"/>
+  <path d="M8 10.5A12.9 12.9 0 0 1 18 5.2" stroke="url(#cdShine)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <circle cx="18" cy="17" r="4.4" fill="#2F3A55"/>
+  <circle cx="18" cy="17" r="2" fill="#0D1220"/>
+  <circle cx="18" cy="17" r="13" fill="none" stroke="#3E6FC4" stroke-opacity="0.25" stroke-width="1"/>
+</svg>

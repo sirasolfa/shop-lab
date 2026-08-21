@@ -49,6 +49,11 @@ def brand_svg(name: str) -> str:
     return (ASSETS / "brand" / f"{name}.svg").read_text(encoding="utf-8").replace("\n", "")
 
 
+def quickmenu_icon(name: str) -> str:
+    """퀵메뉴용 풀컬러 3D 스타일 아이콘 (직접 제작, gradient 기반). 36px 기준."""
+    return (ASSETS / "quickmenu" / f"{name}.svg").read_text(encoding="utf-8").replace("\n", "")
+
+
 def esc(s) -> str:
     return html.escape(str(s), quote=True)
 
@@ -125,12 +130,17 @@ def product_row(items, badge=None) -> str:
 # ---------------------------------------------------------------- 섹션 데이터
 S = DATA["sections"]
 
-ARTISTS = [
-    ("tws", "투어스"),
-    ("kep1er", "케플러"),
-    ("babymonster", "베이비몬스터"),
-    ("illit", "아일릿"),
-    ("cortis", "코르티스"),
+# Figma 4872:80651 업데이트: "Who's Your Bias?" 아티스트 아바타 행이
+# 카테고리 바로가기 "퀵메뉴"로 교체됨 (48px 라운드 스퀘어 + 라벨, 2행×5열로
+# 같은 5개 항목이 반복 배치돼 있었음 — 자리 채우기용 목업으로 보고 1행 5개로 정리).
+# 아이콘은 Figma 쪽에 아직 채워지지 않은 빈 그라디언트 사각형이라 직접 제작.
+# 링크는 라이브 사이트 실제 카테고리 경로.
+QUICKMENU = [
+    ("live_md", "Live MD", "https://shop.novera.town/categories/PCTGY3"),
+    ("cd", "CD", "https://shop.novera.town/categories/PCTGY1/PCTGY1_2"),
+    ("dvd", "DVD", "https://shop.novera.town/categories/PCTGY1/PCTGY1_1"),
+    ("photocard", "포토/카드", "https://shop.novera.town/categories/PCTGY2/PCTGY2_2"),
+    ("lightstick", "응원봉", "https://shop.novera.town/categories/PCTGY2/PCTGY2_5"),
 ]
 
 # Fan's Pick TOP3 — 실제 아티스트 + Figma 시안의 찜 수치(실 데이터 미제공)
@@ -140,25 +150,27 @@ PODIUM = [
     dict(key="babymonster", name="베이비몬스터", count=8120, rank="3rd", place="third"),
 ]
 
+# hero 배경색은 각 배너 이미지 가장자리에서 실측한 색 (PIL 로 좌우 6열 평균) --
+# object-fit:contain 으로 바뀌면서 생기는 좌우 여백을 그 배너 고유 톤으로 자연스럽게 채움
 COLLECTIONS = [
-    dict(key="zo", tab="ZO&FRIENDS", hero="col_zo", overlay=False,
+    dict(key="zo", tab="ZO&FRIENDS", hero="col_zo", hero_bg="#46a9f6", overlay=False,
          title="ZO&FRIENDS Collection",
          desc="사랑스러운 조앤프렌즈를 NOVERA shop에서 만나보세요",
          items=S["col_zo"]),
-    dict(key="km", tab="귀멸의 칼날", hero="col_km", overlay=True,
+    dict(key="km", tab="귀멸의 칼날", hero="col_km", hero_bg="#05060b", overlay=True,
          badge="New release", headline="귀멸의 칼날<br>COLLECTION",
          title="귀멸의 칼날 Collection",
          desc="전집중! 귀살대 굿즈를 NOVERA shop에서 만나보세요",
          items=S["col_km"]),
-    dict(key="doy", tab="도영", hero="col_doy", overlay=False,
+    dict(key="doy", tab="도영", hero="col_doy", hero_bg="#eddda3", overlay=False,
          title="도영 [ Yours ] Collection",
          desc="2025 DOYOUNG ENCORE CONCERT 공식 MD",
          items=S["col_doy"]),
-    dict(key="yjs", tab="윤종신", hero="col_yjs", overlay=False,
+    dict(key="yjs", tab="윤종신", hero="col_yjs", hero_bg="#a7a4a5", overlay=False,
          title="〈윤종신 그리고 나〉 Collection",
          desc="윤종신의 행보 시리즈를 NOVERA shop에서 만나보세요",
          items=S["col_yjs"]),
-    dict(key="kep", tab="Kep1asia", hero="col_kep", overlay=False,
+    dict(key="kep", tab="Kep1asia", hero="col_kep", hero_bg="#d64d1f", overlay=False,
          title="케플러 Kep1asia Official MD",
          desc="2025 Kep1er CONCERT TOUR 공식 MD",
          items=S["col_kep"]),
@@ -173,20 +185,20 @@ CAT_TABS = [
 ]
 
 MAIN_BANNERS = [
+    # coupon 은 배경이 투명 처리된 컷아웃 PNG -- CSS 그라디언트 위에 올라가는 방식
     dict(kind="coupon", label="WELCOME COUPON",
-         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!", img="main1"),
+         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!", img="main1_cutout", ext=".png"),
     dict(kind="zo", label="서툴러서 더 완벽한 친구들",
-         title="ZO&FRIENDS<br>LUCKY COLLECTION", img="main2"),
+         title="ZO&FRIENDS<br>LUCKY COLLECTION", img="main2", ext=".webp"),
     dict(kind="km", label="전집중, 귀살대 주목!",
-         title="귀멸의 칼날 굿즈<br>COLLECTION Open!", img="main3"),
+         title="귀멸의 칼날 굿즈<br>COLLECTION Open!", img="main3", ext=".jpg"),
 ]
 
 
 def build_banners() -> str:
     out = []
     for i, b in enumerate(MAIN_BANNERS):
-        ext = ".webp" if b["img"] == "main2" else ".jpg"
-        src = datauri(ASSETS / "banner" / f"{b['img']}{ext}")
+        src = datauri(ASSETS / "banner" / f"{b['img']}{b['ext']}")
         bg = f'<div class="mb-bg mb-bg--{b["kind"]}"><img src="{src}" alt=""></div>'
         out.append(
             f"""<div class="mb-slide" data-slide="{i}" role="button" tabindex="0"
@@ -212,25 +224,19 @@ def build_banner_pagination() -> str:
     )
 
 
-ARTIST_STAGGER = 70  # 셀당 등장 간격(ms) — 좌 → 우
+QUICKMENU_STAGGER = 70  # 셀당 등장 간격(ms) — 좌 → 우
 
 
-def build_artists() -> str:
+def build_quickmenu() -> str:
     cells = []
-    for i, (key, name) in enumerate(ARTISTS):
-        img = datauri(ASSETS / "artist" / f"{key}.jpg")
+    for i, (icon_key, label, href) in enumerate(QUICKMENU):
         cells.append(
-            f"""<button class="artist" type="button" style="--d:{i * ARTIST_STAGGER}ms">
-  <span class="avatar avatar--48"><img src="{img}" alt="{esc(name)}"></span>
-  <span class="artist-label">{esc(name)}</span>
-</button>"""
+            f"""<a class="qm-item" href="{href}" target="_blank" rel="noreferrer" style="--d:{i * QUICKMENU_STAGGER}ms">
+  <span class="qm-sq">{quickmenu_icon(icon_key)}</span>
+  <span class="qm-label">{esc(label)}</span>
+</a>"""
         )
-    cells.append(
-        f'<span class="artist artist--add" style="--d:{len(ARTISTS) * ARTIST_STAGGER}ms">'
-        '<span class="avatar-add" role="button" aria-label="아티스트 더보기">'
-        + icon("Plus", 24) + "</span></span>"
-    )
-    return f'<div class="artist-list" id="artist-list">{"".join(cells)}<i class="row-end"></i></div>'
+    return f'<div class="qm-list" id="quickmenu-list">{"".join(cells)}<i class="row-end"></i></div>'
 
 
 # Fan's Pick 등장 타임라인 (스탠드별 오프셋 D 에 더해지는 값)
@@ -290,7 +296,7 @@ def build_collections() -> str:
 </div>"""
         panels.append(
             f"""<div class="col-panel{active}" data-col="{c['key']}">
-  <div class="col-hero{' col-hero--overlay' if c.get('overlay') else ''}">
+  <div class="col-hero{' col-hero--overlay' if c.get('overlay') else ''}" style="--col-bg:{c['hero_bg']}">
     <img src="{hero_src}" alt="{esc(c['title'])}">{overlay}
   </div>
   <div class="col-body">
@@ -419,6 +425,14 @@ def build_banner_sheet() -> str:
     </div>
 
     <div class="field">
+      <p class="field-label">배경색<span class="field-hint">이미지 비율을 그대로 유지하고 남는 여백을 채우는 색</span></p>
+      <div class="bgcolor-row">
+        <input class="bgcolor-input" id="bnBgColor" type="color" value="#08a2c2">
+        <span class="bgcolor-hex" id="bnBgColorHex">#08A2C2</span>
+      </div>
+    </div>
+
+    <div class="field">
       <p class="field-label">라벨<span class="field-count" id="bnLabelCount">0/24</span></p>
       <input class="input" id="bnLabel" maxlength="24" placeholder="예) WELCOME COUPON">
     </div>
@@ -437,6 +451,8 @@ def build_banner_sheet() -> str:
     <div class="auto-note">
       <p class="auto-note-title">{icon('Notice', 16)}자동으로 적용되는 항목</p>
       <ul class="auto-note-list">
+        <li>이미지는 가로폭에 맞춰 늘리지 않고 세로 높이 기준 원본 비율 유지</li>
+        <li>남는 여백은 위에서 고른 배경색으로 자연스럽게 채워짐</li>
         <li>하단 그라데이션 딤 (0% → 16% → 64%)</li>
         <li>라벨 12·SemiBold / 타이틀 20·Bold 타이포와 좌우 여백</li>
         <li>슬라이드 순번 페이지네이션과 4초 자동 롤링</li>
@@ -566,7 +582,6 @@ CSS = """
   --gutter:var(--spacing-20);          /* 본문 좌우 20px */
   --gutter-header:var(--spacing-16);   /* TopNavigation 16px */
   --gutter-tabs:var(--spacing-12);     /* 카테고리 탭바 12px (라벨 좌우 12 → 첫 라벨 24px) */
-  --avatar-inset:6px;                  /* Avatar 좌우 여백 — 원 시작점을 거터에 맞추기 위한 상쇄값 */
   --maxw:430px;
 }
 
@@ -684,13 +699,22 @@ img{display:block;max-width:100%}
 .mainbanner{position:relative;height:320px;overflow:hidden;touch-action:pan-y}
 .mb-track{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .mb-slide{position:relative;flex:0 0 100%;height:320px;overflow:hidden}
-.mb-bg{position:absolute;inset:0;overflow:hidden}
-.mb-bg--coupon img{width:100%;height:100%;object-fit:cover}
+/* 배너 이미지는 가로폭에 맞춰 늘리지 않고(cover 크롭 금지) 세로 높이 기준으로
+   원본 비율 그대로 보여준다(contain). 그 결과 좌우에 생기는 여백은 각 배너의
+   실제 색과 맞춘 배경으로 자연스럽게 채운다. */
+.mb-bg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+/* Figma 원본 배경 그라디언트를 그대로 재현. 쿠폰 카드 자체는 배경을 투명 처리해
+   낸 컷아웃 이미지라 카드 아래로 그라디언트가 그대로 이어져 보인다 */
+.mb-bg--coupon{background:
+    linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%),
+    linear-gradient(90deg,#dbf8fe 0%,#dbf8fe 100%)}
+.mb-bg--coupon img{width:min(82%,420px);height:auto;object-fit:contain;
+  transform:rotate(6deg);filter:drop-shadow(0 12px 28px rgba(8,64,80,.35))}
 .mb-bg--zo{background:linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%);
-  display:flex;align-items:flex-start;justify-content:center}
+  align-items:flex-start}
 .mb-bg--zo img{width:261px;height:208px;object-fit:contain;margin-top:36px}
 .mb-bg--km{background:#06060b}
-.mb-bg--km img{width:100%;height:216px;object-fit:cover;
+.mb-bg--km img{width:100%;height:216px;object-fit:contain;
   -webkit-mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%);
   mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%)}
 .mb-dim{position:absolute;inset:0;
@@ -716,7 +740,6 @@ img{display:block;max-width:100%}
 
 /* ---------- Section ---------- */
 .sec{padding:var(--spacing-12) 0 var(--spacing-28)}
-.sec--bias{padding:var(--spacing-24) 0 var(--spacing-20)}
 .sec-head{display:flex;align-items:flex-start;gap:var(--spacing-20);padding:0 var(--gutter)}
 .sec-head-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .sec-title{font-size:18px;font-weight:600;line-height:1.4;color:var(--text-primary)}
@@ -730,41 +753,39 @@ img{display:block;max-width:100%}
 }
 .text-btn .ico{color:var(--icon-muted)}
 
-/* ---------- Artist list (Who's Your Bias?) ---------- */
-.artist-list{display:flex;align-items:flex-start;gap:2px;margin-top:var(--spacing-12);
-  padding-left:calc(var(--gutter) - var(--avatar-inset));
+/* ---------- Quick Menu (Figma 4872:80651, 업데이트된 카테고리 바로가기) ---------- */
+/* 셀 60×73 / 갭 8 / 아이콘 스퀘어 48×48 rounded-12 (좌우 6·상하 4) / 라벨 60×17 */
+.sec--quickmenu{padding:var(--spacing-20) 0}
+.qm-list{display:flex;align-items:flex-start;gap:8px;
+  padding-left:calc(var(--gutter) - 6px);
   overflow-x:auto;scrollbar-width:none}
-.artist-list::-webkit-scrollbar{display:none}
-/* Figma: 셀 60×79 / 갭 2 / 아바타 48(좌우 6·상하 8) / 라벨 60×15 */
-.artist{display:flex;flex-direction:column;align-items:center;flex:none;width:60px}
-/* 스크롤 진입 시 좌 → 우 로 아바타가 올라오고, 라벨이 뒤따라 뜬다 */
-.artist>.avatar,.avatar-add{opacity:0;transform:translateY(14px) scale(.84);
+.qm-list::-webkit-scrollbar{display:none}
+.qm-item{display:flex;flex-direction:column;align-items:center;flex:none;width:60px}
+/* 스크롤 진입 시 좌 → 우 로 아이콘이 올라오고, 라벨이 뒤따라 뜬다 */
+.qm-sq{opacity:0;transform:translateY(14px) scale(.84);
   transition:opacity .34s ease var(--d),
              transform .5s cubic-bezier(.34,1.45,.6,1) var(--d)}
-.artist-list.is-in .artist>.avatar,.artist-list.is-in .avatar-add{opacity:1;transform:none}
-.artist-label{opacity:0;transform:translateY(6px);
+.qm-list.is-in .qm-sq{opacity:1;transform:none}
+.qm-label{opacity:0;transform:translateY(6px);
   transition:opacity .3s ease calc(var(--d) + 110ms),
              transform .34s cubic-bezier(.22,1,.36,1) calc(var(--d) + 110ms)}
-.artist-list.is-in .artist-label{opacity:1;transform:none}
+.qm-list.is-in .qm-label{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){
-  .artist>.avatar,.avatar-add,.artist-label{transition:none;opacity:1;transform:none}
+  .qm-sq,.qm-label{transition:none;opacity:1;transform:none}
+}
+.qm-sq{display:flex;align-items:center;justify-content:center;
+  width:48px;height:48px;margin:4px 6px;border-radius:var(--rounded-md);
+  background:linear-gradient(180deg,var(--bg-gray) 0%,var(--bg-primary) 100%)}
+.qm-sq svg{width:36px;height:36px}
+.qm-label{
+  display:block;width:100%;padding:0 2px;font-size:12px;font-weight:600;
+  letter-spacing:var(--tracking-1);line-height:1.4;
+  color:var(--text-secondary);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .avatar{display:block;border-radius:var(--rounded-full);overflow:hidden;
   border:1px solid var(--border-thumbnail);background:var(--bg-muted)}
 .avatar--48{width:48px;height:48px}
 .avatar img{width:100%;height:100%;object-fit:cover}
-.artist>.avatar{margin:var(--spacing-8) var(--avatar-inset)}
-.artist-label{
-  display:block;width:100%;padding:0 2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
-  color:var(--text-primary);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.artist--add{width:60px}
-.avatar-add{
-  width:48px;height:48px;margin:var(--spacing-8) var(--avatar-inset);
-  display:flex;align-items:center;justify-content:center;
-  border-radius:var(--rounded-full);background:var(--bg-gray);
-  border:1px dashed var(--border-default);color:var(--icon-muted);cursor:pointer;
-}
 
 /* ---------- ProductCard row ---------- */
 .prow{display:flex;gap:var(--spacing-12);padding-left:var(--gutter);
@@ -890,15 +911,20 @@ img{display:block;max-width:100%}
 
 /* ---------- Inline banner (full-bleed) ---------- */
 .inline-banner{padding:var(--spacing-24) 0}
-.inline-banner img{width:100%;height:77px;object-fit:cover}
+.inline-banner .banner-frame{width:100%;height:77px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;background:#000}
+.inline-banner img{width:100%;height:100%;object-fit:contain}
 
 /* ---------- Collection ---------- */
 .sec--collection{padding:var(--spacing-24) 0 var(--spacing-28)}
 .col-top{padding:0 var(--gutter);margin-bottom:var(--spacing-8)}
 .col-panel{display:none}
 .col-panel.is-active{display:block}
-.col-hero{position:relative;height:140px;overflow:hidden}
-.col-hero img{width:100%;height:100%;object-fit:cover}
+/* 컬렉션 히어로도 가로폭에 맞춰 크롭하지 않고 세로 높이 기준으로 원본 비율 유지.
+   좌우 여백은 각 배너 이미지에서 뽑은 고유 색(--col-bg)으로 자연스럽게 채움 */
+.col-hero{position:relative;height:140px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;background:var(--col-bg,#000)}
+.col-hero img{width:100%;height:100%;object-fit:contain}
 .col-hero--overlay::after{content:'';position:absolute;inset:0;
   background:linear-gradient(90deg,rgba(6,6,11,.1) 0%,rgba(6,6,11,.75) 52%,rgba(6,6,11,.9) 100%)}
 .col-hero-text{position:absolute;right:var(--gutter);top:50%;transform:translateY(-50%);
@@ -1013,7 +1039,8 @@ img{display:block;max-width:100%}
 .field-count.is-full{color:var(--text-negative)}
 .bn-preview{position:relative;width:100%;aspect-ratio:375/320;overflow:hidden;
   border-radius:var(--rounded-sm);background:var(--bg-muted)}
-.bn-preview .mb-bg img{width:100%;height:100%;object-fit:cover}
+/* 실제 배너와 동일한 object-fit:contain 규칙(.mb-bg--* img)을 그대로 물려받는다 --
+   미리보기만 다른 cover 규칙을 두면 실제 적용 결과와 달라 보이는 문제가 있었음 */
 .bn-preview .mb-bottom{bottom:20px}
 /* 등록 시트의 미리보기는 실제 배너와 달리 정적 목업이라 텍스트+페이지네이션을
    한 줄(flex)로 같이 둔다 -- 실제 배너 쪽의 "고정 오버레이" 분리와는 무관 */
@@ -1039,6 +1066,16 @@ img{display:block;max-width:100%}
 .upload-check--warn{color:var(--text-warning)}
 .upload-check--warn .ico{color:var(--icon-warning,var(--yellow-500))}
 .upload-check-dim{font-weight:400;color:var(--text-muted)}
+.bgcolor-row{display:flex;align-items:center;gap:var(--spacing-8)}
+.bgcolor-input{width:44px;height:36px;padding:0;border:1px solid var(--border-default);
+  border-radius:var(--rounded-xs);background:none;cursor:pointer}
+.bgcolor-input::-webkit-color-swatch-wrapper{padding:2px}
+.bgcolor-input::-webkit-color-swatch{border:none;border-radius:var(--rounded-xxs)}
+.bgcolor-hex{font-size:13px;font-weight:600;letter-spacing:var(--tracking-1);
+  color:var(--text-secondary);font-variant-numeric:tabular-nums}
+/* 업로드한 이미지는 전용 회전/그림자 스타일(쿠폰 카드용) 없이 심플하게
+   비율 그대로 담고, 남는 영역은 사용자가 고른 배경색으로 채움 */
+.mb-bg--custom img{width:100%;height:100%;object-fit:contain}
 .input{width:100%;min-height:var(--componentSize-md-height);
   padding:var(--spacing-12);border:1px solid var(--border-default);
   border-radius:var(--rounded-sm);background:var(--bg-default);
@@ -1137,7 +1174,7 @@ JS = """
 // 첫 카드의 좌측 거터(20px)가 어긋나 보이는 것을 방지
 (function(){
   function resetRows(){
-    document.querySelectorAll('.prow,.artist-list,.tabs').forEach(function(r){ r.scrollLeft=0; });
+    document.querySelectorAll('.prow,.qm-list,.tabs').forEach(function(r){ r.scrollLeft=0; });
   }
   resetRows();
   window.addEventListener('load',resetRows);
@@ -1246,6 +1283,7 @@ JS = """
   if(!sheet||!scrim) return;
   var elFile=document.getElementById('bnFile'), elThumb=document.getElementById('bnThumb'),
       elCheck=document.getElementById('bnCheck'),
+      elBgColor=document.getElementById('bnBgColor'), elBgColorHex=document.getElementById('bnBgColorHex'),
       elLabel=document.getElementById('bnLabel'), elTitle=document.getElementById('bnTitle'),
       elLink=document.getElementById('bnLink'),
       elLabelCount=document.getElementById('bnLabelCount'), elTitleCount=document.getElementById('bnTitleCount'),
@@ -1260,6 +1298,19 @@ JS = """
   var ICON_WARN='<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM12 10.25C11.59 10.25 11.25 10.59 11.25 11V16C11.25 16.41 11.59 16.75 12 16.75C12.42 16.75 12.75 16.41 12.75 16V11C12.75 10.59 12.42 10.25 12 10.25ZM12 7.25C11.58 7.25 11.25 7.59 11.25 8C11.25 8.41 11.58 8.75 12 8.75H12C12.42 8.75 12.75 8.41 12.75 8C12.75 7.59 12.42 7.25 12 7.25H12Z"/></svg>';
 
   var REC_W=750, REC_H=640, REC_RATIO=REC_W/REC_H;   // Main Banner @2x 권장 사이즈
+  var KIND_COLOR={coupon:'#08a2c2',zo:'#0072e4',km:'#06060b'};   // 배너별 기본 배경색
+
+  function kindOf(bg){
+    for(var i=0;i<bg.classList.length;i++){
+      var m=/^mb-bg--(\w+)$/.exec(bg.classList[i]);
+      if(m && m[1]!=='custom') return m[1];
+    }
+    return null;
+  }
+  function setBgColor(hex){
+    elBgColor.value=hex;
+    elBgColorHex.textContent=hex.toUpperCase();
+  }
 
   function esc(t){ var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
   var NL=String.fromCharCode(10), BR=new RegExp('<br\\s*/?>','gi');
@@ -1300,7 +1351,7 @@ JS = """
         icon=ICON_WARN; label='해상도가 낮아요 · 권장 '+REC_W+'×'+REC_H+'px 이상';
       }else if(offRatio){
         cls='upload-check upload-check--warn';
-        icon=ICON_WARN; label='비율이 달라요 · 가운데 기준으로 잘려 보여요';
+        icon=ICON_WARN; label='비율이 달라요 · 원본 비율 그대로 담기고 남는 영역은 배경색으로 채워져요';
       }else{
         cls='upload-check upload-check--ok';
         icon=ICON_OK; label='적합한 이미지예요';
@@ -1348,6 +1399,11 @@ JS = """
     pvImg.style.cssText=img?img.style.cssText:'';
     paint();
 
+    // 배경색 필드 프리필: 이전에 직접 지정한 색(data-bg-color) > 배너 종류 기본색
+    var savedColor=src.getAttribute('data-bg-color');
+    var kind=kindOf(bg);
+    setBgColor(savedColor || KIND_COLOR[kind] || '#08a2c2');
+
     lastFocus=document.activeElement;
     scrim.hidden=false; sheet.hidden=false;
     void sheet.offsetWidth;
@@ -1365,14 +1421,17 @@ JS = """
   }
   function apply(){
     var slides=window.NoveraBanner.slidesFor(target);   // 원본 + 클론 함께 갱신
+    var color=elBgColor.value;
     [].forEach.call(slides,function(sl){
       sl.querySelector('.mb-label').textContent=elLabel.value;
       sl.querySelector('.mb-title').innerHTML=titleHtml(elTitle.value);
       if(elLink.value) sl.setAttribute('data-href',elLink.value);
+      var bg=sl.querySelector('.mb-bg');
+      // 이미지 비율은 그대로 두고(가로폭에 맞춰 늘리지 않음), 남는 여백만 이 배경색으로 채움
+      bg.style.background=color;
+      sl.setAttribute('data-bg-color',color);
       if(uploaded){
-        var bg=sl.querySelector('.mb-bg');
-        bg.className='mb-bg mb-bg--coupon';            // 업로드 이미지는 전체 채움 규칙
-        bg.style.cssText='';
+        bg.classList.add('mb-bg--custom');              // 회전/그림자 없는 심플한 contain 규칙
         var im=bg.querySelector('img');
         im.src=uploaded; im.style.cssText='';
       }
@@ -1380,6 +1439,12 @@ JS = """
     showToast('배너가 적용되었어요');
     close();
   }
+
+  elBgColor.addEventListener('input',function(){
+    var hex=elBgColor.value;
+    elBgColorHex.textContent=hex.toUpperCase();
+    preview.querySelector('.mb-bg').style.background=hex;
+  });
 
   elFile.addEventListener('change',function(){
     var f=elFile.files&&elFile.files[0];
@@ -1390,7 +1455,8 @@ JS = """
       uploaded=r.result;
       elThumb.src=uploaded;
       var pvBg=preview.querySelector('.mb-bg');
-      pvBg.className='mb-bg mb-bg--coupon'; pvBg.style.cssText='';
+      pvBg.classList.add('mb-bg--custom');
+      pvBg.style.background=elBgColor.value;
       pvImg.src=uploaded; pvImg.style.cssText='';
     };
     r.readAsDataURL(f);
@@ -1415,9 +1481,9 @@ JS = """
   });
 })();
 
-// ----- Who's Your Bias: 아바타 → 라벨 순으로 좌에서 우로 등장 -----
+// ----- Quick Menu: 아이콘 → 라벨 순으로 좌에서 우로 등장 -----
 (function(){
-  var list=document.getElementById('artist-list');
+  var list=document.getElementById('quickmenu-list');
   if(!list) return;
   if(!('IntersectionObserver' in window)){ list.classList.add('is-in'); return; }
   new IntersectionObserver(function(entries,obs){
@@ -1530,9 +1596,8 @@ def build() -> str:
     {build_banner_pagination()}
   </section>
 
-  <section class="sec sec--bias">
-    {section_header("Who's Your Bias?", "당신의 최애를 찜해보세요!", "찜하러 가기")}
-    {build_artists()}
+  <section class="sec sec--quickmenu">
+    {build_quickmenu()}
   </section>
 
   <section class="sec">
@@ -1561,7 +1626,7 @@ def build() -> str:
   </section>
 
   <div class="inline-banner">
-    <a href="#"><img src="{inline_banner}" alt="&lt;귀멸의 칼날: 전집중展&gt; 전시 2026년 6월 27일 ~ 9월 27일"></a>
+    <a class="banner-frame" href="#"><img src="{inline_banner}" alt="&lt;귀멸의 칼날: 전집중展&gt; 전시 2026년 6월 27일 ~ 9월 27일"></a>
   </div>
 
   {build_collections()}
