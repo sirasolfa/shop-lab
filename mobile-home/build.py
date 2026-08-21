@@ -425,14 +425,6 @@ def build_banner_sheet() -> str:
     </div>
 
     <div class="field">
-      <p class="field-label">배경색<span class="field-hint">이미지 비율을 그대로 유지하고 남는 여백을 채우는 색</span></p>
-      <div class="bgcolor-row">
-        <input class="bgcolor-input" id="bnBgColor" type="color" value="#08a2c2">
-        <span class="bgcolor-hex" id="bnBgColorHex">#08A2C2</span>
-      </div>
-    </div>
-
-    <div class="field">
       <p class="field-label">라벨<span class="field-count" id="bnLabelCount">0/24</span></p>
       <input class="input" id="bnLabel" maxlength="24" placeholder="예) WELCOME COUPON">
     </div>
@@ -451,8 +443,7 @@ def build_banner_sheet() -> str:
     <div class="auto-note">
       <p class="auto-note-title">{icon('Notice', 16)}자동으로 적용되는 항목</p>
       <ul class="auto-note-list">
-        <li>이미지는 가로폭에 맞춰 늘리지 않고 세로 높이 기준 원본 비율 유지</li>
-        <li>남는 여백은 위에서 고른 배경색으로 자연스럽게 채워짐</li>
+        <li>업로드한 이미지가 배너 전체를 꽉 채움 (가로세로 비율은 유지, 넘치는 부분만 크롭)</li>
         <li>하단 그라데이션 딤 (0% → 16% → 64%)</li>
         <li>라벨 12·SemiBold / 타이틀 20·Bold 타이포와 좌우 여백</li>
         <li>슬라이드 순번 페이지네이션과 4초 자동 롤링</li>
@@ -709,8 +700,11 @@ img{display:block;max-width:100%}
 .mb-bg--coupon{background:
     linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%),
     linear-gradient(90deg,#dbf8fe 0%,#dbf8fe 100%)}
-.mb-bg--coupon img{height:58%;width:auto;object-fit:contain;
-  transform:rotate(6deg);filter:drop-shadow(0 12px 28px rgba(8,64,80,.35))}
+/* Figma 5301:49565 실측: 375×320 기준 프레임 안에서 카드가 좌상단 (79.8,61.5)에
+   236.1×122.2 크기로 6도 회전 배치됨(화면을 꽉 채우는 요소가 아니라 작게 떠 있는 카드).
+   %로 환산해 반응형에서도 같은 비율 위치를 유지한다 */
+.mb-bg--coupon img{position:absolute;left:21.28%;top:19.23%;width:62.96%;height:38.19%;
+  object-fit:contain;transform:rotate(6deg);filter:drop-shadow(0 4px 32px rgba(34,66,73,.3))}
 .mb-bg--zo{background:linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%);
   align-items:flex-start}
 .mb-bg--zo img{height:65%;width:auto;object-fit:contain;margin-top:36px}
@@ -1080,16 +1074,9 @@ img{display:block;max-width:100%}
 .upload-check--warn{color:var(--text-warning)}
 .upload-check--warn .ico{color:var(--icon-warning,var(--yellow-500))}
 .upload-check-dim{font-weight:400;color:var(--text-muted)}
-.bgcolor-row{display:flex;align-items:center;gap:var(--spacing-8)}
-.bgcolor-input{width:44px;height:36px;padding:0;border:1px solid var(--border-default);
-  border-radius:var(--rounded-xs);background:none;cursor:pointer}
-.bgcolor-input::-webkit-color-swatch-wrapper{padding:2px}
-.bgcolor-input::-webkit-color-swatch{border:none;border-radius:var(--rounded-xxs)}
-.bgcolor-hex{font-size:13px;font-weight:600;letter-spacing:var(--tracking-1);
-  color:var(--text-secondary);font-variant-numeric:tabular-nums}
-/* 업로드한 이미지는 전용 회전/그림자 스타일(쿠폰 카드용) 없이 심플하게
-   비율 그대로 담고, 남는 영역은 사용자가 고른 배경색으로 채움 */
-.mb-bg--custom img{width:100%;height:100%;object-fit:contain}
+/* 업로드한 이미지는 배경색 없이 배너 전체를 꽉 채운다 -- 세로 높이 기준으로 커버,
+   원본 비율은 유지한 채 넘치는 부분만 크롭 */
+.mb-bg--custom img{width:100%;height:100%;object-fit:cover}
 .input{width:100%;min-height:var(--componentSize-md-height);
   padding:var(--spacing-12);border:1px solid var(--border-default);
   border-radius:var(--rounded-sm);background:var(--bg-default);
@@ -1296,7 +1283,6 @@ JS = """
   if(!sheet||!scrim) return;
   var elFile=document.getElementById('bnFile'), elThumb=document.getElementById('bnThumb'),
       elCheck=document.getElementById('bnCheck'),
-      elBgColor=document.getElementById('bnBgColor'), elBgColorHex=document.getElementById('bnBgColorHex'),
       elLabel=document.getElementById('bnLabel'), elTitle=document.getElementById('bnTitle'),
       elLink=document.getElementById('bnLink'),
       elLabelCount=document.getElementById('bnLabelCount'), elTitleCount=document.getElementById('bnTitleCount'),
@@ -1311,19 +1297,6 @@ JS = """
   var ICON_WARN='<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM12 10.25C11.59 10.25 11.25 10.59 11.25 11V16C11.25 16.41 11.59 16.75 12 16.75C12.42 16.75 12.75 16.41 12.75 16V11C12.75 10.59 12.42 10.25 12 10.25ZM12 7.25C11.58 7.25 11.25 7.59 11.25 8C11.25 8.41 11.58 8.75 12 8.75H12C12.42 8.75 12.75 8.41 12.75 8C12.75 7.59 12.42 7.25 12 7.25H12Z"/></svg>';
 
   var REC_W=750, REC_H=640, REC_RATIO=REC_W/REC_H;   // Main Banner @2x 권장 사이즈
-  var KIND_COLOR={coupon:'#08a2c2',zo:'#0072e4',km:'#06060b'};   // 배너별 기본 배경색
-
-  function kindOf(bg){
-    for(var i=0;i<bg.classList.length;i++){
-      var m=/^mb-bg--(\w+)$/.exec(bg.classList[i]);
-      if(m && m[1]!=='custom') return m[1];
-    }
-    return null;
-  }
-  function setBgColor(hex){
-    elBgColor.value=hex;
-    elBgColorHex.textContent=hex.toUpperCase();
-  }
 
   function esc(t){ var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
   var NL=String.fromCharCode(10), BR=new RegExp('<br\\s*/?>','gi');
@@ -1364,7 +1337,7 @@ JS = """
         icon=ICON_WARN; label='해상도가 낮아요 · 권장 '+REC_W+'×'+REC_H+'px 이상';
       }else if(offRatio){
         cls='upload-check upload-check--warn';
-        icon=ICON_WARN; label='비율이 달라요 · 원본 비율 그대로 담기고 남는 영역은 배경색으로 채워져요';
+        icon=ICON_WARN; label='비율이 달라요 · 배너를 꽉 채우며 넘치는 부분이 크롭돼요';
       }else{
         cls='upload-check upload-check--ok';
         icon=ICON_OK; label='적합한 이미지예요';
@@ -1412,11 +1385,6 @@ JS = """
     pvImg.style.cssText=img?img.style.cssText:'';
     paint();
 
-    // 배경색 필드 프리필: 이전에 직접 지정한 색(data-bg-color) > 배너 종류 기본색
-    var savedColor=src.getAttribute('data-bg-color');
-    var kind=kindOf(bg);
-    setBgColor(savedColor || KIND_COLOR[kind] || '#08a2c2');
-
     lastFocus=document.activeElement;
     scrim.hidden=false; sheet.hidden=false;
     void sheet.offsetWidth;
@@ -1434,17 +1402,14 @@ JS = """
   }
   function apply(){
     var slides=window.NoveraBanner.slidesFor(target);   // 원본 + 클론 함께 갱신
-    var color=elBgColor.value;
     [].forEach.call(slides,function(sl){
       sl.querySelector('.mb-label').textContent=elLabel.value;
       sl.querySelector('.mb-title').innerHTML=titleHtml(elTitle.value);
       if(elLink.value) sl.setAttribute('data-href',elLink.value);
       var bg=sl.querySelector('.mb-bg');
-      // 이미지 비율은 그대로 두고(가로폭에 맞춰 늘리지 않음), 남는 여백만 이 배경색으로 채움
-      bg.style.background=color;
-      sl.setAttribute('data-bg-color',color);
       if(uploaded){
-        bg.classList.add('mb-bg--custom');              // 회전/그림자 없는 심플한 contain 규칙
+        bg.classList.add('mb-bg--custom');              // 배경색 없이 이미지가 배너 전체를 커버
+        bg.style.background='';
         var im=bg.querySelector('img');
         im.src=uploaded; im.style.cssText='';
       }
@@ -1452,12 +1417,6 @@ JS = """
     showToast('배너가 적용되었어요');
     close();
   }
-
-  elBgColor.addEventListener('input',function(){
-    var hex=elBgColor.value;
-    elBgColorHex.textContent=hex.toUpperCase();
-    preview.querySelector('.mb-bg').style.background=hex;
-  });
 
   elFile.addEventListener('change',function(){
     var f=elFile.files&&elFile.files[0];
@@ -1469,7 +1428,7 @@ JS = """
       elThumb.src=uploaded;
       var pvBg=preview.querySelector('.mb-bg');
       pvBg.classList.add('mb-bg--custom');
-      pvBg.style.background=elBgColor.value;
+      pvBg.style.background='';
       pvImg.src=uploaded; pvImg.style.cssText='';
     };
     r.readAsDataURL(f);
