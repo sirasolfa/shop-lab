@@ -236,7 +236,7 @@ def build_quickmenu() -> str:
   <span class="qm-label">{esc(label)}</span>
 </a>"""
         )
-    return f'<div class="qm-list" id="quickmenu-list">{"".join(cells)}<i class="row-end"></i></div>'
+    return f'<div class="qm-list" id="quickmenu-list">{"".join(cells)}</div>'
 
 
 # Fan's Pick 등장 타임라인 (스탠드별 오프셋 D 에 더해지는 값)
@@ -699,8 +699,9 @@ img{display:block;max-width:100%}
 .mainbanner{position:relative;height:320px;overflow:hidden;touch-action:pan-y}
 .mb-track{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .mb-slide{position:relative;flex:0 0 100%;height:320px;overflow:hidden}
-/* 배너 이미지는 가로폭에 맞춰 늘리지 않고(cover 크롭 금지) 세로 높이 기준으로
-   원본 비율 그대로 보여준다(contain). 그 결과 좌우에 생기는 여백은 각 배너의
+/* 배너 이미지는 항상 세로 높이(container %) 기준으로 크기를 정하고 width:auto로
+   원본 비율을 그대로 유지한다 -- 가로폭에는 절대 맞추지 않는다. 이미지가 컨테이너보다
+   넓어지면 좌우는 overflow:hidden 으로 살짝만 잘리고, 좁으면 남는 여백을 각 배너의
    실제 색과 맞춘 배경으로 자연스럽게 채운다. */
 .mb-bg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
 /* Figma 원본 배경 그라디언트를 그대로 재현. 쿠폰 카드 자체는 배경을 투명 처리해
@@ -708,13 +709,13 @@ img{display:block;max-width:100%}
 .mb-bg--coupon{background:
     linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%),
     linear-gradient(90deg,#dbf8fe 0%,#dbf8fe 100%)}
-.mb-bg--coupon img{width:min(82%,420px);height:auto;object-fit:contain;
+.mb-bg--coupon img{height:58%;width:auto;object-fit:contain;
   transform:rotate(6deg);filter:drop-shadow(0 12px 28px rgba(8,64,80,.35))}
 .mb-bg--zo{background:linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%);
   align-items:flex-start}
-.mb-bg--zo img{width:261px;height:208px;object-fit:contain;margin-top:36px}
+.mb-bg--zo img{height:65%;width:auto;object-fit:contain;margin-top:36px}
 .mb-bg--km{background:#06060b}
-.mb-bg--km img{width:100%;height:216px;object-fit:contain;
+.mb-bg--km img{height:68%;width:auto;object-fit:contain;
   -webkit-mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%);
   mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%)}
 .mb-dim{position:absolute;inset:0;
@@ -756,8 +757,8 @@ img{display:block;max-width:100%}
 /* ---------- Quick Menu (Figma 4872:80651, 업데이트된 카테고리 바로가기) ---------- */
 /* 셀 60×73 / 갭 8 / 아이콘 스퀘어 48×48 rounded-12 (좌우 6·상하 4) / 라벨 60×17 */
 .sec--quickmenu{padding:var(--spacing-20) 0}
-.qm-list{display:flex;align-items:flex-start;gap:8px;
-  padding-left:calc(var(--gutter) - 6px);
+.qm-list{display:flex;align-items:flex-start;justify-content:center;gap:8px;
+  padding:0 var(--gutter);
   overflow-x:auto;scrollbar-width:none}
 .qm-list::-webkit-scrollbar{display:none}
 .qm-item{display:flex;flex-direction:column;align-items:center;flex:none;width:60px}
@@ -907,7 +908,20 @@ img{display:block;max-width:100%}
   font-size:13px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.4;color:var(--text-secondary)}
 .notice-head .ico{color:var(--icon-secondary)}
 .notice-body{font-size:12px;letter-spacing:var(--tracking-1);line-height:1.4;color:var(--text-tertiary)}
-.notice-time{font-size:10px;letter-spacing:var(--tracking-1);line-height:1.5;color:var(--text-disabled)}
+.tooltip-wrap{position:relative;display:inline-flex;align-items:center;margin-left:2px;color:var(--icon-tertiary)}
+.tooltip-wrap .tooltip-bubble{position:absolute;bottom:calc(100% + 8px);left:50%;
+  transform:translateX(-50%) translateY(4px);width:max-content;max-width:220px;
+  padding:var(--spacing-8) var(--spacing-12);border-radius:var(--rounded-xs);
+  background:var(--bg-inverse);color:var(--text-inverse);font-size:11px;font-weight:400;
+  letter-spacing:var(--tracking-1);line-height:1.4;white-space:nowrap;
+  opacity:0;visibility:hidden;pointer-events:none;z-index:5;
+  transition:opacity .15s ease,transform .15s ease;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.tooltip-wrap .tooltip-bubble::after{content:"";position:absolute;top:100%;left:50%;
+  transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--bg-inverse)}
+.tooltip-wrap.is-open .tooltip-bubble{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);pointer-events:auto}
+@media (hover:hover){
+  .tooltip-wrap:hover .tooltip-bubble{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+}
 
 /* ---------- Inline banner (full-bleed) ---------- */
 .inline-banner{padding:var(--spacing-24) 0}
@@ -1039,7 +1053,7 @@ img{display:block;max-width:100%}
 .field-count.is-full{color:var(--text-negative)}
 .bn-preview{position:relative;width:100%;aspect-ratio:375/320;overflow:hidden;
   border-radius:var(--rounded-sm);background:var(--bg-muted)}
-/* 실제 배너와 동일한 object-fit:contain 규칙(.mb-bg--* img)을 그대로 물려받는다 --
+/* 실제 배너와 동일한 .mb-bg--* img 규칙(세로 높이 기준 fill)을 그대로 물려받는다 --
    미리보기만 다른 cover 규칙을 두면 실제 적용 결과와 달라 보이는 문제가 있었음 */
 .bn-preview .mb-bottom{bottom:20px}
 /* 등록 시트의 미리보기는 실제 배너와 달리 정적 목업이라 텍스트+페이지네이션을
@@ -1151,8 +1165,7 @@ img{display:block;max-width:100%}
      텍스트와 페이지네이션 박스만 넓혀서 그 사이 간격만 커지게 함 ---- */
   .mainbanner{height:420px}
   .mb-slide{height:420px}
-  .mb-bg--km img{height:280px}
-  .mb-bg--zo img{width:340px;height:270px;margin-top:56px}
+  .mb-bg--zo img{margin-top:56px}
   .mb-bottom,.mb-pagination{width:min(1200px,calc(100% - 80px));bottom:40px}
   .mb-label{font-size:13px}
   .mb-title{font-size:28px}
@@ -1559,6 +1572,22 @@ document.querySelectorAll('.tabbar--category .tab').forEach(function(t){
   });
 });
 
+// ----- 툴팁 (탭으로 열고 닫기) -----
+(function(){
+  var wraps=document.querySelectorAll('.tooltip-wrap');
+  wraps.forEach(function(w){
+    w.addEventListener('click',function(e){
+      e.stopPropagation();
+      var open=w.classList.contains('is-open');
+      wraps.forEach(function(x){ x.classList.remove('is-open'); });
+      if(!open) w.classList.add('is-open');
+    });
+  });
+  document.addEventListener('click',function(){
+    wraps.forEach(function(x){ x.classList.remove('is-open'); });
+  });
+})();
+
 // ----- 찜 토글 -----
 document.querySelectorAll('.pcard-wish').forEach(function(b){
   b.addEventListener('click',function(e){
@@ -1609,9 +1638,13 @@ def build() -> str:
     {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
     {build_podium()}
     <div class="notice-box">
-      <p class="notice-head">{icon('Notice', 16)}아티스트 랭킹 정보</p>
+      <p class="notice-head">{icon('Notice', 16)}아티스트 랭킹 정보
+        <span class="tooltip-wrap" tabindex="0">
+          {icon('CircleInfoFill', 14)}
+          <span class="tooltip-bubble" role="tooltip">Last update 2026.08.18 14:00 (KST)</span>
+        </span>
+      </p>
       <p class="notice-body">팬들이 직접 참여한 찜하기 수치 기준 데이터예요.<br>좋아하는 최애에 아낌없이 찜해보세요!</p>
-      <p class="notice-time">Last update 2026.08.18 14:00 (KST)</p>
     </div>
   </section>
 
