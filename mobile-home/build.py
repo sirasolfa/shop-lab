@@ -579,17 +579,20 @@ def build_drawer() -> str:
 
 
 def build_bottom_nav() -> str:
+    # (아이콘, 라벨, 활성, 요소 id) — 카테고리가 사이드 드로어를 여는 진입점이다
     items = [
-        ("HomeFill", "홈", True),
-        ("Category", "카테고리", False),
-        ("Heart", "좋아요", False),
-        ("User", "마이", False),
+        ("HomeFill", "홈", True, None),
+        ("Category", "카테고리", False, "dwOpen"),
+        ("Heart", "좋아요", False, None),
+        ("User", "마이", False, None),
     ]
-    cells = "".join(
-        f'<button class="bn-item{" is-active" if act else ""}" type="button">'
-        f'{icon(ic, 24)}<span>{esc(label)}</span></button>'
-        for ic, label, act in items
-    )
+    cells = ""
+    for ic, label, act, el_id in items:
+        attrs = ' id="dwOpen" aria-controls="drawer" aria-expanded="false"' if el_id else ""
+        cells += (
+            f'<button class="bn-item{" is-active" if act else ""}" type="button"{attrs}>'
+            f'{icon(ic, 24)}<span>{esc(label)}</span></button>'
+        )
     return f"""<nav class="bottomnav" id="bottomnav">
   <div class="bn-items">{cells}</div>
   <div class="bn-home-indicator"><span></span></div>
@@ -707,9 +710,8 @@ img{display:block;max-width:100%}
   /* 사이드바가 차지한 폭만큼 본문 컬럼을 밀어 남는 영역 가운데 정렬 */
   body{padding-left:280px}
 
-  /* 사이드바가 내비게이션을 대신하므로 햄버거와 모바일 하단 탭바는 감춘다.
-     .touch{display:flex} 가 뒤에 오므로 같은 특정도로는 밀린다 -- 한 단계 올린다 */
-  .header .head-menu{display:none}
+  /* 사이드바가 내비게이션을 대신하므로 모바일 하단 탭바는 감춘다.
+     (드로어를 여는 "카테고리" 버튼도 하단 탭바 안에 있어 함께 사라진다) */
   .bottomnav{display:none}
   .app{padding-bottom:0}
 }
@@ -753,9 +755,6 @@ img{display:block;max-width:100%}
   padding:var(--spacing-8) var(--gutter-header);
 }
 .header-inner{flex:1;display:flex;align-items:center;justify-content:space-between}
-/* 햄버거는 로고 왼쪽에 붙고, 좌측 정렬 묶음(메뉴+로고)이 하나처럼 보이도록 음수 마진으로
-   버튼 자체의 터치 패딩만 상쇄한다. 로고와는 2px 만큼 더 띄운다 */
-.head-menu{margin-left:calc(var(--spacing-8) * -1);margin-right:2px}
 .logo{display:flex;margin-right:auto}
 .logo svg{width:149px;height:18px}
 .head-actions{display:flex;align-items:center;gap:var(--spacing-8)}
@@ -1739,7 +1738,6 @@ def build() -> str:
   {build_notice_bar()}
   <header class="header">
     <div class="header-inner">
-      <button class="touch head-menu" type="button" id="dwOpen" aria-label="전체 메뉴 열기" aria-controls="drawer" aria-expanded="false">{icon('Menu', 22)}</button>
       <a class="logo" href="https://shop.novera.town/" target="_blank" rel="noreferrer">{brand_svg('logo-novera-shop')}</a>
       <div class="head-actions">
         <div class="head-icons">
