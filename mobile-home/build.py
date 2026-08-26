@@ -185,9 +185,10 @@ CAT_TABS = [
 ]
 
 MAIN_BANNERS = [
-    # coupon 은 배경이 투명 처리된 컷아웃 PNG -- CSS 그라디언트 위에 올라가는 방식
+    # coupon 은 Figma Main Banner(4942:398946)의 Background Image 프레임을 그대로 2x 로
+    # 내보낸 이미지 -- 그라디언트와 쿠폰 카드가 이미 합쳐져 있어 CSS 로 재현할 필요가 없다
     dict(kind="coupon", label="WELCOME COUPON",
-         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!", img="main1_cutout", ext=".png"),
+         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!", img="main1", ext=".webp"),
     dict(kind="zo", label="서툴러서 더 완벽한 친구들",
          title="ZO&FRIENDS<br>LUCKY COLLECTION", img="main2", ext=".webp"),
     dict(kind="km", label="전집중, 귀살대 주목!",
@@ -760,16 +761,10 @@ img{display:block;max-width:100%}
    넓어지면 좌우는 overflow:hidden 으로 살짝만 잘리고, 좁으면 남는 여백을 각 배너의
    실제 색과 맞춘 배경으로 자연스럽게 채운다. */
 .mb-bg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
-/* Figma 원본 배경 그라디언트를 그대로 재현. 쿠폰 카드 자체는 배경을 투명 처리해
-   낸 컷아웃 이미지라 카드 아래로 그라디언트가 그대로 이어져 보인다 */
-.mb-bg--coupon{background:
-    linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%),
-    linear-gradient(90deg,#dbf8fe 0%,#dbf8fe 100%)}
-/* Figma 5301:49565 실측: 375×320 기준 프레임 안에서 카드가 좌상단 (79.8,61.5)에
-   236.1×122.2 크기로 6도 회전 배치됨(화면을 꽉 채우는 요소가 아니라 작게 떠 있는 카드).
-   %로 환산해 반응형에서도 같은 비율 위치를 유지한다 */
-.mb-bg--coupon img{position:absolute;left:21.28%;top:19.23%;width:62.96%;height:38.19%;
-  object-fit:contain;transform:rotate(6deg);filter:drop-shadow(0 4px 32px rgba(34,66,73,.3))}
+/* 쿠폰 배너는 Figma Background Image 프레임(4942:398946)을 통째로 내보낸 이미지라
+   그라디언트·카드·그림자가 이미 들어있다. 별도 CSS 합성 없이 좌우 너비에 꽉 맞춰
+   늘리고, 원본이 배너와 같은 375:320 비율이라 크롭도 사실상 없다 */
+.mb-bg--coupon img{width:100%;height:100%;object-fit:cover}
 .mb-bg--zo{background:linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%);
   align-items:flex-start}
 .mb-bg--zo img{height:65%;width:auto;object-fit:contain;margin-top:36px}
@@ -986,18 +981,19 @@ img{display:block;max-width:100%}
 .inline-banner{padding:var(--spacing-24) 0}
 .inline-banner .banner-frame{width:100%;height:77px;overflow:hidden;
   display:flex;align-items:center;justify-content:center;background:#000}
-.inline-banner img{width:100%;height:100%;object-fit:contain}
+/* 기획전 인라인 배너도 좌우 너비에 꽉 맞춰 늘린다 (좌우 레터박스 없음) */
+.inline-banner img{width:100%;height:100%;object-fit:cover}
 
 /* ---------- Collection ---------- */
 .sec--collection{padding:var(--spacing-24) 0 var(--spacing-28)}
 .col-top{padding:0 var(--gutter);margin-bottom:var(--spacing-8)}
 .col-panel{display:none}
 .col-panel.is-active{display:block}
-/* 컬렉션 히어로도 가로폭에 맞춰 크롭하지 않고 세로 높이 기준으로 원본 비율 유지.
-   좌우 여백은 각 배너 이미지에서 뽑은 고유 색(--col-bg)으로 자연스럽게 채움 */
+/* 기획전(컬렉션) 히어로는 좌우 너비에 꽉 맞춰 늘린다. 비율은 유지한 채 넘치는
+   위아래만 크롭되고, --col-bg 는 이미지가 뜨기 전 배경으로만 남는다 */
 .col-hero{position:relative;height:140px;overflow:hidden;
   display:flex;align-items:center;justify-content:center;background:var(--col-bg,#000)}
-.col-hero img{width:100%;height:100%;object-fit:contain}
+.col-hero img{width:100%;height:100%;object-fit:cover}
 .col-hero--overlay::after{content:'';position:absolute;inset:0;
   background:linear-gradient(90deg,rgba(6,6,11,.1) 0%,rgba(6,6,11,.75) 52%,rgba(6,6,11,.9) 100%)}
 .col-hero-text{position:absolute;right:var(--gutter);top:50%;transform:translateY(-50%);
@@ -1258,18 +1254,19 @@ JS = """
     if(e.target===track && e.propertyName==='transform') settle();
   });
 
-  function play(){ stop(); timer=setInterval(function(){ go(1); }, 4000); }
+  var isPaused=false;
+  // 시트가 열려 있는 등 명시적으로 일시정지된 상태에서는 절대 자동재생을 되살리지 않는다
+  function play(){ stop(); if(isPaused) return; timer=setInterval(function(){ go(1); }, 4000); }
   function stop(){ if(timer) clearInterval(timer); timer=null; }
 
   var x0=null,dx=0,swiped=false;
   box.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; dx=0; swiped=false; stop(); },{passive:true});
   box.addEventListener('touchmove',function(e){ if(x0!==null){ dx=e.touches[0].clientX-x0; if(Math.abs(dx)>10) swiped=true; } },{passive:true});
   box.addEventListener('touchend',function(){ if(Math.abs(dx)>40) go(dx<0?1:-1); x0=null; play(); });
-  box.addEventListener('mouseenter',stop);
-  box.addEventListener('mouseleave',play);
-  document.addEventListener('visibilitychange',function(){ document.hidden?stop():isPaused||play(); });
+  // hover 로는 멈추지 않는다 -- 486px 고정폭 프로토타입이라 데스크탑에서 커서가
+  // 배너 위에 얹혀 있는 시간이 길고, 그동안 배너가 완전히 멈춰 고장난 것처럼 보였다
+  document.addEventListener('visibilitychange',function(){ document.hidden?stop():play(); });
 
-  var isPaused=false;
   // 스와이프로 끝난 제스처는 클릭으로 취급하지 않는다
   window.NoveraBanner={
     active:function(){ return parseInt(track.dataset.active,10)||0; },
