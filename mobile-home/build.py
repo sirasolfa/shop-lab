@@ -459,35 +459,19 @@ def build_banner_sheet() -> str:
 <div class="bn-toast" id="bnToast">{icon('CircleCheckFill', 16)}<span id="bnToastMsg">배너가 적용되었어요</span></div>"""
 
 
-def build_gnb() -> str:
-    """데스크탑 GNB — Figma NDS TopNavigation(viewport=desktop) 컴포넌트를 기준으로 구현.
-    node 3725:37627 (Desktop/HOM/Default_KR) 실측: Header h80/px120, Menu h56/px120,
-    SearchField 360px, 아이콘 20px, lang Solid h32, 메뉴 6항목(ALBUM/MD/EVENT/COLLECTION/ARTIST/SPHERE+NEW).
-    라이브 사이트 실제 GNB는 'EVENT' 대신 'LIVE MD' 라벨을 쓰고 있어 -- 실제 서비스와
-    맞추기 위해 라이브 라벨/링크를 그대로 사용했다 (하단 표참고).
-      ALBUM      -> /categories/PCTGY1
-      MD         -> /categories/PCTGY2
-      LIVE MD    -> /categories/PCTGY3  (Figma 라벨은 EVENT)
-      COLLECTION -> /exhibitions
-      ARTIST     -> /artists
-      SPHERE(NEW)-> /kimetsu_ex_kr
-    로그인 버튼은 실제 로그인 페이지(/sign-in)로 연결."""
-    template = (pathlib.Path(__file__).parent / "assets" / "gnb.html").read_text(encoding="utf-8")
-    return (
-        template
-        .replace("__LOGO__", brand_svg("logo-novera-shop"))
-        .replace("__SEARCH_ICON__", icon("Search", 20))
-        .replace("__USER_ICON__", icon("User", 20))
-        .replace("__HEART_ICON__", icon("Heart", 20))
-        .replace("__BAG_ICON__", icon("Bag", 20))
-        .replace("__GLOBE_ICON__", icon("Globe", 18))
-        .replace("__CHEVRON_ICON__", icon("ChevronRight", 14, "gnb-caret"))
-    )
+def build_notice_bar() -> str:
+    """상단 고지 배너 — Figma Inline Banner(5439:86728) 레이아웃을 그대로 따르되
+    (가운데 정렬 텍스트 + 우측 20px 닫기 아이콘 20px, Label/3 13·SemiBold/tracking-1)
+    색상만 요청대로 블랙 배경 · 화이트 텍스트로 바꿨다."""
+    return f"""<div class="noticebar" id="noticeBar" role="status">
+  <p class="noticebar-text">디자인 시안으로 제작된 프로토타입입니다.</p>
+  <button class="noticebar-close" type="button" id="noticeClose" aria-label="안내 닫기">{icon('X', 20)}</button>
+</div>"""
 
 
 SITE = "https://shop.novera.town"
 
-# 라이브 사이트 GNB 와 동일한 라벨/링크 (build_gnb 주석의 표와 같은 출처)
+# 라이브 사이트 GNB 와 동일한 라벨/링크
 DRAWER_MENU = [
     ("ALBUM", f"{SITE}/categories/PCTGY1", False),
     ("MD", f"{SITE}/categories/PCTGY2", False),
@@ -646,6 +630,19 @@ img{display:block;max-width:100%}
   padding-bottom:calc(80px + env(safe-area-inset-bottom));
 }
 
+/* ---------- 상단 고지 배너 (Figma Inline Banner 5439:86728) ---------- */
+/* 텍스트는 배너 폭 기준 중앙, 닫기 버튼은 우측 20px 절대배치 -- 텍스트가 길어져도
+   중앙 정렬이 닫기 버튼 때문에 밀리지 않는다 */
+.noticebar{position:relative;display:flex;align-items:center;justify-content:center;
+  min-height:36px;padding:var(--spacing-8) 48px;background:var(--gray-950)}
+.noticebar-text{font-size:13px;font-weight:600;line-height:1.4;
+  letter-spacing:var(--tracking-1);color:var(--text-inverse);text-align:center}
+.noticebar-close{position:absolute;top:50%;right:20px;transform:translateY(-50%);
+  display:flex;align-items:center;justify-content:center;padding:var(--spacing-4);
+  color:var(--text-inverse);opacity:.7}
+.noticebar-close:active{opacity:1}
+.noticebar.is-closed{display:none}
+
 /* ---------- TopNavigation ---------- */
 .header{
   position:sticky;top:0;z-index:30;background:var(--bg-default);
@@ -654,8 +651,8 @@ img{display:block;max-width:100%}
 }
 .header-inner{flex:1;display:flex;align-items:center;justify-content:space-between}
 /* 햄버거는 로고 왼쪽에 붙고, 좌측 정렬 묶음(메뉴+로고)이 하나처럼 보이도록 음수 마진으로
-   버튼 자체의 터치 패딩만 상쇄한다 */
-.head-menu{margin-left:calc(var(--spacing-8) * -1)}
+   버튼 자체의 터치 패딩만 상쇄한다. 로고와는 2px 만큼 더 띄운다 */
+.head-menu{margin-left:calc(var(--spacing-8) * -1);margin-right:2px}
 .logo{display:flex;margin-right:auto}
 .logo svg{width:149px;height:18px}
 .head-actions{display:flex;align-items:center;gap:var(--spacing-8)}
@@ -679,7 +676,7 @@ img{display:block;max-width:100%}
 /* ---------- 좌측 사이드 드로어 ---------- */
 /* 스크림/드로어는 .app 이 아니라 뷰포트 기준으로 띄운다 -- .app 은 overflow-x:hidden
    이라 그 안에 두면 닫힌 상태(translateX(-100%))가 잘려 애니메이션이 끊긴다 */
-.dw-scrim{position:fixed;inset:0;z-index:60;background:var(--alpha-black40,rgba(0,0,0,.4));
+.dw-scrim{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.28);
   opacity:0;transition:opacity .28s ease}
 .dw-scrim.is-open{opacity:1}
 .drawer{
@@ -753,40 +750,6 @@ img{display:block;max-width:100%}
 /* 컬렉션 탭바: 탭 박스가 거터(20)에서 시작, 라벨 좌우 16 → 첫 라벨 텍스트 36px (Figma) */
 .tabbar--collection .tabs{padding:0 var(--gutter)}
 .tabbar--collection .tab-label{padding:var(--spacing-8) var(--spacing-16)}
-
-/* ---------- GNB (Desktop TopNavigation, Figma 3725:37627) ---------- */
-/* 모바일에서는 숨겨두고 데스크탑 브레이크포인트에서만 노출 */
-.gnb{display:none}
-.dt-wrap{width:min(1200px,calc(100% - 48px));margin-inline:auto}
-.gnb-top{display:flex;align-items:center;justify-content:space-between;
-  height:80px;padding:16px 0;background:var(--bg-default)}
-.gnb-head{display:flex;align-items:center;gap:var(--spacing-24)}
-.gnb-logo{display:flex;flex:none}
-.gnb-logo svg{width:149px;height:18px}
-.gnb-search{display:flex;align-items:center;justify-content:space-between;gap:var(--spacing-8);
-  width:280px;height:44px;padding:var(--spacing-12);border:1px solid var(--border-default);
-  border-radius:var(--rounded-sm);color:var(--text-muted);font-size:14px;line-height:1.4}
-.gnb-search .ico{flex:none;color:var(--icon-secondary)}
-.gnb-actions{display:flex;align-items:center;gap:var(--spacing-8)}
-.gnb-icons{display:flex;align-items:center}
-.gnb-icon{display:flex;align-items:center;justify-content:center;padding:var(--spacing-12);
-  border-radius:var(--rounded-sm);color:var(--icon-primary)}
-.gnb-lang{display:flex;align-items:center;gap:6px;height:32px;padding:0 var(--spacing-8) 0 var(--spacing-12);
-  border-radius:var(--rounded-xs);background:var(--bg-gray);
-  font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);color:var(--text-secondary)}
-.gnb-lang .ico{color:var(--icon-secondary)}
-.gnb-caret{transform:rotate(90deg)}
-.gnb-login{display:flex;align-items:center;justify-content:center;height:32px;padding:0 var(--spacing-12);
-  border-radius:var(--rounded-xs);background:var(--bg-gray);
-  font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);color:var(--text-secondary)}
-.gnb-menu{display:flex;align-items:center;gap:var(--spacing-32);height:56px;background:var(--bg-default)}
-.gnb-menu-item{position:relative;display:flex;align-items:center;gap:var(--spacing-8);height:46px;
-  padding:var(--spacing-12) var(--spacing-8);font-size:16px;font-weight:600;line-height:1.4;
-  color:var(--text-primary)}
-.gnb-badge{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
-  background:var(--bg-negative);color:var(--text-negative);
-  font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5}
-.gnb-divider{height:1px;background:var(--gray-200)}
 
 /* ---------- Main Banner ---------- */
 .mainbanner{position:relative;height:320px;overflow:hidden;touch-action:pan-y}
@@ -1232,41 +1195,6 @@ img{display:block;max-width:100%}
    24px 여백을 보장하고, 1440 을 넘는 와이드 모니터에서도 1200px 에서 더 안
    늘어나고 중앙 정렬만 된다.
    ========================================================================= */
-@media (min-width:1024px){
-  :root{
-    --gutter: max(24px, calc((100% - 1200px)/2));
-    --gutter-header: var(--gutter);
-    --gutter-tabs: var(--gutter);
-  }
-
-  /* 모바일의 "휴대폰 프레임" 카드 형태를 버리고 일반 웹페이지처럼 전체 폭 사용 */
-  .app{max-width:none;box-shadow:none;padding-bottom:0}
-  body{display:block}
-
-  /* 모바일 헤더 + 카테고리 탭 → 데스크탑 GNB 로 교체 */
-  .header,.tabbar--category{display:none}
-  .gnb{display:block}
-
-  /* 모바일 하단 탭바는 데스크탑에서 GNB 메뉴가 대신하므로 숨김 */
-  .bottomnav{display:none}
-
-  /* ---- 메인 배너 : 높이는 고정값으로 유지(뷰포트 폭에 따라 늘어나지 않음),
-     텍스트와 페이지네이션 박스만 넓혀서 그 사이 간격만 커지게 함 ---- */
-  .mainbanner{height:420px}
-  .mb-slide{height:420px}
-  .mb-bg--zo img{margin-top:56px}
-  .mb-bottom,.mb-pagination{width:min(1200px,calc(100% - 80px));bottom:40px}
-  .mb-label{font-size:13px}
-  .mb-title{font-size:28px}
-
-  /* ---- 상품 카드 : Figma 데스크탑 홈 상품 리스트 실측(280px, gap 20px) ---- */
-  .prow{gap:20px}
-  .pcard{flex-basis:280px}
-  .pcard-img{width:280px;height:280px}
-
-  /* ---- 컬렉션 히어로 배너도 프로모션 카드 폭에 맞춰 살짝 키움 ---- */
-  .col-hero{height:200px}
-}
 """
 
 # ---------------------------------------------------------------- JS
@@ -1633,6 +1561,13 @@ document.querySelectorAll('.tabbar--category .tab').forEach(function(t){
   });
 });
 
+// ----- 상단 고지 배너 닫기 -----
+(function(){
+  var bar=document.getElementById('noticeBar'), btn=document.getElementById('noticeClose');
+  if(!bar||!btn) return;
+  btn.addEventListener('click',function(){ bar.classList.add('is-closed'); });
+})();
+
 // ----- 좌측 사이드 드로어 -----
 (function(){
   var drawer=document.getElementById('drawer'), scrim=document.getElementById('dwScrim'),
@@ -1698,6 +1633,7 @@ def build() -> str:
     inline_banner = datauri(ASSETS / "banner" / "inline.jpg")
 
     body = f"""<div class="app">
+  {build_notice_bar()}
   <header class="header">
     <div class="header-inner">
       <button class="touch head-menu" type="button" id="dwOpen" aria-label="전체 메뉴 열기" aria-controls="drawer" aria-expanded="false">{icon('Menu', 22)}</button>
@@ -1712,7 +1648,6 @@ def build() -> str:
     </div>
   </header>
 
-{build_gnb()}
   {build_cat_tabs()}
 
   <section class="mainbanner">
