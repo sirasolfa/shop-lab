@@ -17,6 +17,7 @@ import base64
 import html
 import json
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).parent
 ASSETS = ROOT / "assets"
@@ -52,6 +53,21 @@ def brand_svg(name: str) -> str:
 def quickmenu_icon(name: str) -> str:
     """퀵메뉴용 풀컬러 3D 스타일 아이콘 (직접 제작, gradient 기반). 36px 기준."""
     return (ASSETS / "quickmenu" / f"{name}.svg").read_text(encoding="utf-8").replace("\n", "")
+
+
+def sidenav_icon(name: str, size: int = 20) -> str:
+    """사이드 내비 아이콘 — Figma Left Sidebar(5443:57347)에서 그대로 받은 SVG.
+    아이콘마다 viewBox 가 제각각이라 원본 viewBox 는 살리고 렌더 박스만 고정한다.
+    색은 하드코딩돼 있어 currentColor 로 바꿔 활성/비활성 상태를 CSS 로 제어한다.
+    preserveAspectRatio="none" 는 정사각 박스에 넣으면 찌그러지므로 제거."""
+    svg = (ASSETS / "sidenav" / f"{name}.svg").read_text(encoding="utf-8").replace("\n", "")
+    svg = svg.replace(' preserveAspectRatio="none"', "")
+    svg = re.sub(r'fill="#(?:697180|4F7CFF)"', 'fill="currentColor"', svg, flags=re.I)
+    svg = re.sub(r'^<svg[^>]*?width="[^"]*"', "<svg", svg, count=1)
+    svg = re.sub(r'\sheight="[\d.]+"(?=[^>]*viewBox)', " ", svg, count=1)
+    return svg.replace(
+        "<svg", f'<svg class="sn-ico" width="{size}" height="{size}" aria-hidden="true"', 1
+    )
 
 
 def esc(s) -> str:
@@ -460,6 +476,48 @@ def build_banner_sheet() -> str:
 <div class="bn-toast" id="bnToast">{icon('CircleCheckFill', 16)}<span id="bnToastMsg">배너가 적용되었어요</span></div>"""
 
 
+# Figma Left Sidebar(5443:57347) 항목 순서 그대로. (아이콘, 라벨, 링크, NEW배지)
+SIDENAV_MAIN = [
+    ("home", "홈", "https://shop.novera.town/", False),
+    ("album", "ALBUM", "https://shop.novera.town/categories/PCTGY1", False),
+    ("livemd", "LIVE MD", "https://shop.novera.town/categories/PCTGY3", True),
+    ("collection", "COLLECTION", "https://shop.novera.town/exhibitions", False),
+    ("profile", "ARTIST", "https://shop.novera.town/artists", False),
+    ("sphere", "SPHERE", "https://shop.novera.town/kimetsu_ex_kr", True),
+    ("event", "EVENT", "https://shop.novera.town/categories/PCTGY3", False),
+]
+SIDENAV_BOTTOM = [
+    ("bag", "장바구니", "https://shop.novera.town/cart"),
+    ("heart", "좋아요", "https://shop.novera.town/likes"),
+    ("user", "마이페이지", "https://shop.novera.town/sign-in"),
+]
+
+
+def build_sidenav() -> str:
+    """486px 위에서 노출되는 고정 사이드 내비게이션.
+    Figma Left Sidebar(5443:57347) 실측: 폭 280 / 그룹 padding 24·16 / 항목 gap 2 /
+    항목 padding 12·16, gap 12, rounded 8 / 라벨 Action/2 (14 SemiBold, tracking-1) /
+    활성 항목만 bg #eef3ff + text #4f7cff, 나머지는 #4b5465."""
+    def row(ic, label, href, new, active=False):
+        badge = '<span class="sn-n">N</span>' if new else ""
+        cls = " is-active" if active else ""
+        return (
+            f'<a class="sn-item{cls}" href="{href}" target="_blank" rel="noreferrer">'
+            f'{sidenav_icon(ic)}<span class="sn-label">{esc(label)}{badge}</span></a>'
+        )
+
+    main = "".join(
+        row(ic, label, href, new, active=(i == 0))
+        for i, (ic, label, href, new) in enumerate(SIDENAV_MAIN)
+    )
+    bottom = "".join(row(ic, label, href, False) for ic, label, href in SIDENAV_BOTTOM)
+    return f"""<aside class="sidenav" aria-label="사이드 내비게이션">
+  <nav class="sn-group">{main}</nav>
+  <div class="sn-divider"></div>
+  <nav class="sn-group">{bottom}</nav>
+</aside>"""
+
+
 def build_notice_bar() -> str:
     """상단 고지 배너 — Figma Inline Banner(5439:86728) 레이아웃을 그대로 따르되
     (가운데 정렬 텍스트 + 우측 20px 닫기 아이콘 20px, Label/3 13·SemiBold/tracking-1)
@@ -631,6 +689,50 @@ img{display:block;max-width:100%}
   padding-bottom:calc(80px + env(safe-area-inset-bottom));
 }
 
+/* ---------- 사이드 내비게이션 (Figma Left Sidebar 5443:57347) ---------- */
+/* 486px 이하에서는 숨기고 햄버거+드로어를 쓴다 */
+.sidenav{display:none}
+@media (min-width:487px){
+  /* 디자인의 페이지 배경(#fcfdff)과 사이드바 흰 배경. 콘텐츠 컬럼은 배경 위에
+     그대로 얹히므로 모바일에서 쓰던 "휴대폰 카드" 그림자는 걷어낸다 */
+  body{background:var(--gray-50);justify-content:flex-start}
+  .app{margin-inline:auto;box-shadow:none}
+
+  .sidenav{
+    position:fixed;left:0;top:0;bottom:0;z-index:40;
+    width:280px;display:flex;flex-direction:column;
+    background:var(--bg-default);border-right:1px solid var(--gray-200);
+    overflow-y:auto;overscroll-behavior:contain;
+  }
+  /* 사이드바가 차지한 폭만큼 본문 컬럼을 밀어 남는 영역 가운데 정렬 */
+  body{padding-left:280px}
+
+  /* 사이드바가 내비게이션을 대신하므로 햄버거와 모바일 하단 탭바는 감춘다.
+     .touch{display:flex} 가 뒤에 오므로 같은 특정도로는 밀린다 -- 한 단계 올린다 */
+  .header .head-menu{display:none}
+  .bottomnav{display:none}
+  .app{padding-bottom:0}
+}
+.sn-group{display:flex;flex-direction:column;gap:2px;
+  padding:var(--spacing-24) var(--spacing-16)}
+/* 이 프로토타입의 --text-secondary 는 gray-700 에 물려 있는데 Figma 사이드바 라벨은
+   text/secondary = gray-800(#4b5465) 이다. 전역 토큰을 건드리면 페이지 전반이
+   같이 바뀌므로 여기서만 디자인 값에 맞춘다 */
+.sn-item{display:flex;align-items:center;gap:var(--spacing-12);
+  padding:var(--spacing-12) var(--spacing-16);border-radius:var(--rounded-sm);
+  color:var(--gray-800)}
+.sn-item:hover{background:var(--bg-gray)}
+.sn-item.is-active{background:var(--bg-primary);color:var(--brand1-default)}
+/* Figma 아이콘 프레임 실측 20x24 (글리프는 그 안에서 가운데 정렬) */
+.sn-ico{flex:none;width:20px;height:24px;color:currentColor}
+.sn-label{display:flex;align-items:center;gap:6px;
+  font-size:14px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
+  white-space:nowrap}
+.sn-n{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
+  background:var(--bg-negative);color:var(--text-negative);
+  font-size:10px;font-weight:600;line-height:1.5}
+.sn-divider{height:1px;background:var(--gray-200)}
+
 /* ---------- 상단 고지 배너 (Figma Inline Banner 5439:86728) ---------- */
 /* 텍스트는 배너 폭 기준 중앙, 닫기 버튼은 우측 20px 절대배치 -- 텍스트가 길어져도
    중앙 정렬이 닫기 버튼 때문에 밀리지 않는다 */
@@ -768,8 +870,12 @@ img{display:block;max-width:100%}
 .mb-bg--zo{background:linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%);
   align-items:flex-start}
 .mb-bg--zo img{height:65%;width:auto;object-fit:contain;margin-top:36px}
-.mb-bg--km{background:#06060b}
-.mb-bg--km img{height:68%;width:auto;object-fit:contain;
+/* 귀멸 키아트는 배경까지 포함된 풀블리드 이미지라 세로 기준(68%)으로 맞추면
+   486px 배너 안에서 402px 밖에 안 돼 좌우에 어두운 여백이 생겼다. 가로 폭에
+   꽉 맞추고(486x263) 위쪽 정렬해, 아래 남는 어두운 영역으로 마스크가 자연스럽게
+   떨어지면서 라벨/타이틀이 얹히게 한다 */
+.mb-bg--km{background:#06060b;align-items:flex-start}
+.mb-bg--km img{width:100%;height:auto;object-fit:contain;
   -webkit-mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%);
   mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%)}
 .mb-dim{position:absolute;inset:0;
@@ -1695,6 +1801,7 @@ def build() -> str:
   {build_bottom_nav()}
   {build_banner_sheet()}
 </div>
+{build_sidenav()}
 {build_drawer()}"""
 
     return f"""<!doctype html>
