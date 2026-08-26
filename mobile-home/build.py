@@ -485,6 +485,56 @@ def build_gnb() -> str:
     )
 
 
+SITE = "https://shop.novera.town"
+
+# 라이브 사이트 GNB 와 동일한 라벨/링크 (build_gnb 주석의 표와 같은 출처)
+DRAWER_MENU = [
+    ("ALBUM", f"{SITE}/categories/PCTGY1", False),
+    ("MD", f"{SITE}/categories/PCTGY2", False),
+    ("LIVE MD", f"{SITE}/categories/PCTGY3", False),
+    ("COLLECTION", f"{SITE}/exhibitions", False),
+    ("ARTIST", f"{SITE}/artists", False),
+    ("SPHERE", f"{SITE}/kimetsu_ex_kr", True),
+]
+
+DRAWER_UTIL = [
+    ("User", "로그인", f"{SITE}/sign-in"),
+    ("Heart", "좋아요", f"{SITE}/likes"),
+    ("Bag", "장바구니", f"{SITE}/cart"),
+]
+
+
+def build_drawer() -> str:
+    """좌측 사이드 드로어 내비게이션. 헤더의 햄버거 버튼으로 열고,
+    스크림 탭 / ESC / 링크 선택 시 닫힌다. 라벨·링크는 라이브 GNB 와 동일."""
+    menu = "".join(
+        f'<a class="dw-item" href="{href}" target="_blank" rel="noreferrer">'
+        f'<span class="dw-item-label">{esc(label)}'
+        f'{"<span class=" + chr(34) + "dw-n" + chr(34) + ">N</span>" if new else ""}</span>'
+        f'{icon("ChevronRight", 16, "dw-caret")}</a>'
+        for label, href, new in DRAWER_MENU
+    )
+    util = "".join(
+        f'<a class="dw-util" href="{href}" target="_blank" rel="noreferrer">'
+        f'{icon(ic, 20)}<span>{esc(label)}</span></a>'
+        for ic, label, href in DRAWER_UTIL
+    )
+    return f"""<div class="dw-scrim" id="dwScrim" hidden></div>
+<aside class="drawer" id="drawer" aria-label="전체 메뉴" aria-hidden="true" hidden>
+  <header class="dw-head">
+    <a class="dw-logo" href="{SITE}/" target="_blank" rel="noreferrer">{brand_svg('logo-novera-shop')}</a>
+    <button class="dw-close" type="button" id="dwClose" aria-label="메뉴 닫기">{icon('X', 20)}</button>
+  </header>
+  <div class="dw-search">{icon('Search', 18)}<span>검색어를 입력해 주세요</span></div>
+  <nav class="dw-menu">{menu}</nav>
+  <div class="dw-divider"></div>
+  <nav class="dw-utils">{util}</nav>
+  <div class="dw-foot">
+    <button class="lang" type="button">{icon('Globe', 16)}KO</button>
+  </div>
+</aside>"""
+
+
 def build_bottom_nav() -> str:
     items = [
         ("HomeFill", "홈", True),
@@ -573,7 +623,7 @@ CSS = """
   --gutter:var(--spacing-20);          /* 본문 좌우 20px */
   --gutter-header:var(--spacing-16);   /* TopNavigation 16px */
   --gutter-tabs:var(--spacing-12);     /* 카테고리 탭바 12px (라벨 좌우 12 → 첫 라벨 24px) */
-  --maxw:430px;
+  --maxw:486px;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -603,7 +653,10 @@ img{display:block;max-width:100%}
   padding:var(--spacing-8) var(--gutter-header);
 }
 .header-inner{flex:1;display:flex;align-items:center;justify-content:space-between}
-.logo{display:flex}
+/* 햄버거는 로고 왼쪽에 붙고, 좌측 정렬 묶음(메뉴+로고)이 하나처럼 보이도록 음수 마진으로
+   버튼 자체의 터치 패딩만 상쇄한다 */
+.head-menu{margin-left:calc(var(--spacing-8) * -1)}
+.logo{display:flex;margin-right:auto}
 .logo svg{width:149px;height:18px}
 .head-actions{display:flex;align-items:center;gap:var(--spacing-8)}
 .head-icons{display:flex;align-items:center}
@@ -622,6 +675,55 @@ img{display:block;max-width:100%}
   font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);color:var(--text-secondary);
 }
 .lang .ico{color:var(--icon-secondary)}
+
+/* ---------- 좌측 사이드 드로어 ---------- */
+/* 스크림/드로어는 .app 이 아니라 뷰포트 기준으로 띄운다 -- .app 은 overflow-x:hidden
+   이라 그 안에 두면 닫힌 상태(translateX(-100%))가 잘려 애니메이션이 끊긴다 */
+.dw-scrim{position:fixed;inset:0;z-index:60;background:var(--alpha-black40,rgba(0,0,0,.4));
+  opacity:0;transition:opacity .28s ease}
+.dw-scrim.is-open{opacity:1}
+.drawer{
+  position:fixed;left:0;top:0;bottom:0;z-index:61;
+  width:min(320px,86vw);display:flex;flex-direction:column;
+  background:var(--bg-default);box-shadow:2px 0 24px rgba(23,28,36,.18);
+  transform:translateX(-100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  overflow-y:auto;overscroll-behavior:contain;
+  padding-bottom:calc(var(--spacing-16) + env(safe-area-inset-bottom));
+}
+.drawer.is-open{transform:none}
+.dw-head{display:flex;align-items:center;justify-content:space-between;
+  height:52px;padding:var(--spacing-8) var(--spacing-16)}
+.dw-logo{display:flex}
+.dw-logo svg{width:132px;height:16px}
+.dw-close{display:flex;align-items:center;justify-content:center;
+  padding:var(--spacing-8);margin-right:calc(var(--spacing-8) * -1);color:var(--icon-primary)}
+.dw-search{display:flex;align-items:center;gap:var(--spacing-8);
+  margin:var(--spacing-8) var(--spacing-16) var(--spacing-12);
+  height:40px;padding:0 var(--spacing-12);border-radius:var(--rounded-sm);
+  background:var(--bg-gray);color:var(--text-muted);font-size:14px;line-height:1.4}
+.dw-search .ico{color:var(--icon-muted)}
+.dw-menu{display:flex;flex-direction:column;padding:0 var(--spacing-8)}
+.dw-item{display:flex;align-items:center;justify-content:space-between;gap:var(--spacing-8);
+  padding:var(--spacing-12) var(--spacing-8);border-radius:var(--rounded-sm)}
+.dw-item:active{background:var(--bg-gray)}
+.dw-item-label{display:flex;align-items:center;gap:var(--spacing-4);
+  font-size:16px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-primary)}
+.dw-n{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
+  background:var(--bg-negative);color:var(--text-negative);
+  font-size:10px;font-weight:700;line-height:1.5}
+.dw-caret{color:var(--icon-muted)}
+.dw-divider{height:1px;margin:var(--spacing-12) var(--spacing-16);background:var(--gray-200)}
+.dw-utils{display:flex;flex-direction:column;padding:0 var(--spacing-8)}
+.dw-util{display:flex;align-items:center;gap:var(--spacing-12);
+  padding:var(--spacing-12) var(--spacing-8);border-radius:var(--rounded-sm);
+  font-size:14px;font-weight:600;line-height:1.4;color:var(--text-secondary)}
+.dw-util:active{background:var(--bg-gray)}
+.dw-util .ico{color:var(--icon-secondary)}
+.dw-foot{margin-top:auto;padding:var(--spacing-16) var(--spacing-16) 0}
+@media (prefers-reduced-motion:reduce){
+  .drawer,.dw-scrim{transition:none}
+}
 
 /* ---------- Components/Tabs ---------- */
 /* 구분선은 inset shadow — 높이(42px)에 영향 없이 풀블리드로 그림 */
@@ -1531,6 +1633,39 @@ document.querySelectorAll('.tabbar--category .tab').forEach(function(t){
   });
 });
 
+// ----- 좌측 사이드 드로어 -----
+(function(){
+  var drawer=document.getElementById('drawer'), scrim=document.getElementById('dwScrim'),
+      openBtn=document.getElementById('dwOpen'), closeBtn=document.getElementById('dwClose');
+  if(!drawer||!scrim||!openBtn) return;
+  var lastFocus=null;
+
+  function open(){
+    lastFocus=document.activeElement;
+    scrim.hidden=false; drawer.hidden=false;
+    void drawer.offsetWidth;                       // 트랜지션 시작점 확정
+    scrim.classList.add('is-open'); drawer.classList.add('is-open');
+    drawer.setAttribute('aria-hidden','false');
+    openBtn.setAttribute('aria-expanded','true');
+    document.body.style.overflow='hidden';
+    closeBtn.focus({preventScroll:true});
+  }
+  function close(){
+    scrim.classList.remove('is-open'); drawer.classList.remove('is-open');
+    drawer.setAttribute('aria-hidden','true');
+    openBtn.setAttribute('aria-expanded','false');
+    document.body.style.overflow='';
+    setTimeout(function(){ scrim.hidden=true; drawer.hidden=true; },300);
+    if(lastFocus&&lastFocus.focus) lastFocus.focus({preventScroll:true});
+  }
+
+  openBtn.addEventListener('click',open);
+  closeBtn.addEventListener('click',close);
+  scrim.addEventListener('click',close);
+  drawer.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',close); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!drawer.hidden) close(); });
+})();
+
 // ----- 툴팁 (탭으로 열고 닫기) -----
 (function(){
   var wraps=document.querySelectorAll('.tooltip-wrap');
@@ -1565,6 +1700,7 @@ def build() -> str:
     body = f"""<div class="app">
   <header class="header">
     <div class="header-inner">
+      <button class="touch head-menu" type="button" id="dwOpen" aria-label="전체 메뉴 열기" aria-controls="drawer" aria-expanded="false">{icon('Menu', 22)}</button>
       <a class="logo" href="https://shop.novera.town/" target="_blank" rel="noreferrer">{brand_svg('logo-novera-shop')}</a>
       <div class="head-actions">
         <div class="head-icons">
@@ -1623,15 +1759,11 @@ def build() -> str:
 
   {build_collections()}
 
-  <section class="sec">
-    {section_header("Free Shipping", "배송비 부담 없이 바로 담아보세요")}
-    {product_row(S['free'])}
-  </section>
-
   {build_footer()}
   {build_bottom_nav()}
   {build_banner_sheet()}
-</div>"""
+</div>
+{build_drawer()}"""
 
     return f"""<!doctype html>
 <html lang="ko">
