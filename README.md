@@ -79,10 +79,24 @@ Banner Area·ProductCard 등 컴포넌트 내부 패딩을 폭에 관계없이 `
 
 ### 화면 구성
 
-TopNavigation → 카테고리 탭 → 메인 배너(자동 슬라이드 4장) → 이벤트 바로가기 →
-Meet Your Artist Event!(쇼케이스 배너 + 카운트다운) → Fan's Pick!(TOP 3) →
-Now Trending → New Arrival → 인라인 배너 → NOVERA shop Collection(탭) →
-Footer → BottomNavigation
+TopNavigation → 카테고리 탭 → **[K-POP 홈]** 메인 배너(자동 슬라이드 4장) →
+이벤트 바로가기 → Meet Your Artist Event!(쇼케이스 배너 + 카운트다운) →
+Fan's Pick!(TOP 3) → Now Trending → New Arrival → 인라인 배너 →
+NOVERA shop Collection(탭) → Footer → 장르 스위치(K-POP↔캐릭터) + BottomNavigation
+
+### 장르 스위치 — K-POP ↔ 캐릭터 (Figma `5612:55057` / `5620:56659`)
+
+바텀 내비게이션 위에 붙는 캡슐형 세그먼트로 홈 콘텐츠 전체를 통째로 갈아 끼웁니다.
+
+| | |
+|---|---|
+| 위치 | `#bottomFixed` 안에 장르 스위치(`.genre-switch`)와 `BottomNavigation` 을 세로로 쌓아 하나의 `position:fixed` 컨테이너로 묶었습니다. 스크롤 다운 시 사라지고 스크롤 업 시 다시 나타나는 기존 바텀 내비 동작이 이제 이 컨테이너 전체(장르 스위치 + 내비)에 함께 적용됩니다 — "바텀 내비랑 같이 붙어서 움직인다"는 요청 그대로입니다. |
+| K-POP 홈 | `5612:54824` — 기존 프로토타입 그대로(메인 배너·퀵메뉴·LIVE MD 쇼케이스·Fan's Pick·Now Trending·New Arrival·인라인 배너). |
+| 캐릭터 홈 | `5596:53135` 실측 — 메인 배너(귀멸의 칼날 굿즈·ZO&FRIENDS·WELCOME COUPON 3장) → 퀵메뉴(피규어·인형·리빙·악세사리·문구, Figma 상에도 아직 아이콘 없이 빈 그라디언트 사각형이라 그대로 둠) → **NOVERA shop Collection**(순서가 위로 올라옴) → Fan's Pick!(1st Demon Slayer·2nd ZO&FRIENDS·3rd HATSUNE MIKU) → 인라인 배너 → Now Trending → New Arrival. LIVE MD 쇼케이스(이벤트 카운트다운)는 이 홈에는 없습니다. |
+| 공유 요소 | TopNavigation·상단 고지 배너·Footer·BottomNavigation 은 두 홈이 완전히 같은 마크업을 씁니다. |
+| NOVERA Collection | 두 홈 모두 같은 섹션(ZO&FRIENDS 탭이 기본 활성)이라 DOM 에 인스턴스를 하나만 두고, `.collection-anchor[data-anchor-for="kpop"\|"character"]` 두 자리 사이를 JS 로 옮겨 씁니다 — 이미지가 큰 섹션을 통째로 복제하지 않기 위한 선택입니다. |
+| 상품 이미지가 없는 캐릭터 홈 상품 | `product_card()` 가 `assets/prod/<id>.jpg` 를 못 찾으면(신규 상품 4종) 에러 없이 브랜드 이니셜 그라디언트 자리표시(`.pcard-img-ph`)로 떨어지도록 고쳤습니다 — 다른 컴포넌트(아바타 등)와 동일한 폴백 패턴입니다. |
+| 메인 배너 컨트롤러 | 장르마다 `.mainbanner` 인스턴스가 하나씩(총 2개) 있어 `initMainBanner()` 로 각각 독립된 컨트롤러를 만들고 `window.NoveraBanners = {kpop, character}` 에 등록합니다. `window.NoveraBanner` 는 그중 지금 보이는 장르를 가리키며, 숨겨진 장르의 배너는 `pause()` 상태로 대기하다가 전환 시 `resume()` 됩니다(백그라운드에서 타이머가 계속 도는 것을 방지). |
 
 ### 메인 배너 모션
 

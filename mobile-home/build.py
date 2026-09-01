@@ -81,7 +81,12 @@ def won(n: int) -> str:
 # ---------------------------------------------------------------- 컴포넌트
 def product_card(p: dict, badge: str | None = None) -> str:
     """NDS ProductCard (140px). Image Area 1:1 + Bottom Container."""
-    img = datauri(ASSETS / "prod" / f"{p['id']}.jpg")
+    img_src = find_img("prod", str(p["id"]))
+    img = (
+        f'<img src="{img_src}" alt="{esc(p["name"])}" loading="lazy">'
+        if img_src
+        else f'<span class="pcard-img-ph">{esc(p["brand"][:1])}</span>'
+    )
     top_badge = ""
     if badge:
         top_badge = f'<span class="pc-badge">{esc(badge)}</span>'
@@ -106,7 +111,7 @@ def product_card(p: dict, badge: str | None = None) -> str:
     # 카드 전체가 상품 상세로 이동 (실제 서비스와 동일 경로)
     return f"""<a class="pcard" href="https://shop.novera.town/products/{p['id']}"{at}>
   <div class="pcard-img">
-    <img src="{img}" alt="{esc(p['name'])}" loading="lazy">
+    {img}
     {top_badge}
     <span class="pcard-scrim"></span>
     <button class="pcard-wish" type="button" aria-label="찜하기">{icon('Heart', 20)}</button>
@@ -231,6 +236,72 @@ MAIN_BANNERS = [
          img=("main_coupon",)),
 ]
 
+# ============================================================
+# 캐릭터(Character) 홈 — Figma 5596:53135 실측.
+# 하단 CategoryTab(5612:55057/5620:56659, K-POP↔캐릭터)으로 전환되는 두 번째
+# 홈 콘텐츠. TopNavigation·상단 고지 배너·Footer·BottomNavigation 은 공유하고,
+# 메인 배너·퀵메뉴·Fan's Pick·Now Trending·New Arrival·인라인 배너만 이 홈
+# 전용으로 새로 채운다. NOVERA Collection 은 두 홈 모두 같은 섹션(같은 탭
+# 순서 — ZO&FRIENDS 가 기본 활성)이라 DOM 에 하나만 두고 JS 로 옮겨 쓴다.
+# ============================================================
+MAIN_BANNERS_CHARACTER = [
+    dict(kind="kimetsu-char", label="전집중, 귀살대 주목!",
+         title="귀멸의 칼날 굿즈<br>COLLECTION Open!",
+         bg="#05060b",
+         img=("col_km",)),
+    dict(kind="zo-char", label="서툴러서 더 완벽한 친구들",
+         title="ZO&FRIENDS<br>LUCKY COLLECTION",
+         bg="linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%)",
+         img=("col_zo",)),
+    dict(kind="coupon", label="WELCOME COUPON",
+         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!",
+         bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
+         img=("main_coupon",)),
+]
+
+# 퀵메뉴 — Figma 상에서도 아직 아이콘 없이 빈 그라디언트 사각형(qm-sq 기본 배경)
+# 그대로라 아이콘 키를 None 으로 둔다. 링크는 실제 사이트의 굿즈 대카테고리.
+QUICKMENU_CHARACTER = [
+    (None, "피규어", "https://shop.novera.town/categories/PCTGY2"),
+    (None, "인형", "https://shop.novera.town/categories/PCTGY2"),
+    (None, "리빙", "https://shop.novera.town/categories/PCTGY2"),
+    (None, "악세사리", "https://shop.novera.town/categories/PCTGY2"),
+    (None, "문구", "https://shop.novera.town/categories/PCTGY2"),
+]
+
+# Fan's Pick TOP3 (캐릭터 홈) — Figma 5766:71452 실측. IP 라 아바타 사진이
+# 없고, PODIUM 과 같은 이니셜 자리표시로 떨어진다.
+PODIUM_CHARACTER = [
+    dict(key="zofriends", name="ZO&FRIENDS", count=9820, rank="2nd", place="second"),
+    dict(key="demonslayer", name="Demon Slayer", count=12456, rank="1st", place="first"),
+    dict(key="hatsunemiku", name="HATSUNE MIKU", count=8120, rank="3rd", place="third"),
+]
+
+# Now Trending / New Arrival (캐릭터 홈) — Figma 5766:72504 이하 실측
+# (상품명·가격·뱃지). 실제 사진 export 가 없는 상품은 product_card() 의
+# 이니셜 자리표시로 떨어진다. id=72(수면 안대)는 col_zo 와 같은 실제 상품이라
+# 사진을 그대로 공유한다.
+CHAR_TRENDING = [
+    dict(id=400, brand="귀멸의 칼날", name="코쵸우 시노부 방긋 버전 룩업(메가하우스)",
+         price=62000, free=True, new=True),
+    dict(id=401, brand="ZO&FRIENDS", name="ZOA LUCKY SHOP 대형 인형",
+         price=300000, free=True),
+    dict(id=72, brand="ZO&FRIENDS", name="ZOA LUCKY SHOP 수면 안대",
+         price=47000, free=True),
+    dict(id=402, brand="ZO&FRIENDS", name="ZOA 아트 피규어",
+         price=88000, free=True),
+]
+CHAR_NEW_ARRIVAL = [
+    dict(id=400, brand="귀멸의 칼날", name="코쵸우 시노부 방긋 버전 룩업(메가하우스)",
+         price=62000, free=True, new=True),
+    dict(id=403, brand="ZO&FRIENDS", name="ZOA LUCKY SHOP 노트",
+         price=28000, free=True, new=True),
+    dict(id=402, brand="ZO&FRIENDS", name="ZOA 아트 피규어",
+         price=88000, free=True, new=True),
+    dict(id=72, brand="ZO&FRIENDS", name="ZOA LUCKY SHOP 수면 안대",
+         price=47000, free=True, new=True),
+]
+
 # 배너 이미지 확장자 탐색 순서 — Figma export 가 무엇으로 떨어지든 집어 오도록
 IMG_EXTS = (".webp", ".jpg", ".jpeg", ".png")
 
@@ -246,12 +317,13 @@ def find_img(folder: str, *stems: str) -> str | None:
     return None
 
 
-def build_banners() -> str:
+def build_banners(banners=None) -> str:
     """Figma Bottom Container(5664:102715) 구조 그대로 —
     텍스트와 페이지네이션이 같은 컨테이너 안에 있고 함께 페이드된다."""
+    banners = MAIN_BANNERS if banners is None else banners
     out = []
-    total = len(MAIN_BANNERS)
-    for i, b in enumerate(MAIN_BANNERS):
+    total = len(banners)
+    for i, b in enumerate(banners):
         src = find_img("banner", *b["img"])
         img = f'<img src="{src}" alt="">' if src else ""
         out.append(
@@ -467,16 +539,18 @@ def build_event_showcase() -> str:
 QUICKMENU_STAGGER = 70  # 셀당 등장 간격(ms) — 좌 → 우
 
 
-def build_quickmenu() -> str:
+def build_quickmenu(items=None) -> str:
+    items = QUICKMENU if items is None else items
     cells = []
-    for i, (icon_key, label, href) in enumerate(QUICKMENU):
+    for i, (icon_key, label, href) in enumerate(items):
+        ico = quickmenu_icon(icon_key) if icon_key else ""
         cells.append(
             f"""<a class="qm-item" href="{href}" target="_blank" rel="noreferrer" style="--d:{i * QUICKMENU_STAGGER}ms">
-  <span class="qm-sq">{quickmenu_icon(icon_key)}</span>
+  <span class="qm-sq">{ico}</span>
   <span class="qm-label">{esc(label)}</span>
 </a>"""
         )
-    return f'<div class="qm-list" id="quickmenu-list">{"".join(cells)}</div>'
+    return f'<div class="qm-list">{"".join(cells)}</div>'
 
 
 # Fan's Pick 등장 타임라인 — Figma 모션 키프레임(5612:54981·54990·54992·55002·
@@ -492,9 +566,10 @@ PODIUM_TIMING = {           # place: (시상대 delay, 콘텐츠 delay, 시상�
 }
 
 
-def build_podium() -> str:
+def build_podium(items=None) -> str:
+    items = PODIUM if items is None else items
     stands = []
-    for p in PODIUM:
+    for p in items:
         src = find_img("artist", p["key"])
         img = (f'<img src="{src}" alt="{esc(p["name"])}">' if src
                else f'<span class="avatar-ph">{esc(p["name"][:1])}</span>')
@@ -516,7 +591,7 @@ def build_podium() -> str:
   <div class="stand-block-wrap"><div class="stand-block"></div></div>
 </div>"""
         )
-    return f'<div class="podium" id="podium">{"".join(stands)}</div>'
+    return f'<div class="podium">{"".join(stands)}</div>'
 
 
 def build_collections() -> str:
@@ -548,13 +623,56 @@ def build_collections() -> str:
   </div>
 </div>"""
         )
-    return f"""<section class="sec sec--collection">
+    return f"""<section class="sec sec--collection" id="collectionSection">
   <div class="col-top">
     <h2 class="sec-title">NOVERA shop Collection</h2>
   </div>
   <div class="tabbar tabbar--collection"><div class="tabs"><div class="tabs-inner">{''.join(tabs)}</div></div></div>
   <div class="col-panels">{''.join(panels)}</div>
 </section>"""
+
+
+def build_character_home(inline_banner: str) -> str:
+    """캐릭터 홈 전용 콘텐츠 (Figma 5596:53135). NOVERA Collection 은
+    두 홈이 공유하는 하나의 DOM 노드를 JS 로 옮겨 쓰므로 여기서는 그 자리에
+    빈 앵커만 남긴다 — collection-anchor 참고."""
+    return f"""<section class="mainbanner">
+    <div class="mb-track">{build_banners(MAIN_BANNERS_CHARACTER)}</div>
+  </section>
+
+  <section class="sec sec--quickmenu">
+    {build_quickmenu(QUICKMENU_CHARACTER)}
+  </section>
+
+  <div class="collection-anchor" data-anchor-for="character"></div>
+
+  <section class="sec sec--rank">
+    {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
+    {build_podium(PODIUM_CHARACTER)}
+    <div class="notice-box">
+      <p class="notice-head">아티스트 랭킹 정보
+        <span class="tooltip-wrap" tabindex="0">
+          {icon('CircleInfoFill', 14)}
+          <span class="tooltip-bubble" role="tooltip">Last update 2026.08.18 14:00 (KST)</span>
+        </span>
+      </p>
+      <p class="notice-body">팬들이 직접 참여한 찜하기 수치 기준 데이터예요.<br>좋아하는 최애에 아낌없이 찜해보세요!</p>
+    </div>
+  </section>
+
+  <div class="inline-banner">
+    <a class="banner-frame" href="#"><img src="{inline_banner}" alt=""></a>
+  </div>
+
+  <section class="sec">
+    {section_header("Now Trending", "지금 이 순간, 핫한 인기 상품들만 모았어요")}
+    {product_row(CHAR_TRENDING)}
+  </section>
+
+  <section class="sec">
+    {section_header("New Arrival", "따끈따끈 새로운 상품을 만나보세요!")}
+    {product_row(CHAR_NEW_ARRIVAL)}
+  </section>"""
 
 
 def build_cat_tabs() -> str:
@@ -871,6 +989,22 @@ def build_bottom_nav() -> str:
 </nav>"""
 
 
+GENRE_TABS = [("kpop", "K-POP"), ("character", "캐릭터")]
+
+
+def build_genre_switch() -> str:
+    """Figma CategoryTab(5612:55057 / 5620:56659) — 바텀 내비게이션 위에 뜨는
+    K-POP↔캐릭터 세그먼트. 홈 콘텐츠 전체(메인 배너·퀵메뉴·Fan's Pick·
+    Now Trending·New Arrival·인라인 배너)를 이걸로 통째로 갈아 끼운다."""
+    items = []
+    for i, (key, label) in enumerate(GENRE_TABS):
+        active = " is-active" if i == 0 else ""
+        items.append(
+            f'<button class="gs-tab{active}" type="button" data-genre="{key}">{esc(label)}</button>'
+        )
+    return f'<div class="genre-switch" id="genreSwitch" role="tablist">{"".join(items)}</div>'
+
+
 # ---------------------------------------------------------------- CSS
 CSS = """
 /* =========================================================================
@@ -991,6 +1125,9 @@ img{display:block;max-width:100%}
 .cartpanel{display:none}
 .app-body{display:block}
 .app-main{display:block;min-width:0}
+/* K-POP ↔ 캐릭터 홈 전환. [hidden] 을 명시적으로 눌러 다른 규칙에 밀리지 않게 한다 */
+.home-genre[hidden]{display:none}
+.collection-anchor{display:none}
 .sn-group{display:flex;flex-direction:column;gap:2px;
   padding:var(--spacing-24) var(--spacing-16)}
 /* 이 프로토타입의 --text-secondary 는 gray-700 에 물려 있는데 Figma 사이드바 라벨은
@@ -1373,6 +1510,9 @@ img{display:block;max-width:100%}
 .pcard-img{position:relative;width:140px;height:140px;border-radius:var(--rounded-sm);
   overflow:hidden;background:var(--bg-subtle)}
 .pcard-img>img{width:100%;height:100%;object-fit:cover}
+.pcard-img-ph{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
+  background:linear-gradient(180deg,var(--bg-gray) 0%,var(--bg-primary) 100%);
+  color:var(--brand1-default);font-size:32px;font-weight:700;line-height:1}
 .pcard-scrim{position:absolute;left:0;right:0;bottom:0;height:64px;
   background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(0,0,0,.1) 100%)}
 .pc-badge{
@@ -1553,18 +1693,38 @@ img{display:block;max-width:100%}
   font-size:11px;font-weight:400;line-height:1.4;letter-spacing:var(--tracking-1);
   color:var(--text-secondary)}
 
-/* ---------- BottomNavigation ---------- */
-.bottomnav{
+/* ---------- 하단 고정 영역: CategoryTab(K-POP↔캐릭터) + BottomNavigation ----------
+   Figma 5620:56659(pill, bottom:92px) / 5620:56660(nav, bottom:0) 실측 그대로 —
+   둘을 한 컨테이너에 세로로 쌓고, 이 컨테이너 전체에 스크롤 숨김 트랜지션을
+   걸어서 "바텀 내비게이션과 같이 붙어서 함께 움직이게" 한다 */
+.bottom-fixed{
   position:fixed;left:50%;bottom:0;z-index:40;
   width:100%;max-width:var(--maxw);
-  background:var(--alpha-white80);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-top:1px solid var(--gray-200);
-  padding-bottom:env(safe-area-inset-bottom);
+  display:flex;flex-direction:column;align-items:center;
+  pointer-events:none;
   transform:translateX(-50%) translateY(0);
   transition:transform .28s cubic-bezier(.4,0,.2,1);
   will-change:transform;
 }
-.bottomnav.is-hidden{transform:translateX(-50%) translateY(115%)}
+.bottom-fixed.is-hidden{transform:translateX(-50%) translateY(115%)}
+
+/* ---------- CategoryTab (Figma 5612:55057) ---------- */
+.genre-switch{pointer-events:auto;display:flex;align-items:center;gap:0;
+  margin-bottom:var(--spacing-12);padding:2px;border-radius:var(--rounded-full);
+  background:var(--bg-darkgray-strong);
+  box-shadow:0 6px 12px rgba(23,28,36,.12),0 4px 8px rgba(23,28,36,.08),0 0 4px rgba(23,28,36,.08)}
+.gs-tab{padding:var(--spacing-6) var(--spacing-8);border-radius:var(--rounded-full);
+  font-size:11px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
+  color:var(--text-muted)}
+.gs-tab.is-active{background:var(--alpha-white24);color:var(--text-inverse)}
+
+/* ---------- BottomNavigation ---------- */
+.bottomnav{
+  pointer-events:auto;width:100%;
+  background:var(--alpha-white80);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--gray-200);
+  padding-bottom:env(safe-area-inset-bottom);
+}
 .bn-items{display:flex;align-items:center;justify-content:center;padding:0 var(--gutter)}
 .bn-item{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
   padding:var(--spacing-8) var(--spacing-12);color:var(--icon-muted)}
@@ -1726,9 +1886,10 @@ img{display:block;max-width:100%}
     white-space:nowrap}
   .head-cta:hover{background:var(--brand1-strong)}
 
-  /* 사이드바가 내비게이션을 대신하므로 카테고리 탭바와 하단 탭바는 감춘다 */
+  /* 사이드바가 내비게이션을 대신하므로 카테고리 탭바와 하단 탭바(+ 그 위 장르
+     스위치 pill)는 감춘다 */
   .tabbar--category{display:none}
-  .bottomnav{display:none}
+  .bottom-fixed{display:none}
 
   /* ---- Main Body 3단 그리드 ---- */
   .app-body{
@@ -1836,13 +1997,16 @@ JS = """
 // 이동 구간에는 어느 슬라이드의 텍스트도 보이지 않는 것이 시안의 의도다.
 // 되감기 없이 같은 방향으로 계속 흐르도록 앞뒤에 클론 슬라이드를 두고,
 // 클론에 도착하면 전환 없이 원본 위치로 옮겨 놓는다.
-(function(){
-  var track=document.querySelector('.mb-track');
-  var box=document.querySelector('.mainbanner');
-  if(!track||!box) return;
+//
+// K-POP↔캐릭터 장르 스위치로 홈 콘텐츠 전체가 갈아 끼워지면서 메인 배너도
+// 장르마다 하나씩(총 2개) 존재한다 — initMainBanner() 로 인스턴스마다 독립된
+// 컨트롤러를 만들고, window.NoveraBanner 는 그중 "지금 보이는" 장르의 컨트롤러를
+// 가리키도록 장르 전환 시 다시 이어준다(아래 "장르 스위치" 블록 참고).
+window.NoveraBanners = {};
+function initMainBanner(track, box){
   var real=[].slice.call(track.children);
   var n=real.length;
-  if(n<2) return;
+  if(n<2) return null;
 
   var HOLD=3500, FADE_OUT=200, SLIDE=600;
 
@@ -1910,17 +2074,32 @@ JS = """
   // 배너 위에 얹혀 있는 시간이 길고, 그동안 배너가 완전히 멈춰 고장난 것처럼 보였다
   document.addEventListener('visibilitychange',function(){ document.hidden?stop():play(); });
 
-  // 스와이프로 끝난 제스처는 클릭으로 취급하지 않는다
-  window.NoveraBanner={
+  place(idx,false); sync();
+
+  // 스와이프로 끝난 제스처는 클릭으로 취급하지 않는다. isPaused 로 시작해 두면
+  // (숨겨진 장르의 배너) visibilitychange 로도 자동재생이 살아나지 않는다 —
+  // 장르 스위치가 명시적으로 resume() 을 호출해야 돈다.
+  isPaused = true;
+  return {
     active:function(){ return parseInt(track.dataset.active,10)||0; },
     swiped:function(){ return swiped; },
     pause:function(){ isPaused=true; stop(); },
     resume:function(){ isPaused=false; track.classList.remove('is-fading'); play(); },
     slidesFor:function(k){ return track.querySelectorAll('.mb-slide[data-slide="'+k+'"]'); }
   };
-
-  place(idx,false); sync();
-  play();
+}
+(function(){
+  document.querySelectorAll('.home-genre').forEach(function(genreEl){
+    var track=genreEl.querySelector('.mb-track');
+    var box=genreEl.querySelector('.mainbanner');
+    if(!track||!box) return;
+    var ctrl=initMainBanner(track, box);
+    if(ctrl) window.NoveraBanners[genreEl.getAttribute('data-genre')]=ctrl;
+  });
+  var active=document.querySelector('.home-genre:not([hidden])');
+  var activeKey=active?active.getAttribute('data-genre'):'kpop';
+  window.NoveraBanner=window.NoveraBanners[activeKey];
+  if(window.NoveraBanner) window.NoveraBanner.resume();
 })();
 
 // ----- Meet Your Artist Event: 상품 일시(event_at)와 동기화된 카운트다운 -----
@@ -1993,9 +2172,11 @@ JS = """
   setInterval(paint, 1000);
 })();
 
-// ----- BottomNavigation: 스크롤 다운 → 내려가며 사라짐 / 스크롤 업 → 다시 나타남 -----
+// ----- 하단 고정 영역(장르 스위치 + BottomNavigation): 스크롤 다운 → 내려가며
+// 사라짐 / 스크롤 업 → 다시 나타남. 장르 스위치가 바텀 내비게이션과 한 컨테이너에
+// 있어(#bottomFixed) 항상 같이 움직인다 -----
 (function(){
-  var nav=document.getElementById('bottomnav');
+  var nav=document.getElementById('bottomFixed');
   if(!nav) return;
   var last=window.scrollY, acc=0, ticking=false;
   var THRESHOLD=10;   // 미세한 흔들림 무시
@@ -2194,10 +2375,8 @@ JS = """
   });
 })();
 
-// ----- Quick Menu: 아이콘 → 라벨 순으로 좌에서 우로 등장 -----
-(function(){
-  var list=document.getElementById('quickmenu-list');
-  if(!list) return;
+// ----- Quick Menu: 아이콘 → 라벨 순으로 좌에서 우로 등장 (장르마다 하나씩) -----
+document.querySelectorAll('.qm-list').forEach(function(list){
   if(!('IntersectionObserver' in window)){ list.classList.add('is-in'); return; }
   new IntersectionObserver(function(entries,obs){
     entries.forEach(function(en){
@@ -2206,12 +2385,10 @@ JS = """
       obs.disconnect();                 // 한 번만 재생
     });
   },{threshold:.3}).observe(list);
-})();
+});
 
 // ----- Fan's Pick: 순위가 순차적으로 차오르는 인터랙션 -----
-(function(){
-  var podium=document.getElementById('podium');
-  if(!podium) return;
+document.querySelectorAll('.podium').forEach(function(podium){
   var stands=[].slice.call(podium.querySelectorAll('.stand'));
   var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var timers=[];
@@ -2246,7 +2423,7 @@ JS = """
       else if(en.boundingClientRect.top > 0) reset();  // 아래로 벗어나면 리셋 → 재진입 시 재생
     });
   },{threshold:.35}).observe(podium);
-})();
+});
 
 // ----- Collection 탭 -----
 (function(){
@@ -2260,6 +2437,42 @@ JS = """
       t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
     });
   });
+})();
+
+// ----- 장르 스위치 (CategoryTab, Figma 5612:55057 / 5620:56659) -----
+// K-POP ↔ 캐릭터 전환 시 홈 콘텐츠 전체(메인 배너·퀵메뉴·Fan's Pick·
+// Now Trending·New Arrival·인라인 배너)를 갈아 끼운다. NOVERA Collection 은
+// 두 홈이 공유하는 하나의 DOM 노드라 앵커(.collection-anchor) 사이로 옮겨 쓴다.
+(function(){
+  var sw=document.getElementById('genreSwitch');
+  if(!sw) return;
+  var tabs=[].slice.call(sw.querySelectorAll('.gs-tab'));
+  var genres=[].slice.call(document.querySelectorAll('.home-genre'));
+  var collection=document.getElementById('collectionSection');
+
+  function anchorFor(g){ return document.querySelector('.collection-anchor[data-anchor-for="'+g+'"]'); }
+
+  function setGenre(g){
+    tabs.forEach(function(t){ t.classList.toggle('is-active', t.getAttribute('data-genre')===g); });
+    genres.forEach(function(el){ el.hidden = el.getAttribute('data-genre')!==g; });
+    var anchor=anchorFor(g);
+    if(collection && anchor) anchor.parentNode.insertBefore(collection, anchor.nextSibling);
+
+    var next=window.NoveraBanners && window.NoveraBanners[g];
+    if(window.NoveraBanner && window.NoveraBanner!==next) window.NoveraBanner.pause();
+    if(next){ window.NoveraBanner=next; next.resume(); }
+  }
+
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      var g=t.getAttribute('data-genre');
+      if(t.classList.contains('is-active')) return;
+      setGenre(g);
+      window.scrollTo(0,0);
+    });
+  });
+
+  setGenre('kpop');   // 초기 상태 — Collection 을 kpop 앵커 자리로 옮겨 둔다
 })();
 
 // ----- 상단 카테고리 탭 -----
@@ -2366,6 +2579,7 @@ def build() -> str:
   <main class="app-main">
   {build_cat_tabs()}
 
+  <div class="home-genre" data-genre="kpop" id="homeKpop">
   <section class="mainbanner">
     <div class="mb-track">{build_banners()}</div>
   </section>
@@ -2404,13 +2618,23 @@ def build() -> str:
     <a class="banner-frame" href="#"><img src="{inline_banner}" alt="&lt;귀멸의 칼날: 전집중展&gt; 전시 2026년 6월 27일 ~ 9월 27일"></a>
   </div>
 
+  <div class="collection-anchor" data-anchor-for="kpop"></div>
+  </div>
+
+  <div class="home-genre" data-genre="character" id="homeCharacter" hidden>
+  {build_character_home(inline_banner)}
+  </div>
+
   {build_collections()}
   </main>
   {build_cart_panel()}
   </div>
 
   {build_footer()}
-  {build_bottom_nav()}
+  <div class="bottom-fixed" id="bottomFixed">
+    {build_genre_switch()}
+    {build_bottom_nav()}
+  </div>
   {build_banner_sheet()}
 </div>
 {build_drawer()}"""
