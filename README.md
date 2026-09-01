@@ -35,6 +35,20 @@ cd mobile-home && python3 build.py
 
 의존성은 표준 라이브러리만 사용합니다. 에셋을 갱신하려면 `assets/` 를 교체한 뒤 다시 빌드하세요.
 
+### 배포 (Vercel)
+
+`vercel.json` 이 저장소 루트와 `mobile-home/` 양쪽에 있어, Vercel 프로젝트의
+**Root Directory** 를 어느 쪽으로 잡아도 동작합니다. 빌드는 커밋된 단일 HTML 을
+`public/index.html` 로 옮기는 것뿐이라 별도 런타임이 필요 없습니다.
+
+```
+buildCommand : mkdir -p public && cp <빌드결과 HTML> public/index.html
+outputDirectory : public
+```
+
+HTML 은 에셋을 전부 data URI 로 품고 있어 이 파일 하나면 완결됩니다. 소스를 고쳤다면
+**커밋 전에 `python3 build.py` 를 돌려** 산출물을 갱신해야 배포본에 반영됩니다.
+
 ### 화면 구성
 
 TopNavigation → 카테고리 탭 → 메인 배너(자동 슬라이드 4장) → 이벤트 바로가기 →
