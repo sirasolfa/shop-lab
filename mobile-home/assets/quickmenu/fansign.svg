@@ -1,0 +1,23 @@
+<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fsPaper" x1="7" y1="6" x2="25" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DFE7FA"/>
+    </linearGradient>
+    <linearGradient id="fsPen" x1="20" y1="22" x2="31" y2="9" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFC97A"/>
+      <stop offset="1" stop-color="#F98F3C"/>
+    </linearGradient>
+    <linearGradient id="fsInk" x1="10" y1="18" x2="24" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7FA6FF"/>
+      <stop offset="1" stop-color="#3E5BE0"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="18" cy="30.5" rx="10" ry="1.6" fill="#5B6CC7" opacity="0.22"/>
+  <rect x="6.5" y="6" width="19" height="23" rx="3" fill="url(#fsPaper)" stroke="#C7D2EC" stroke-width="0.8"/>
+  <rect x="10" y="10" width="9" height="1.8" rx="0.9" fill="#C7D2EC"/>
+  <rect x="10" y="13.6" width="12" height="1.8" rx="0.9" fill="#DDE4F3"/>
+  <path d="M10.2 24.4c2.2-3.6 4-5.6 5.4-5.9 1.4-.3 1.5 1.4.5 3-1 1.6-2.2 2.6-1.5 3.2.8.7 3-1.1 5.4-4.3" stroke="url(#fsInk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M29.9 7.6a2.2 2.2 0 0 1 0 3.1L22 18.6l-3.6.8.9-3.5 7.8-8a2.2 2.2 0 0 1 2.8 0z" fill="url(#fsPen)"/>
+  <path d="M19.3 15.9 22 18.6l-3.6.8z" fill="#8B5A22" opacity="0.7"/>
+</svg>

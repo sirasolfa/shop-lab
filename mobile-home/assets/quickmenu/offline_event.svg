@@ -1,0 +1,27 @@
+<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="oeStage" x1="4" y1="22" x2="32" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B9C4E8"/>
+      <stop offset="1" stop-color="#8892B8"/>
+    </linearGradient>
+    <linearGradient id="oeLeft" x1="8" y1="12" x2="14" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFAFD6"/>
+      <stop offset="1" stop-color="#F971B8"/>
+    </linearGradient>
+    <linearGradient id="oeRight" x1="22" y1="12" x2="28" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7FA6FF"/>
+      <stop offset="1" stop-color="#3E5BE0"/>
+    </linearGradient>
+    <linearGradient id="oeBeam" x1="18" y1="3" x2="18" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE9A8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="18" cy="30.5" rx="11" ry="1.6" fill="#5B6CC7" opacity="0.22"/>
+  <path d="M18 4 27 22H9z" fill="url(#oeBeam)"/>
+  <circle cx="11.5" cy="13.5" r="3.2" fill="url(#oeLeft)"/>
+  <path d="M5.6 24.5c0-3.2 2.7-5.2 5.9-5.2s5.9 2 5.9 5.2z" fill="url(#oeLeft)"/>
+  <circle cx="24.5" cy="13.5" r="3.2" fill="url(#oeRight)"/>
+  <path d="M18.6 24.5c0-3.2 2.7-5.2 5.9-5.2s5.9 2 5.9 5.2z" fill="url(#oeRight)"/>
+  <rect x="4" y="24.5" width="28" height="3.6" rx="1.8" fill="url(#oeStage)"/>
+</svg>
