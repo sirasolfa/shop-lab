@@ -129,7 +129,7 @@ def section_header(title: str, sub: str | None = None, action: str | None = None
     if action:
         action_html = (
             f'<button class="text-btn" type="button">{esc(action)}'
-            + icon("ChevronRight", 16)
+            + icon("ChevronRight", 18)
             + "</button>"
         )
     sub_html = f'<p class="sec-sub">{esc(sub)}</p>' if sub else ""
@@ -1940,7 +1940,7 @@ def build() -> str:
     {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
     {build_podium()}
     <div class="notice-box">
-      <p class="notice-head">{icon('Notice', 16)}아티스트 랭킹 정보
+      <p class="notice-head">아티스트 랭킹 정보
         <span class="tooltip-wrap" tabindex="0">
           {icon('CircleInfoFill', 14)}
           <span class="tooltip-bubble" role="tooltip">Last update 2026.08.18 14:00 (KST)</span>
