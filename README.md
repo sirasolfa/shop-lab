@@ -89,15 +89,18 @@ Figma 모션 타임라인(16.4s 루프 / 4장)을 슬라이드 1장 단위(4,100
 Fan's Pick 시상대도 같은 방식으로 시안 키프레임(시상대 → 콘텐츠, 3위 → 2위 → 1위)을
 그대로 옮겼고, 스프링 곡선은 `linear()` 이징을 지원하는 브라우저에서 원본 곡선으로 올라갑니다.
 
-**배너 이미지** — `assets/banner/` 에 아래 파일이 있으면 자동으로 얹히고, 없으면 시안에서
-실측한 배경 그라디언트만 남습니다 (확장자는 `.webp/.jpg/.jpeg/.png` 순으로 탐색).
+**배너 이미지** — 시안 Background Image 레이어를 375×320 @3x 로 내보낸 파일입니다.
+export 에 그라디언트가 이미 구워져 있어 네 장 모두 같은 규칙(`object-fit:cover`)으로 채웁니다.
 
-| 슬라이드 | 찾는 파일명 (순서대로) | 상태 |
-|---|---|---|
-| VARI(베리) VIDEO CALL EVENT | `main_vari.*` | **미포함** |
-| 코스모시 x 귀멸의 칼날 | `main_kimetsu.*` → `main3.jpg` | 대체본 사용 중 |
-| BE BOYS(비보이즈) UNIT CALL EVENT | `main_beboys.*` | **미포함** |
-| WELCOME COUPON | `main_coupon.*` → `main1.webp` | 포함 |
+| 슬라이드 | 파일 |
+|---|---|
+| VARI(베리) VIDEO CALL EVENT | `assets/banner/main_vari.webp` |
+| 코스모시 x 귀멸의 칼날 | `assets/banner/main_kimetsu.webp` |
+| BE BOYS(비보이즈) UNIT CALL EVENT | `assets/banner/main_beboys.webp` |
+| WELCOME COUPON | `assets/banner/main_coupon.webp` |
+
+데스크톱(520×280)에서는 같은 이미지를 가로폭에 맞춰 늘리고 위쪽 기준으로 정렬해 아래가
+잘립니다. 파일이 없으면 시안에서 실측한 배경 그라디언트만 남습니다.
 
 ### Meet Your Artist Event (Figma `5749:63751`)
 
@@ -137,12 +140,11 @@ export 하지 못했습니다. 아래 파일을 넣으면 **코드 수정 없이
 
 | 경로 | 쓰이는 곳 |
 |---|---|
-| `assets/banner/main_vari.*` | 메인 배너 1번 |
-| `assets/banner/main_kimetsu.*` | 메인 배너 2번 (현재 `main3.jpg` 로 대체) |
-| `assets/banner/main_beboys.*` | 메인 배너 3번 |
 | `assets/artist/nct.*` · `seventeen.*` | Fan's Pick 1·2위 아바타 |
 | `assets/artist/장한음.*` | LIVE MD 구좌 배경·아바타 |
 | `assets/prod/306.*` · `307.*` | LIVE MD 구좌 상품 썸네일 |
+
+메인 배너 4장은 채워졌습니다.
 
 확장자는 `.webp / .jpg / .jpeg / .png` 순으로 탐색합니다. 파일이 없으면 배너는 시안에서
 실측한 배경 그라디언트만, 아바타·썸네일은 이니셜 자리표시로 떨어집니다.

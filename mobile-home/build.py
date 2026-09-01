@@ -210,9 +210,8 @@ CAT_TABS = [
 # Figma 5612:54824 / Main Banner(5664:102707·102734·102763·102792) 4장.
 # bg 는 각 슬라이드 Background Image 프레임의 그라디언트 실측값 — 사진이 없어도
 # 배너가 시안의 톤 그대로 서 있게 하는 바탕이다.
-# img 는 후보 파일명 목록 — assets/banner/ 에서 순서대로 찾아 첫 파일을 얹고,
-# 하나도 없으면 그라디언트만 남는다. Figma Background Image export 를
-# 첫 번째 이름으로 넣으면 코드 수정 없이 그대로 반영된다.
+# img 는 Figma Background Image 레이어 export(375x320 @3x) 파일명.
+# export 에 그라디언트가 이미 구워져 있어 bg 는 이미지가 없을 때의 바탕으로만 남는다.
 MAIN_BANNERS = [
     dict(kind="vari", label="1st SINGLE [Dear]",
          title="VARI(베리)<br>VIDEO CALL EVENT",
@@ -221,17 +220,15 @@ MAIN_BANNERS = [
     dict(kind="kimetsu", label="코스모시 x 귀멸의 칼날",
          title="코스모시와 함께<br>전집중전 전시 팝업 관람!",
          bg="linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%)",
-         img=("main_kimetsu", "main3")),
+         img=("main_kimetsu",)),
     dict(kind="beboys", label="1st SINGLE [BE:2]",
          title="BE BOYS (비보이즈)<br>UNIT CALL EVENT",
          bg="linear-gradient(180deg,#d1e9ff 0%,#1871bf 100%)",
          img=("main_beboys",)),
-    # 쿠폰 배너는 Background Image 프레임을 통째로 내보낸 이미지라
-    # 그라디언트·카드·그림자가 이미 합쳐져 있다
     dict(kind="coupon", label="WELCOME COUPON",
          title="회원가입만 해도<br>전상품 1,000원 즉시 할인!",
          bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
-         img=("main_coupon", "main1")),
+         img=("main_coupon",)),
 ]
 
 # 배너 이미지 확장자 탐색 순서 — Figma export 가 무엇으로 떨어지든 집어 오도록
@@ -1133,20 +1130,10 @@ img{display:block;max-width:100%}
 /* 바탕 그라디언트는 인라인(각 슬라이드 Background Image 실측값)으로 들어오고,
    사진이 있으면 그 위에 얹힌다. 사진이 아직 없는 슬라이드는 그라디언트만 남는다 */
 .mb-bg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
-/* 쿠폰 배너는 Figma Background Image 프레임을 통째로 내보낸 이미지라
-   그라디언트·카드·그림자가 이미 들어있다. 좌우 너비에 꽉 맞춰 늘리고,
-   원본이 배너와 같은 375:320 비율이라 크롭도 사실상 없다 */
-.mb-bg--coupon img{width:100%;height:100%;object-fit:cover}
-/* 인물 컷(VARI · BE BOYS)은 시안대로 세로 500/320 비율 커버 — 상단 정렬로
-   얼굴이 딤에 묻히지 않게 한다 */
-.mb-bg--vari img,.mb-bg--beboys img{width:100%;height:100%;object-fit:cover;object-position:50% 20%}
-/* 귀멸 키아트는 배경까지 포함된 풀블리드 이미지라 가로 폭에 꽉 맞추고 위쪽
-   정렬해, 아래 남는 어두운 영역으로 마스크가 자연스럽게 떨어지면서
-   라벨/타이틀이 얹히게 한다 */
-.mb-bg--kimetsu{align-items:flex-start}
-.mb-bg--kimetsu img{width:100%;height:auto;object-fit:contain;
-  -webkit-mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%);
-  mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%)}
+/* 네 장 모두 Background Image 레이어를 통째로 내보낸 375x320 이미지라
+   슬라이드별 특수 처리 없이 같은 규칙으로 채운다. 모바일에서는 배너와 비율이
+   같아 크롭이 없고, 데스크톱(520x280)에서는 가로폭에 맞춰 늘어나며 위쪽만 남는다 */
+.mb-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 0}
 .mb-dim{position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(0,0,0,0) 0%,var(--alpha-black16) 50%,var(--alpha-black64) 100%)}
 /* Figma Bottom Container(5664:102715): 좌우 거터가 아닌 고정 폭 320 중앙 정렬,
@@ -1744,10 +1731,6 @@ img{display:block;max-width:100%}
   /* 배너: 시안 520x280. 모바일 이미지를 가로로 늘려 채우고 위쪽 기준으로 정렬한다 */
   .mainbanner{height:280px}
   .mb-slide{height:280px}
-  .mb-bg img{width:100%;height:auto;min-height:100%;object-fit:cover;object-position:50% 0}
-  .mb-bg--kimetsu img,.mb-bg--vari img,.mb-bg--beboys img{
-    width:100%;height:auto;min-height:100%;object-fit:cover;object-position:50% 0}
-  .mb-bg{align-items:flex-start}
   .mb-bottom{bottom:24px;width:calc(100% - 40px)}
 
   /* ---- 우측 장바구니 패널 ---- */
