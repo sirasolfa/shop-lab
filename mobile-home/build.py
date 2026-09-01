@@ -890,6 +890,7 @@ CSS = """
   --base-white:#fff; --base-black:#000;
   --alpha-black8:rgba(0,0,0,.08); --alpha-black16:rgba(0,0,0,.16);
   --alpha-black40:rgba(0,0,0,.4); --alpha-black64:rgba(0,0,0,.64);
+  --alpha-black80:rgba(0,0,0,.8);
   --alpha-white24:rgba(255,255,255,.24); --alpha-white40:rgba(255,255,255,.4);
   --alpha-white64:rgba(255,255,255,.64);
   --alpha-white80:rgba(255,255,255,.8);
@@ -1208,11 +1209,12 @@ img{display:block;max-width:100%}
 .sb-bg{position:absolute;inset:0}
 .sb-bg picture,.sb-bg img{display:block;width:100%;height:100%}
 .sb-bg img{object-fit:cover}
-/* 메인 배너 딤(.mb-dim)과 같은 "기본" 그라디언트를 그대로 쓴다 — 실측했던
-   Dim(5766:73288) 전용 값은 밝은 사진 위에서 지나치게 어두워 텍스트 위 사진이
-   거의 안 보였다 */
+/* Figma Concept 3 - Showcase Banner(5762:66429) 실측 — 딤은 메인 배너(.mb-dim)와
+   달리 위쪽이 가장 진하고(black80) 아래로 갈수록 옅어진다(mask=black40). 배너
+   윗부분에 얹히는 LIVE MD 뱃지·타이틀의 대비를 확보하기 위함이라 방향을 다르게
+   가져가는 게 의도다 */
 .sb-scrim{position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(0,0,0,0) 0%,var(--alpha-black16) 50%,var(--alpha-black64) 100%)}
+  background:linear-gradient(180deg,var(--alpha-black80) 0%,var(--bg-mask) 100%)}
 .sb-inner{position:relative;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-24);padding:var(--spacing-20) var(--gutter) 48px}
 .sb-head{display:flex;flex-direction:column;gap:var(--spacing-4);width:100%}
