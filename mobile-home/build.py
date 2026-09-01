@@ -695,7 +695,6 @@ SIDENAV_MAIN = [
     ("collection", "COLLECTION", "https://shop.novera.town/exhibitions", False),
     ("profile", "ARTIST", "https://shop.novera.town/artists", False),
     ("sphere", "SPHERE", "https://shop.novera.town/kimetsu_ex_kr", True),
-    ("event", "EVENT", "https://shop.novera.town/categories/PCTGY3", False),
 ]
 SIDENAV_BOTTOM = [
     ("bag", "장바구니", "https://shop.novera.town/cart"),
@@ -1194,10 +1193,11 @@ img{display:block;max-width:100%}
   background:linear-gradient(180deg,var(--blue-700) 0%,var(--blue-500) 100%)}
 .sb-bg{position:absolute;inset:0}
 .sb-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 0}
-/* Figma Dim(5766:73288) 실측 — 상단 rgb(18,18,18) → 하단 rgb(54,54,54).
-   토큰 이름(black80→mask40)보다 실제로는 훨씬 진하고 위아래 대비가 완만하다 */
+/* 메인 배너 딤(.mb-dim)과 같은 "기본" 그라디언트를 그대로 쓴다 — 실측했던
+   Dim(5766:73288) 전용 값은 밝은 사진 위에서 지나치게 어두워 텍스트 위 사진이
+   거의 안 보였다 */
 .sb-scrim{position:absolute;inset:0;
-  background:linear-gradient(180deg,rgb(18,18,18) 0%,rgb(54,54,54) 100%)}
+  background:linear-gradient(180deg,rgba(0,0,0,0) 0%,var(--alpha-black16) 50%,var(--alpha-black64) 100%)}
 .sb-inner{position:relative;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-24);padding:var(--spacing-20) var(--gutter) 48px}
 .sb-head{display:flex;flex-direction:column;gap:var(--spacing-4);width:100%}
@@ -1729,14 +1729,13 @@ img{display:block;max-width:100%}
   .sn-divider{margin:var(--spacing-8) 0}
 
   /* ---- 본문 컬럼 520 ---- */
+  /* Figma 는 데스크톱(520 폭)에서도 섹션 내부 좌우 여백을 모바일과 같은 20px 로
+     유지한다 (Banner Area·ProductCard 등 전부 폭에 관계없이 px-20 고정) — 그래서
+     --gutter 를 0으로 지우지 않고 기본값(20px)을 그대로 물려받는다 */
   .app-main{min-width:0}
-  /* 본문 컬럼 안에서는 좌우 거터가 사라지고 섹션이 컬럼 폭을 그대로 쓴다 */
-  .app-main{--gutter:0px}
   .mainbanner,.inline-banner .banner-frame,.col-hero{border-radius:var(--rounded-md)}
   .mainbanner,.col-hero{overflow:hidden}
   .sec--showcase .sb-banner{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
-  .prow{padding-left:0}
-  .row-end{flex-basis:0}
   .footer{margin-top:56px}
 
   /* 배너: 시안 520x280. 모바일 이미지를 가로로 늘려 채우고 위쪽 기준으로 정렬한다 */
