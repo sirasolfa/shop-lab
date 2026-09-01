@@ -386,10 +386,9 @@ def build_event_showcase() -> str:
     # Figma Banner Area(5749:63752) export 그대로 — 이미 blue-700→blue-500 그라디언트와
     # black80→mask 딤이 구워져 있어 우리 쪽에서 별도로 딤을 더하지 않는다(.sb-scrim 참고).
     # 아직 export 가 없으면 아티스트/대표 상품 이미지로, 그것도 없으면 그라디언트만 남는다.
-    # 배경은 별도로 처리한 와이드 컷(assets/banner/livemd_<브랜드>.*) 을 최우선으로 찾고,
-    # 없으면 아바타 사진 → 대표 상품 이미지 순으로 내려간다. 어느 쪽이든 원본이 밝은
-    # 사진이라 .sb-scrim(딤)을 그대로 얹는다 — Figma 처럼 텍스트가 이미지에 구워져
-    # 있는 완성본이 아니므로 이중 딤 걱정은 없다
+    # 배경은 Figma Banner Area(5766:73166, 텍스트 없는 배경 전용 레이어) export 를
+    # 최우선으로 찾고, 없으면 아바타 사진 → 대표 상품 이미지 순으로 내려간다.
+    # 딤은 우리 쪽 .sb-scrim(Dim 5766:73288 실측)이 얹으므로 원본은 밝은 사진이어야 한다
     bg = (
         find_img("banner", f"livemd_{lead['brand']}")
         or find_img("artist", lead["brand"])
@@ -1195,8 +1194,10 @@ img{display:block;max-width:100%}
   background:linear-gradient(180deg,var(--blue-700) 0%,var(--blue-500) 100%)}
 .sb-bg{position:absolute;inset:0}
 .sb-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 0}
+/* Figma Dim(5766:73288) 실측 — 상단 rgb(18,18,18) → 하단 rgb(54,54,54).
+   토큰 이름(black80→mask40)보다 실제로는 훨씬 진하고 위아래 대비가 완만하다 */
 .sb-scrim{position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(0,0,0,.8) 0%,var(--bg-mask) 100%)}
+  background:linear-gradient(180deg,rgb(18,18,18) 0%,rgb(54,54,54) 100%)}
 .sb-inner{position:relative;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-24);padding:var(--spacing-20) var(--gutter) 48px}
 .sb-head{display:flex;flex-direction:column;gap:var(--spacing-4);width:100%}
