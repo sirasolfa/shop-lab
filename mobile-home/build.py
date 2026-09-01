@@ -268,19 +268,115 @@ def build_banners() -> str:
     return "".join(out)
 
 
-# --------------------------------------------- Meet Your Artist Event 카운트다운
-# 시안의 "01 : 02 : 40 : 30" 은 목업 숫자다. 여기서는 data.json 의 event_at
-# (상품명 앞머리 "[09.05 …]" 를 승격시킨 ISO 일시) 을 전부 넘겨주고, 브라우저가
-# 볼 때마다 그중 "가장 가까운 미래" 를 골라 실제로 카운트다운한다.
-# 남은 이벤트가 없으면 종료 상태로 떨어진다.
-CD_UNITS = [("d", "일"), ("h", "시간"), ("m", "분"), ("s", "초")]
+# ------------------------------ Meet Your Artist Event (Showcase Banner)
+# Figma 5749:63751 "Concept 3 - Showcase Banner"
+#   Banner Area(5749:63752)       다크 쇼케이스 배너 + 구매 종료 카운트다운
+#   Overlapping Cards(5749:63783) 배너 위로 30px 올라탄 가로형 카드 2장
+#   NextArtistPreview(5749:63826) 다음 아티스트 칩 (가로 스크롤)
+#
+# 시안의 "01 : 02 : 40 : 30" 과 "오늘 오후 8:00" 은 목업 숫자다. 여기서는
+# data.json 의 event_at(상품명 앞머리 "[09.05 …]" 를 승격시킨 ISO 일시) 을 넘겨주고,
+# 브라우저가 볼 때마다 가장 가까운 미래를 골라 실제로 카운트다운하고 상대 시각을 만든다.
+CD_UNITS = [("d", "DAY"), ("h", "HRS"), ("m", "MIN"), ("s", "SEC")]
+
+# 시안이 카드에 얹는 칩 수 — Overlapping Cards 는 2장이다
+SHOWCASE_CARDS = 2
 
 
-def event_deadlines() -> list[str]:
-    return sorted({p["event_at"] for p in S["event"] if p.get("event_at")})
+def event_items() -> list[dict]:
+    """event_at 이 있는 이벤트 상품을 임박한 순으로."""
+    return sorted(
+        (p for p in S["event"] if p.get("event_at")), key=lambda p: p["event_at"]
+    )
 
 
-def build_countdown() -> str:
+def _meta_row(p: dict) -> str:
+    """Inline Meta Row(5749:63813) — 달력·인원·혜택.
+    실제 데이터에 있는 값만 그린다. 인원(limit_count)·혜택(perk) 은 API 가
+    내려주기 시작하면 그대로 채워진다."""
+    cells = [
+        f'<span class="em-cell">{icon("Calendar", 12)}'
+        f'<span>{p["event_at"][5:10].replace("-", ".")}</span></span>'
+    ]
+    if p.get("limit_count"):
+        cells.append(
+            f'<span class="em-cell">{icon("User", 12)}'
+            f'<span>{esc(p["limit_count"])}명</span></span>'
+        )
+    if p.get("perk"):
+        cells.append(
+            f'<span class="em-cell">{icon("Gift", 12)}<span>{esc(p["perk"])}</span></span>'
+        )
+    sep = '<i class="em-sep"></i>'
+    return f'<div class="ecard-meta">{sep.join(cells)}</div>'
+
+
+def _event_card(p: dict) -> str:
+    img = datauri(ASSETS / "prod" / f"{p['id']}.jpg")
+    chips = []
+    if p.get("perk"):
+        chips.append(
+            f'<span class="ebadge ebadge--primary">{icon("Gift", 12)}'
+            f'{esc(p["perk"])}</span>'
+        )
+    if p.get("limit_count"):
+        chips.append(
+            f'<span class="ebadge ebadge--warning">{icon("User", 12)}'
+            f'{esc(p["limit_count"])}명 한정</span>'
+        )
+    elif p.get("new"):
+        chips.append('<span class="ebadge ebadge--warning">NEW</span>')
+    chip_html = f'<div class="ecard-chips">{"".join(chips)}</div>' if chips else ""
+
+    return f"""<a class="ecard" href="https://shop.novera.town/products/{p['id']}"
+   data-event-at="{esc(p['event_at'])}">
+  <span class="ecard-img">
+    <img src="{img}" alt="" loading="lazy">
+    <span class="ecard-kind">VIDEO CALL</span>
+  </span>
+  <span class="ecard-body">
+    <span class="ecard-head">
+      <span class="ecard-brand-row">
+        <span class="ecard-brand">{esc(p['brand'])}</span>{chip_html}
+      </span>
+      <span class="ecard-name">{esc(p['name'])}</span>
+    </span>
+    <span class="ecard-price-area">
+      <span class="price"><span class="price-cur">KRW</span><span class="price-sym">₩</span><span class="price-num">{won(p['price'])}</span></span>
+      {_meta_row(p)}
+    </span>
+  </span>
+</a>"""
+
+
+def _next_artists(items: list[dict]) -> str:
+    """다음 아티스트 칩 — (아티스트, 일시) 중복을 걷어내고 임박한 순으로.
+    시각 문구는 보는 시점에 따라 달라지므로 JS 가 data-at 으로 만든다."""
+    seen, chips = set(), []
+    for p in items:
+        key = (p["brand"], p["event_at"])
+        if key in seen:
+            continue
+        seen.add(key)
+        img = datauri(ASSETS / "prod" / f"{p['id']}.jpg")
+        chips.append(
+            f'<div class="na-item" data-at="{esc(p["event_at"])}">'
+            f'<span class="na-avatar"><img src="{img}" alt=""></span>'
+            f'<span class="na-text"><span class="na-name">{esc(p["brand"])}</span>'
+            f'<span class="na-time">--</span></span></div>'
+        )
+    if not chips:
+        return ""
+    return f'<div class="sb-next" id="nextArtists">{"".join(chips)}</div>'
+
+
+def build_event_showcase() -> str:
+    items = event_items()
+    if not items:
+        return ""
+    lead = items[0]
+    hero = datauri(ASSETS / "prod" / f"{lead['id']}.jpg")
+
     tiles = []
     for i, (key, cap) in enumerate(CD_UNITS):
         if i:
@@ -289,11 +385,44 @@ def build_countdown() -> str:
             f'<span class="cd-unit"><span class="cd-num" data-cd="{key}">--</span>'
             f'<span class="cd-cap">{cap}</span></span>'
         )
-    deadlines = html.escape(json.dumps(event_deadlines()), quote=True)
-    return f"""<div class="countdown" id="eventCountdown" data-deadlines="{deadlines}">
-  <p class="cd-label"><span class="cd-dot"></span><span id="cdLabelText">이벤트 마감까지</span></p>
-  <div class="cd-clock" role="timer" aria-live="off">{''.join(tiles)}</div>
-</div>"""
+    deadlines = html.escape(
+        json.dumps(sorted({p["event_at"] for p in items})), quote=True
+    )
+    cards = "".join(_event_card(p) for p in items[:SHOWCASE_CARDS])
+
+    return f"""<section class="sec--showcase">
+  <div class="sb-banner">
+    <div class="sb-bg"><img src="{hero}" alt=""></div>
+    <div class="sb-scrim"></div>
+    <div class="sb-inner">
+      <div class="sb-head">
+        <div class="sb-toprow">
+          <span class="sb-kind">LIVE MD</span>
+          <button class="sb-more" type="button">전체보기{icon('ChevronRight', 14)}</button>
+        </div>
+        <div class="sb-titles">
+          <p class="sb-title">Meet Your Artist Event!</p>
+          <p class="sb-desc">최애 아티스트를 만날 수 있는 특별한 이벤트</p>
+        </div>
+      </div>
+      <div class="sb-meta">
+        <div class="sb-artist">
+          <p class="sb-cap">아티스트</p>
+          <div class="sb-artist-row">
+            <span class="sb-artist-avatar"><img src="{hero}" alt=""></span>
+            <p class="sb-artist-name">{esc(lead['brand'])}</p>
+          </div>
+        </div>
+        <div class="sb-timer" id="eventCountdown" data-deadlines="{deadlines}">
+          <p class="sb-cap" id="cdLabelText">구매 종료까지</p>
+          <div class="cd-clock" role="timer" aria-live="off">{''.join(tiles)}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sb-cards">{cards}</div>
+  {_next_artists(items)}
+</section>"""
 
 
 QUICKMENU_STAGGER = 70  # 셀당 등장 간격(ms) — 좌 → 우
@@ -672,6 +801,7 @@ CSS = """
   --alpha-black8:rgba(0,0,0,.08); --alpha-black16:rgba(0,0,0,.16);
   --alpha-black40:rgba(0,0,0,.4); --alpha-black64:rgba(0,0,0,.64);
   --alpha-white24:rgba(255,255,255,.24); --alpha-white40:rgba(255,255,255,.4);
+  --alpha-white64:rgba(255,255,255,.64);
   --alpha-white80:rgba(255,255,255,.8);
 
   /* --- semantic : text / icon --- */
@@ -1001,33 +1131,112 @@ img{display:block;max-width:100%}
 }
 .text-btn .ico{color:var(--icon-muted)}
 
-/* ---------- Meet Your Artist Event 카운트다운 ---------- */
-/* data.json 의 event_at 중 가장 가까운 미래 일시까지 실제로 흘러간다.
-   숫자는 tabular-nums + 고정폭 타일이라 자릿수가 바뀌어도 폭이 흔들리지 않는다 */
-.countdown{display:flex;align-items:center;justify-content:space-between;gap:var(--spacing-12);
-  margin:var(--spacing-16) var(--gutter) 0;padding:var(--spacing-12) var(--spacing-16);
-  border-radius:var(--rounded-md);background:var(--bg-gray)}
-.cd-label{display:flex;align-items:center;gap:6px;min-width:0;
-  font-size:13px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
-  color:var(--text-secondary)}
-.cd-dot{flex:none;width:6px;height:6px;border-radius:var(--rounded-full);
-  background:var(--red-500);animation:cd-pulse 1.6s ease-in-out infinite}
-@keyframes cd-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
-.cd-clock{display:flex;align-items:flex-start;gap:var(--spacing-2)}
-.cd-unit{display:flex;flex-direction:column;align-items:center;gap:2px}
-.cd-num{display:flex;align-items:center;justify-content:center;
-  min-width:28px;padding:3px 5px;border-radius:var(--rounded-xs);
+/* ---------- Meet Your Artist Event — Showcase Banner (Figma 5749:63751) ---------- */
+.sec--showcase{padding-bottom:var(--spacing-8)}
+
+/* Banner Area(5749:63752) — blue-700→blue-500 바탕 위에 아티스트 컷,
+   그 위에 black80 → mask(40%) 오버레이. 시안은 이미지를 163% 높이로 얹어
+   윗부분만 보여주므로 cover + 상단 기준 포지션으로 옮겼다 */
+.sb-banner{position:relative;overflow:hidden;
+  background:linear-gradient(180deg,var(--blue-700) 0%,var(--blue-500) 100%)}
+.sb-bg{position:absolute;inset:0}
+.sb-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.sb-scrim{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.8) 0%,var(--bg-mask) 100%)}
+.sb-inner{position:relative;display:flex;flex-direction:column;align-items:center;
+  gap:var(--spacing-24);padding:var(--spacing-20) var(--gutter) 48px}
+.sb-head{display:flex;flex-direction:column;gap:var(--spacing-4);width:100%}
+.sb-toprow{position:relative;display:flex;align-items:center;justify-content:space-between}
+.sb-kind{padding:var(--spacing-2) 6px;border-radius:var(--rounded-xxs);
   background:var(--bg-darkgray-strong);color:var(--text-inverse);
-  font-size:14px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums}
-.cd-cap{font-size:10px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
+  font-size:12px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
+.sb-more{position:absolute;top:-4px;right:-4px;display:flex;align-items:center;
+  gap:var(--spacing-4);height:26px;padding:var(--spacing-4) 0;border-radius:var(--rounded-xs);
+  font-size:11px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
   color:var(--text-muted)}
-.cd-colon{padding-top:4px;font-size:14px;font-weight:700;line-height:1.3;color:var(--text-disabled)}
-/* 남은 이벤트가 없을 때 — 타일은 00 으로 멈추고 라벨만 종료를 알린다 */
-.countdown.is-ended .cd-dot{background:var(--gray-400);animation:none}
-.countdown.is-ended .cd-num{background:var(--gray-400)}
-@media (prefers-reduced-motion:reduce){ .cd-dot{animation:none} }
+.sb-more .ico{color:var(--text-muted)}
+.sb-titles{display:flex;flex-direction:column;gap:var(--spacing-4);width:100%;
+  color:var(--text-inverse)}
+.sb-title{font-size:22px;font-weight:700;line-height:1.3}
+.sb-desc{font-size:12px;font-weight:400;line-height:1.4;letter-spacing:var(--tracking-1)}
+.sb-meta{display:flex;align-items:flex-start;gap:var(--spacing-28);width:100%}
+.sb-cap{font-size:11px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--alpha-white80)}
+.sb-artist{flex:none;display:flex;flex-direction:column;gap:6px}
+.sb-artist-row{display:flex;align-items:center;gap:6px}
+.sb-artist-avatar{flex:none;width:20px;height:20px;border-radius:var(--rounded-full);
+  overflow:hidden;border:1px solid var(--border-thumbnail);display:block}
+.sb-artist-avatar img{width:100%;height:100%;object-fit:cover}
+.sb-artist-name{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
+.sb-timer{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacing-2)}
+.cd-clock{display:flex;align-items:flex-start;gap:var(--spacing-8)}
+.cd-unit{display:flex;flex-direction:column;align-items:center;min-width:30px}
+.cd-num{font-size:26px;font-weight:700;line-height:1.3;color:var(--text-inverse);
+  font-variant-numeric:tabular-nums}
+.cd-cap{font-size:10px;font-weight:400;line-height:1.5;letter-spacing:var(--tracking-1);
+  color:var(--alpha-white64)}
+.cd-colon{width:8px;text-align:center;font-size:20px;font-weight:700;line-height:1.3;
+  color:var(--alpha-white40)}
+/* 남은 이벤트가 없을 때 — 숫자는 00 에서 멈추고 라벨만 종료를 알린다 */
+.sb-timer.is-ended .cd-num{color:var(--alpha-white40)}
+
+/* Overlapping Cards(5749:63783) — 배너 위로 30px 올라탄다 */
+.sb-cards{position:relative;z-index:1;margin-top:-30px;padding:0 var(--gutter);
+  display:flex;flex-direction:column;gap:var(--spacing-12)}
+.ecard{display:flex;align-items:flex-start;gap:var(--spacing-12);padding:var(--spacing-12);
+  border:1px solid var(--gray-200);border-radius:var(--rounded-lg);background:var(--bg-default)}
+.ecard-img{position:relative;flex:none;display:block;width:80px;height:80px;
+  border-radius:var(--rounded-sm);overflow:hidden;background:var(--bg-subtle)}
+.ecard-img img{width:100%;height:100%;object-fit:cover}
+.ecard-kind{position:absolute;left:3px;bottom:3px;padding:1px var(--spacing-4);
+  border-radius:var(--rounded-xs);background:var(--bg-darkgray-strong);color:var(--text-inverse);
+  font-size:10px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
+.ecard-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacing-4)}
+.ecard-head{display:flex;flex-direction:column;gap:var(--spacing-4)}
+.ecard-brand-row{display:flex;align-items:center;gap:10px}
+.ecard-brand{flex:1;min-width:0;font-size:11px;font-weight:400;line-height:1.4;
+  letter-spacing:var(--tracking-1);color:var(--text-tertiary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ecard-chips{flex:none;display:flex;flex-wrap:wrap;gap:var(--spacing-4)}
+.ebadge{display:inline-flex;align-items:center;gap:var(--spacing-2);
+  padding:1px var(--spacing-4);border-radius:var(--rounded-xs);
+  font-size:10px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
+.ebadge--primary{background:var(--bg-primary);color:var(--brand1-default)}
+.ebadge--primary .ico{color:var(--brand1-default)}
+.ebadge--warning{background:var(--bg-warning);color:var(--text-warning)}
+.ebadge--warning .ico{color:var(--text-warning)}
+.ecard-name{font-size:13px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-primary);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ecard-price-area{display:flex;flex-direction:column;gap:var(--spacing-4)}
+/* 가로형 카드의 가격은 그리드 카드(16 Bold)보다 한 단계 작다 — Subtitle/3 */
+.ecard .price-num{font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1)}
+.ecard-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.em-cell{display:inline-flex;align-items:center;gap:var(--spacing-2);
+  font-size:10px;font-weight:400;line-height:1.5;letter-spacing:var(--tracking-1);
+  color:var(--text-muted);white-space:nowrap}
+.em-cell .ico{color:var(--text-muted)}
+.em-sep{flex:none;width:1px;height:10px;background:var(--border-default)}
+
+/* NextArtistPreview(5749:63826) — 가장 임박한 칩만 선명하게 */
+.sb-next{display:flex;align-items:flex-start;gap:var(--spacing-12);
+  padding:10px var(--gutter) var(--spacing-20);
+  overflow-x:auto;scrollbar-width:none}
+.sb-next::-webkit-scrollbar{display:none}
+.na-item{flex:none;display:flex;align-items:center;gap:var(--spacing-8);
+  padding:var(--spacing-8);border-radius:var(--rounded-md);background:var(--bg-muted)}
+.na-item:not(:first-child){opacity:.7}
+.na-avatar{flex:none;width:32px;height:32px;border-radius:var(--rounded-full);
+  overflow:hidden;display:block;background:var(--bg-subtle)}
+.na-avatar img{width:100%;height:100%;object-fit:cover}
+.na-text{display:flex;flex-direction:column;gap:1px;white-space:nowrap}
+.na-name{font-size:10px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
+  color:var(--text-primary)}
+.na-time{font-size:10px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
+  color:var(--text-tertiary);font-variant-numeric:tabular-nums}
+
 @media (max-width:359px){
-  .countdown{flex-direction:column;align-items:flex-start;gap:var(--spacing-8)}
+  .sb-meta{flex-direction:column;gap:var(--spacing-12)}
 }
 
 /* ---------- Quick Menu (Figma 5612:54901, 이벤트 바로가기) ---------- */
@@ -1514,41 +1723,67 @@ JS = """
 // ----- Meet Your Artist Event: 상품 일시(event_at)와 동기화된 카운트다운 -----
 // data.json 의 event_at 을 전부 넘겨받아, 볼 때마다 그중 "가장 가까운 미래" 를
 // 골라 남은 시간을 센다. 남은 이벤트가 없으면 00 에서 멈추고 종료 상태가 된다.
+// 다음 아티스트 칩의 "오늘 오후 8:00" 같은 문구도 같은 시각에서 만들어진다.
 (function(){
   var box=document.getElementById('eventCountdown');
-  if(!box) return;
-  var stamps=[];
-  try{
-    stamps=(JSON.parse(box.getAttribute('data-deadlines')||'[]')||[])
-      .map(function(s){ return Date.parse(s); })
-      .filter(function(t){ return !isNaN(t); })
-      .sort(function(a,b){ return a-b; });
-  }catch(e){ stamps=[]; }
+  var next=document.getElementById('nextArtists');
+  if(!box && !next) return;
 
-  var label=document.getElementById('cdLabelText');
+  function parseList(el,attr){
+    try{
+      return (JSON.parse(el.getAttribute(attr)||'[]')||[])
+        .map(function(s){ return Date.parse(s); })
+        .filter(function(t){ return !isNaN(t); })
+        .sort(function(a,b){ return a-b; });
+    }catch(e){ return []; }
+  }
+
+  var stamps = box ? parseList(box,'data-deadlines') : [];
+  var label  = document.getElementById('cdLabelText');
   var cells={};
-  box.querySelectorAll('.cd-num').forEach(function(el){
+  if(box) box.querySelectorAll('.cd-num').forEach(function(el){
     cells[el.getAttribute('data-cd')]=el;
   });
   function set(k,v){ if(cells[k]) cells[k].textContent=(v<10?'0':'')+v; }
 
+  // "오늘 오후 8:00" / "내일 오후 8:00" / "9.30 오후 8:00" — 보는 사람의 로컬 시각 기준
+  function whenText(ts){
+    var d=new Date(ts), now=new Date();
+    var a=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    var b=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    var days=Math.round((b-a)/86400000);
+    var h=d.getHours();
+    var t=(h<12?'오전':'오후')+' '+(h%12||12)+':'+('0'+d.getMinutes()).slice(-2);
+    if(days===0) return '오늘 '+t;
+    if(days===1) return '내일 '+t;
+    return (d.getMonth()+1)+'.'+d.getDate()+' '+t;
+  }
+
+  if(next){
+    next.querySelectorAll('.na-item').forEach(function(el){
+      var ts=Date.parse(el.getAttribute('data-at'));
+      var out=el.querySelector('.na-time');
+      if(out) out.textContent = isNaN(ts) ? '' : whenText(ts);
+    });
+  }
+
   function paint(){
-    var now=Date.now(), next=null;
-    for(var i=0;i<stamps.length;i++){ if(stamps[i]>now){ next=stamps[i]; break; } }
-    if(next===null){
+    if(!box) return;
+    var now=Date.now(), target=null;
+    for(var i=0;i<stamps.length;i++){ if(stamps[i]>now){ target=stamps[i]; break; } }
+    if(target===null){
       box.classList.add('is-ended');
       if(label) label.textContent='예정된 이벤트가 없어요';
       set('d',0); set('h',0); set('m',0); set('s',0);
-      return false;
+      return;
     }
     box.classList.remove('is-ended');
-    if(label) label.textContent='이벤트 마감까지';
-    var left=Math.max(0, Math.floor((next-now)/1000));
+    if(label) label.textContent='구매 종료까지';
+    var left=Math.max(0, Math.floor((target-now)/1000));
     set('d', Math.floor(left/86400));
     set('h', Math.floor(left%86400/3600));
     set('m', Math.floor(left%3600/60));
     set('s', left%60);
-    return true;
   }
 
   paint();
@@ -1930,11 +2165,7 @@ def build() -> str:
     {build_quickmenu()}
   </section>
 
-  <section class="sec sec--event">
-    {section_header("Meet Your Artist Event!", "최애 아티스트를 만날 수 있는 특별한 이벤트", "전체보기")}
-    {build_countdown()}
-    {product_row(S['event'], badge="EVENT")}
-  </section>
+  {build_event_showcase()}
 
   <section class="sec sec--rank">
     {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
