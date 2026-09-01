@@ -383,18 +383,30 @@ def build_event_showcase() -> str:
     if not items:
         return ""
     lead = items[0]
-    # Figma Banner Area(5749:63752) export 그대로 — 이미 blue-700→blue-500 그라디언트와
-    # black80→mask 딤이 구워져 있어 우리 쪽에서 별도로 딤을 더하지 않는다(.sb-scrim 참고).
+    # 배경 사진은 브레이크포인트별로 이미 정확한 화면비(모바일 375:234 · 데스크톱
+    # 520:234)로 미리 잘라 둔 두 파일을 <picture> 로 나눠 쓴다 — 런타임 트랜스폼
+    # 없이 100%/100% 로 그대로 채우면 된다.
+    # (텍스트·사진이 두 겹으로 겹쳐 보이던 문제의 실제 원인은 트랜스폼 방식이 아니라
+    #  livemd_장한음.jpg 자체가 사용자의 원본 사진이 아니라 이 섹션을 렌더링한
+    #  스크린샷이었던 것 — 배경 이미지 픽셀 안에 이미 타이틀/카운트다운/카드가
+    #  구워져 있어 그 위에 얹는 실제 라이브 텍스트와 겹쳐 보였다. 실제 원본 사진으로
+    #  교체해 해결했다.)
     # 아직 export 가 없으면 아티스트/대표 상품 이미지로, 그것도 없으면 그라디언트만 남는다.
-    # 배경은 Figma Banner Area(5766:73166, 텍스트 없는 배경 전용 레이어) export 를
-    # 최우선으로 찾고, 없으면 아바타 사진 → 대표 상품 이미지 순으로 내려간다.
-    # 딤은 우리 쪽 .sb-scrim(Dim 5766:73288 실측)이 얹으므로 원본은 밝은 사진이어야 한다
-    bg = (
-        find_img("banner", f"livemd_{lead['brand']}")
-        or find_img("artist", lead["brand"])
-        or find_img("prod", str(lead["id"]))
-    )
-    hero_img = f'<div class="sb-bg"><img src="{bg}" alt=""></div>' if bg else ""
+    bg_m = find_img("banner", f"livemd_{lead['brand']}_m")
+    bg_d = find_img("banner", f"livemd_{lead['brand']}_d")
+    bg_fallback = find_img("banner", f"livemd_{lead['brand']}") or find_img(
+        "artist", lead["brand"]
+    ) or find_img("prod", str(lead["id"]))
+    if bg_m or bg_d:
+        src_d = f'<source media="(min-width:1200px)" srcset="{bg_d or bg_m}">' if bg_d else ""
+        hero_img = (
+            f'<div class="sb-bg"><picture>{src_d}'
+            f'<img src="{bg_m or bg_d}" alt=""></picture></div>'
+        )
+    elif bg_fallback:
+        hero_img = f'<div class="sb-bg"><img src="{bg_fallback}" alt=""></div>'
+    else:
+        hero_img = ""
     # 아바타는 Figma Avatar(5749:65086) export — 배너 사진과 같은 인물이지만
     # 얼굴 위주로 다시 크롭된 별도 이미지라 hero 와 분리해서 찾는다.
     avatar_src = find_img("artist", lead["brand"]) or find_img("prod", str(lead["id"]))
@@ -1186,19 +1198,16 @@ img{display:block;max-width:100%}
 /* ---------- Meet Your Artist Event — Showcase Banner (Figma 5749:63751) ---------- */
 .sec--showcase{padding-bottom:var(--spacing-8)}
 
-/* Banner Area(5749:63752 / 5762:66430) 레이어 구조를 Figma 그대로 옮긴다 —
-   ① blue-700→blue-500 바탕 그라디언트 ② 아티스트 컷(폭 100% 기준, 실제 높이가
-   컨테이너보다 큰 채로 위쪽만 노출 — Figma 원본은 h-163.04%/top,-5.49% 같은
-   퍼센트 트랜스폼을 쓴다) ③ 딤 — object-fit 한 줄로 뭉치지 않고 3장을 그대로
-   쌓는다. 지금 쓰는 사진(1168×1106)은 컨테이너보다 키가 훨씬 커서(모바일
-   375 폭 기준 151.7%, 데스크톱 520 폭 기준 210.4%) 위쪽 기준으로 노출한다 */
+/* Banner Area(5749:63752 / 5762:66430) 레이어 구조 — ① blue-700→blue-500 바탕
+   그라디언트 ② 아티스트 컷 ③ 딤, 세 장을 뭉치지 않고 그대로 쌓는다.
+   사진은 build_event_showcase() 에서 브레이크포인트별 화면비(모바일 375:234 ·
+   데스크톱 520:234)로 미리 잘라 <picture> 로 내보내고, 여기서는 100%/100% 로
+   그대로 채우기만 한다 */
 .sb-banner{position:relative;overflow:hidden;
   background:linear-gradient(180deg,var(--blue-700) 0%,var(--blue-500) 100%)}
-.sb-bg{position:absolute;inset:0;overflow:hidden}
-.sb-bg img{position:absolute;left:0;top:0;width:100%;height:151.7%;max-width:none}
-@media (min-width:1200px){
-  .sb-bg img{height:210.4%}
-}
+.sb-bg{position:absolute;inset:0}
+.sb-bg picture,.sb-bg img{display:block;width:100%;height:100%}
+.sb-bg img{object-fit:cover}
 /* 메인 배너 딤(.mb-dim)과 같은 "기본" 그라디언트를 그대로 쓴다 — 실측했던
    Dim(5766:73288) 전용 값은 밝은 사진 위에서 지나치게 어두워 텍스트 위 사진이
    거의 안 보였다 */
@@ -1739,8 +1748,9 @@ img{display:block;max-width:100%}
      유지한다 (Banner Area·ProductCard 등 전부 폭에 관계없이 px-20 고정) — 그래서
      --gutter 를 0으로 지우지 않고 기본값(20px)을 그대로 물려받는다 */
   .app-main{min-width:0}
-  .mainbanner,.inline-banner .banner-frame,.col-hero{border-radius:var(--rounded-md)}
-  .mainbanner,.col-hero{overflow:hidden}
+  /* Figma 데스크톱 시안: 메인 배너/라이브 MD 배너만 라운드, 기획전(Collection)
+     히어로와 인라인 배너는 모바일과 동일하게 각진 채로 유지한다 (5461:140412 실측) */
+  .mainbanner{border-radius:var(--rounded-md);overflow:hidden}
   .sec--showcase .sb-banner{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
   .footer{margin-top:56px}
 
