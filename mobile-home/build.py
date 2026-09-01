@@ -100,8 +100,11 @@ def product_card(p: dict, badge: str | None = None) -> str:
     if p.get("soon"):
         chips.append('<span class="badge badge--warning">품절임박</span>')
 
+    # 이벤트 상품은 event_at 을 카드에 실어 둔다 — 섹션 카운트다운이 이 값을 읽는다
+    at = f' data-event-at="{esc(p["event_at"])}"' if p.get("event_at") else ""
+
     # 카드 전체가 상품 상세로 이동 (실제 서비스와 동일 경로)
-    return f"""<a class="pcard" href="https://shop.novera.town/products/{p['id']}">
+    return f"""<a class="pcard" href="https://shop.novera.town/products/{p['id']}"{at}>
   <div class="pcard-img">
     <img src="{img}" alt="{esc(p['name'])}" loading="lazy">
     {top_badge}
@@ -151,10 +154,13 @@ S = DATA["sections"]
 # 같은 5개 항목이 반복 배치돼 있었음 — 자리 채우기용 목업으로 보고 1행 5개로 정리).
 # 아이콘은 Figma 쪽에 아직 채워지지 않은 빈 그라디언트 사각형이라 직접 제작.
 # 링크는 라이브 사이트 실제 카테고리 경로.
+# Figma 5612:54901 기준 라벨 — 카테고리 바로가기에서 "이벤트 바로가기"로 성격이 바뀌었다.
+# 시안의 아이콘 자리는 아직 빈 그라디언트 사각형이라 앞의 3종은 직접 제작했다.
+# 이벤트 3종은 라이브 사이트에 대응 카테고리 경로가 아직 없어 LIVE MD(PCTGY3)로 보낸다.
 QUICKMENU = [
-    ("live_md", "Live MD", "https://shop.novera.town/categories/PCTGY3"),
-    ("cd", "CD", "https://shop.novera.town/categories/PCTGY1/PCTGY1_2"),
-    ("dvd", "DVD", "https://shop.novera.town/categories/PCTGY1/PCTGY1_1"),
+    ("videocall", "비디오콜", "https://shop.novera.town/categories/PCTGY3"),
+    ("fansign", "팬사인회", "https://shop.novera.town/categories/PCTGY3"),
+    ("offline_event", "대면 이벤트", "https://shop.novera.town/categories/PCTGY3"),
     ("photocard", "포토/카드", "https://shop.novera.town/categories/PCTGY2/PCTGY2_2"),
     ("lightstick", "응원봉", "https://shop.novera.town/categories/PCTGY2/PCTGY2_5"),
 ]
@@ -200,45 +206,94 @@ CAT_TABS = [
     ("SPHERE", False, True),
 ]
 
+# Figma 5612:54824 / Main Banner(5664:102707·102734·102763·102792) 4장.
+# bg 는 각 슬라이드 Background Image 프레임의 그라디언트 실측값 — 사진이 없어도
+# 배너가 시안의 톤 그대로 서 있게 하는 바탕이다.
+# img 는 assets/banner/ 에 있으면 얹고 없으면 그라디언트만 남긴다 (파일명 규칙만
+# 지켜 두면 Figma export 를 넣는 순간 그대로 반영된다).
 MAIN_BANNERS = [
-    # coupon 은 Figma Main Banner(4942:398946)의 Background Image 프레임을 그대로 2x 로
-    # 내보낸 이미지 -- 그라디언트와 쿠폰 카드가 이미 합쳐져 있어 CSS 로 재현할 필요가 없다
+    dict(kind="vari", label="1st SINGLE [Dear]",
+         title="VARI(베리)<br>VIDEO CALL EVENT",
+         bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
+         img="main_vari"),
+    dict(kind="kimetsu", label="코스모시 x 귀멸의 칼날",
+         title="코스모시와 함께<br>전집중전 전시 팝업 관람!",
+         bg="linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%)",
+         img="main3"),
+    dict(kind="beboys", label="1st SINGLE [BE:2]",
+         title="BE BOYS (비보이즈)<br>UNIT CALL EVENT",
+         bg="linear-gradient(180deg,#d1e9ff 0%,#1871bf 100%)",
+         img="main_beboys"),
+    # 쿠폰 배너는 Background Image 프레임을 통째로 내보낸 이미지라
+    # 그라디언트·카드·그림자가 이미 합쳐져 있다
     dict(kind="coupon", label="WELCOME COUPON",
-         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!", img="main1", ext=".webp"),
-    dict(kind="zo", label="서툴러서 더 완벽한 친구들",
-         title="ZO&FRIENDS<br>LUCKY COLLECTION", img="main2", ext=".webp"),
-    dict(kind="km", label="전집중, 귀살대 주목!",
-         title="귀멸의 칼날 굿즈<br>COLLECTION Open!", img="main3", ext=".jpg"),
+         title="회원가입만 해도<br>전상품 1,000원 즉시 할인!",
+         bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
+         img="main1"),
 ]
+
+# 배너 이미지 확장자 탐색 순서 — Figma export 가 무엇으로 떨어지든 집어 오도록
+BANNER_EXTS = (".webp", ".jpg", ".jpeg", ".png")
+
+
+def banner_img(stem: str) -> str | None:
+    """assets/banner/<stem>.<ext> 가 있으면 data URI, 없으면 None."""
+    for ext in BANNER_EXTS:
+        p = ASSETS / "banner" / f"{stem}{ext}"
+        if p.exists():
+            return datauri(p)
+    return None
 
 
 def build_banners() -> str:
+    """Figma Bottom Container(5664:102715) 구조 그대로 —
+    텍스트와 페이지네이션이 같은 컨테이너 안에 있고 함께 페이드된다."""
     out = []
+    total = len(MAIN_BANNERS)
     for i, b in enumerate(MAIN_BANNERS):
-        src = datauri(ASSETS / "banner" / f"{b['img']}{b['ext']}")
-        bg = f'<div class="mb-bg mb-bg--{b["kind"]}"><img src="{src}" alt=""></div>'
+        src = banner_img(b["img"])
+        img = f'<img src="{src}" alt="">' if src else ""
         out.append(
             f"""<div class="mb-slide" data-slide="{i}" role="button" tabindex="0"
      aria-label="메인 배너 {i + 1} — 눌러서 배너 등록 화면 열기">
-  {bg}
+  <div class="mb-bg mb-bg--{b['kind']}" style="background:{b['bg']}">{img}</div>
   <div class="mb-dim"></div>
   <div class="mb-bottom">
     <div class="mb-text"><p class="mb-label">{b['label']}</p><p class="mb-title">{b['title']}</p></div>
+    <div class="mb-pagination" aria-hidden="true"><span class="mb-page-cur">{i + 1:02d}</span>"""
+            f"""<span class="mb-page-sep">|</span><span class="mb-page-tot">{total:02d}</span></div>
   </div>
 </div>"""
         )
     return "".join(out)
 
 
-def build_banner_pagination() -> str:
-    """페이지네이션은 슬라이드 콘텐츠에 속하지 않는 고정 오버레이 —
-    이미지와 함께 슬라이드되지 않고 같은 자리에서 숫자만 바뀐다.
-    (컨트롤 위젯이 콘텐츠처럼 밀려나가면 위치를 추적하기 어려워지므로 고정을 택함)"""
-    return (
-        '<div class="mb-pagination" id="mbPagination" aria-hidden="true">'
-        f'<span class="mb-page-cur">01</span><span class="mb-page-sep">|</span>'
-        f'<span class="mb-page-tot">{len(MAIN_BANNERS):02d}</span></div>'
-    )
+# --------------------------------------------- Meet Your Artist Event 카운트다운
+# 시안의 "01 : 02 : 40 : 30" 은 목업 숫자다. 여기서는 data.json 의 event_at
+# (상품명 앞머리 "[09.05 …]" 를 승격시킨 ISO 일시) 을 전부 넘겨주고, 브라우저가
+# 볼 때마다 그중 "가장 가까운 미래" 를 골라 실제로 카운트다운한다.
+# 남은 이벤트가 없으면 종료 상태로 떨어진다.
+CD_UNITS = [("d", "일"), ("h", "시간"), ("m", "분"), ("s", "초")]
+
+
+def event_deadlines() -> list[str]:
+    return sorted({p["event_at"] for p in S["event"] if p.get("event_at")})
+
+
+def build_countdown() -> str:
+    tiles = []
+    for i, (key, cap) in enumerate(CD_UNITS):
+        if i:
+            tiles.append('<span class="cd-colon" aria-hidden="true">:</span>')
+        tiles.append(
+            f'<span class="cd-unit"><span class="cd-num" data-cd="{key}">--</span>'
+            f'<span class="cd-cap">{cap}</span></span>'
+        )
+    deadlines = html.escape(json.dumps(event_deadlines()), quote=True)
+    return f"""<div class="countdown" id="eventCountdown" data-deadlines="{deadlines}">
+  <p class="cd-label"><span class="cd-dot"></span><span id="cdLabelText">이벤트 마감까지</span></p>
+  <div class="cd-clock" role="timer" aria-live="off">{''.join(tiles)}</div>
+</div>"""
 
 
 QUICKMENU_STAGGER = 70  # 셀당 등장 간격(ms) — 좌 → 우
@@ -256,30 +311,28 @@ def build_quickmenu() -> str:
     return f'<div class="qm-list" id="quickmenu-list">{"".join(cells)}</div>'
 
 
-# Fan's Pick 등장 타임라인 (스탠드별 오프셋 D 에 더해지는 값)
-# 그래프가 먼저 차오르고, 그래프가 올라가는 초반에 하트+숫자 카운팅이 시작되고,
-# 그래프가 다 올라갈 즈음에 아바타 · 아티스트 이름 · 순위 뱃지가 아래에서 올라온다.
-GRAPH_IN = 0      # ① 그래프(시상대)가 가장 먼저 차오르기 시작
-COUNT_IN = 150    # ② 그래프가 올라가기 시작한 직후 — 하트 아이콘 + 숫자 카운팅 시작
-AVATAR_IN = 550   # ③ 그래프 애니메이션(750ms)이 끝나갈 즈음 — 아바타 + 이름 + 순위 뱃지
-CROWN_IN = AVATAR_IN + 120  # ④ 아바타가 자리잡은 직후 1위 왕관 pop-in
+# Fan's Pick 등장 타임라인 — Figma 모션 키프레임(5612:54981·54990·54992·55002·
+# 55004·55013, 16.4s 타임라인 기준)에서 그대로 옮긴 값.
+#   ① 시상대(Rectangle)가 아래에서 올라오며 페이드인 (opacity 300ms / y 500ms 스프링)
+#   ② 그 위 콘텐츠(아바타·순위 뱃지·이름·찜 수)가 위에서 톡 내려앉음
+#      (opacity 300ms / y -8→0 400ms / scale .7→1 450ms 스프링)
+# 순서는 3위 → 2위 → 1위.
+PODIUM_TIMING = {           # place: (시상대 delay, 콘텐츠 delay, 시상대 시작 y)
+    "third":  (0,   200, 40),
+    "second": (250, 500, 55),
+    "first":  (500, 750, 80),
+}
 
 
 def build_podium() -> str:
     stands = []
-    order = {"third": 0, "second": 1, "first": 2}  # 3위 → 2위 → 1위 순으로 진행
     for p in PODIUM:
         img = datauri(ASSETS / "artist" / f"{p['key']}.jpg")
         crown = '<span class="crown">👑</span>' if p["place"] == "first" else ""
-        d = order[p["place"]] * 180
-        style = (
-            f"--d-graph:{d + GRAPH_IN}ms;"
-            f"--d-count:{d + COUNT_IN}ms;"
-            f"--d-avatar:{d + AVATAR_IN}ms;"
-            f"--d-crown:{d + CROWN_IN}ms"
-        )
+        d_bar, d_content, from_y = PODIUM_TIMING[p["place"]]
+        style = f"--d-bar:{d_bar}ms;--d-content:{d_content}ms;--bar-from:{from_y}px"
         stands.append(
-            f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d + COUNT_IN}">
+            f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d_content}">
   <div class="stand-top">
     <div class="stand-avatar">{crown}
       <span class="avatar avatar--48"><img src="{img}" alt="{esc(p['name'])}"></span>
@@ -665,11 +718,29 @@ CSS = """
   /* --- 자간 : Figma text style 의 letterSpacing 1 = 1% --- */
   --tracking-1:.01em;
 
+  /* --- 모션 이징 : Figma 모션 키프레임에서 쓰는 두 커브 ---
+     ease-out-quint 는 그대로 옮길 수 있고, 스프링은 linear() 를 지원하는
+     브라우저에서만 원본 곡선으로 올린다 (아래 @supports) */
+  --ease-out-quint:cubic-bezier(.22,1,.36,1);
+  --ease-spring:cubic-bezier(.34,1.3,.64,1);
+
   /* --- 화면 좌우 거터 (Figma Mobile 375 기준) --- */
   --gutter:var(--spacing-20);          /* 본문 좌우 20px */
   --gutter-header:var(--spacing-16);   /* TopNavigation 16px */
   --gutter-tabs:var(--spacing-12);     /* 카테고리 탭바 12px (라벨 좌우 12 → 첫 라벨 24px) */
   --maxw:486px;
+}
+
+/* Figma 스프링(감쇠 진동) 곡선 원본 — linear() 이징을 지원하는 브라우저에서만 적용 */
+@supports (transition-timing-function:linear(0,1)){
+  :root{
+    --ease-spring:linear(0, 0.0212, 0.0764, 0.1545, 0.2463, 0.3445, 0.4435, 0.5391,
+      0.6282, 0.7091, 0.7805, 0.8421, 0.8939, 0.9365, 0.9704, 0.9967, 1.0162, 1.03,
+      1.0389, 1.044, 1.0459, 1.0455, 1.0433, 1.04, 1.0359, 1.0314, 1.0269, 1.0224,
+      1.0182, 1.0144, 1.011, 1.008, 1.0055, 1.0034, 1.0018, 1.0005, 0.9995, 0.9988,
+      0.9983, 0.998, 0.9979, 0.9979, 0.998, 0.9981, 0.9983, 0.9985, 0.9987, 0.9989,
+      0.9991, 0.9993, 0.9995);
+  }
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -853,50 +924,67 @@ img{display:block;max-width:100%}
 .tabbar--collection .tabs{padding:0 var(--gutter)}
 .tabbar--collection .tab-label{padding:var(--spacing-8) var(--spacing-16)}
 
-/* ---------- Main Banner ---------- */
+/* ---------- Main Banner (Figma 5664:102707 + 모션 타임라인) ---------- */
+/* 시안 타임라인(16.4s / 4장 루프)을 그대로 옮긴 값 —
+   슬라이드 1장당 4100ms = 3500ms 정지 + 600ms 이동.
+   텍스트+페이지네이션(Bottom Container)은 이동 200ms 전에 사라지고,
+   이동이 끝난 뒤 300ms 에 걸쳐 다시 나타난다. */
+:root{
+  --mb-slide-dur:600ms;
+  --mb-slide-ease:cubic-bezier(.33,0,.1,1);
+  --mb-fade-out:200ms;
+  --mb-fade-in:300ms;
+}
 .mainbanner{position:relative;height:320px;overflow:hidden;touch-action:pan-y}
-.mb-track{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.mb-track{display:flex;height:100%;
+  transition:transform var(--mb-slide-dur) var(--mb-slide-ease)}
 .mb-slide{position:relative;flex:0 0 100%;height:320px;overflow:hidden}
 /* 배너 이미지는 항상 세로 높이(container %) 기준으로 크기를 정하고 width:auto로
    원본 비율을 그대로 유지한다 -- 가로폭에는 절대 맞추지 않는다. 이미지가 컨테이너보다
    넓어지면 좌우는 overflow:hidden 으로 살짝만 잘리고, 좁으면 남는 여백을 각 배너의
    실제 색과 맞춘 배경으로 자연스럽게 채운다. */
+/* 바탕 그라디언트는 인라인(각 슬라이드 Background Image 실측값)으로 들어오고,
+   사진이 있으면 그 위에 얹힌다. 사진이 아직 없는 슬라이드는 그라디언트만 남는다 */
 .mb-bg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
-/* 쿠폰 배너는 Figma Background Image 프레임(4942:398946)을 통째로 내보낸 이미지라
-   그라디언트·카드·그림자가 이미 들어있다. 별도 CSS 합성 없이 좌우 너비에 꽉 맞춰
-   늘리고, 원본이 배너와 같은 375:320 비율이라 크롭도 사실상 없다 */
+/* 쿠폰 배너는 Figma Background Image 프레임을 통째로 내보낸 이미지라
+   그라디언트·카드·그림자가 이미 들어있다. 좌우 너비에 꽉 맞춰 늘리고,
+   원본이 배너와 같은 375:320 비율이라 크롭도 사실상 없다 */
 .mb-bg--coupon img{width:100%;height:100%;object-fit:cover}
-.mb-bg--zo{background:linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%);
-  align-items:flex-start}
-.mb-bg--zo img{height:65%;width:auto;object-fit:contain;margin-top:36px}
-/* 귀멸 키아트는 배경까지 포함된 풀블리드 이미지라 세로 기준(68%)으로 맞추면
-   486px 배너 안에서 402px 밖에 안 돼 좌우에 어두운 여백이 생겼다. 가로 폭에
-   꽉 맞추고(486x263) 위쪽 정렬해, 아래 남는 어두운 영역으로 마스크가 자연스럽게
-   떨어지면서 라벨/타이틀이 얹히게 한다 */
-.mb-bg--km{background:#06060b;align-items:flex-start}
-.mb-bg--km img{width:100%;height:auto;object-fit:contain;
+/* 인물 컷(VARI · BE BOYS)은 시안대로 세로 500/320 비율 커버 — 상단 정렬로
+   얼굴이 딤에 묻히지 않게 한다 */
+.mb-bg--vari img,.mb-bg--beboys img{width:100%;height:100%;object-fit:cover;object-position:50% 20%}
+/* 귀멸 키아트는 배경까지 포함된 풀블리드 이미지라 가로 폭에 꽉 맞추고 위쪽
+   정렬해, 아래 남는 어두운 영역으로 마스크가 자연스럽게 떨어지면서
+   라벨/타이틀이 얹히게 한다 */
+.mb-bg--kimetsu{align-items:flex-start}
+.mb-bg--kimetsu img{width:100%;height:auto;object-fit:contain;
   -webkit-mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%);
   mask-image:linear-gradient(180deg,#000 65.27%,transparent 100%)}
 .mb-dim{position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(0,0,0,0) 0%,var(--alpha-black16) 50%,var(--alpha-black64) 100%)}
-/* Figma: Bottom Container 는 좌우 거터가 아닌 고정 폭 320 중앙 정렬.
-   페이지네이션은 .mb-track 밖으로 분리된 고정 오버레이 -- 텍스트(슬라이드 콘텐츠)와
-   같은 폭·같은 bottom 오프셋을 공유해서, 텍스트는 왼쪽에 붙고 페이지네이션은
-   오른쪽에 붙는 같은 줄처럼 보인다. 이 폭이 데스크탑에서 넓어지면 그 사이 간격만 커진다. */
+/* Figma Bottom Container(5664:102715): 좌우 거터가 아닌 고정 폭 320 중앙 정렬,
+   텍스트와 페이지네이션이 한 컨테이너 안에서 gap 24 · 아래 정렬로 나란히 서고
+   슬라이드 전환 때 함께 페이드된다 */
 .mb-bottom{position:absolute;left:0;right:0;bottom:28px;margin:0 auto;
-  width:min(320px,calc(100% - 40px));display:flex}
+  width:min(320px,calc(100% - 40px));display:flex;align-items:flex-end;
+  gap:var(--spacing-24);
+  transition:opacity var(--mb-fade-in) ease-out}
+.mb-track.is-fading .mb-bottom{opacity:0;
+  transition:opacity var(--mb-fade-out) ease-out}
 .mb-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .mb-label{font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
   color:var(--alpha-white80)}
 /* Title/5 — 20 / Bold 700. <b> 를 쓰면 Pretendard Variable 에서 900 으로 렌더됨 */
 .mb-title{font-size:20px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
 .mb-title b,.mb-title strong{font-weight:700}
-.mb-pagination{position:absolute;left:0;right:0;bottom:28px;margin:0 auto;
-  width:min(320px,calc(100% - 40px));display:flex;align-items:flex-end;justify-content:flex-end;
+.mb-pagination{flex:none;display:flex;align-items:center;justify-content:center;
   gap:var(--spacing-4);padding:2px;font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;
-  font-variant-numeric:tabular-nums;pointer-events:none;z-index:2}
+  font-variant-numeric:tabular-nums;pointer-events:none}
 .mb-page-cur{font-weight:600;color:var(--text-inverse)}
 .mb-page-sep,.mb-page-tot{color:var(--alpha-white40)}
+@media (prefers-reduced-motion:reduce){
+  .mb-track,.mb-bottom{transition:none}
+}
 
 /* ---------- Section ---------- */
 .sec{padding:var(--spacing-12) 0 var(--spacing-28)}
@@ -913,13 +1001,44 @@ img{display:block;max-width:100%}
 }
 .text-btn .ico{color:var(--icon-muted)}
 
-/* ---------- Quick Menu (Figma 4872:80651, 업데이트된 카테고리 바로가기) ---------- */
+/* ---------- Meet Your Artist Event 카운트다운 ---------- */
+/* data.json 의 event_at 중 가장 가까운 미래 일시까지 실제로 흘러간다.
+   숫자는 tabular-nums + 고정폭 타일이라 자릿수가 바뀌어도 폭이 흔들리지 않는다 */
+.countdown{display:flex;align-items:center;justify-content:space-between;gap:var(--spacing-12);
+  margin:var(--spacing-16) var(--gutter) 0;padding:var(--spacing-12) var(--spacing-16);
+  border-radius:var(--rounded-md);background:var(--bg-gray)}
+.cd-label{display:flex;align-items:center;gap:6px;min-width:0;
+  font-size:13px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-secondary)}
+.cd-dot{flex:none;width:6px;height:6px;border-radius:var(--rounded-full);
+  background:var(--red-500);animation:cd-pulse 1.6s ease-in-out infinite}
+@keyframes cd-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.cd-clock{display:flex;align-items:flex-start;gap:var(--spacing-2)}
+.cd-unit{display:flex;flex-direction:column;align-items:center;gap:2px}
+.cd-num{display:flex;align-items:center;justify-content:center;
+  min-width:28px;padding:3px 5px;border-radius:var(--rounded-xs);
+  background:var(--bg-darkgray-strong);color:var(--text-inverse);
+  font-size:14px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums}
+.cd-cap{font-size:10px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
+  color:var(--text-muted)}
+.cd-colon{padding-top:4px;font-size:14px;font-weight:700;line-height:1.3;color:var(--text-disabled)}
+/* 남은 이벤트가 없을 때 — 타일은 00 으로 멈추고 라벨만 종료를 알린다 */
+.countdown.is-ended .cd-dot{background:var(--gray-400);animation:none}
+.countdown.is-ended .cd-num{background:var(--gray-400)}
+@media (prefers-reduced-motion:reduce){ .cd-dot{animation:none} }
+@media (max-width:359px){
+  .countdown{flex-direction:column;align-items:flex-start;gap:var(--spacing-8)}
+}
+
+/* ---------- Quick Menu (Figma 5612:54901, 이벤트 바로가기) ---------- */
 /* 셀 60×73 / 갭 8 / 아이콘 스퀘어 48×48 rounded-12 (좌우 6·상하 4) / 라벨 60×17 */
-.sec--quickmenu{padding:var(--spacing-20) 0}
-.qm-list{display:flex;align-items:flex-start;justify-content:center;gap:8px;
+.sec--quickmenu{padding:var(--spacing-24) 0}
+.qm-list{display:flex;align-items:flex-start;justify-content:center;gap:6px 8px;
   padding:0 var(--gutter);
   overflow-x:auto;scrollbar-width:none}
 .qm-list::-webkit-scrollbar{display:none}
+/* 셀은 시안대로 60px 고정 — 라벨이 그보다 길면(대면 이벤트) 말줄임 대신
+   갭 안쪽으로 살짝 넘쳐 흐르게 둔다 (Figma 렌더와 동일) */
 .qm-item{display:flex;flex-direction:column;align-items:center;flex:none;width:60px}
 /* 스크롤 진입 시 좌 → 우 로 아이콘이 올라오고, 라벨이 뒤따라 뜬다 */
 .qm-sq{opacity:0;transform:translateY(14px) scale(.84);
@@ -940,7 +1059,7 @@ img{display:block;max-width:100%}
 .qm-label{
   display:block;width:100%;padding:0 2px;font-size:12px;font-weight:600;
   letter-spacing:var(--tracking-1);line-height:1.4;
-  color:var(--text-secondary);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--text-secondary);text-align:center;white-space:nowrap;overflow:visible;
 }
 .avatar{display:block;border-radius:var(--rounded-full);overflow:hidden;
   border:1px solid var(--border-thumbnail);background:var(--bg-muted)}
@@ -1003,20 +1122,17 @@ img{display:block;max-width:100%}
   padding:2px var(--gutter) 0}
 .stand{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
   gap:var(--spacing-12)}
-.stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);width:100%}
-/* ③ 아바타 + 순위 뱃지 : 그래프가 끝나갈 즈음 아래에서 위로 */
-.stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center;
-  opacity:0;transform:translateY(18px);
-  transition:opacity .36s ease var(--d-avatar),
-             transform .46s cubic-bezier(.34,1.3,.64,1) var(--d-avatar)}
-.podium.is-in .stand-avatar{opacity:1;transform:none}
+/* ② 콘텐츠(아바타 · 순위 뱃지 · 이름 · 찜 수)는 시안대로 한 덩어리로 움직인다 —
+   위에서 8px 내려오며 0.7 → 1 로 커지고 페이드인 */
+.stand-top{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);width:100%;
+  opacity:0;transform:translateY(-8px) scale(.7);
+  transition:opacity .3s var(--ease-out-quint) var(--d-content),
+             transform .45s var(--ease-spring) var(--d-content)}
+.podium.is-in .stand-top{opacity:1;transform:none}
+.stand-avatar{position:relative;display:flex;flex-direction:column;align-items:center}
 .stand-avatar .avatar{margin:0 0 -4px}
-/* ④ 1위 왕관 : 아바타가 자리잡은 직후 */
 .crown{position:absolute;top:-15px;left:50%;font-size:20px;line-height:1;
-  opacity:0;transform:translate(-50%,6px) scale(.6);
-  transition:opacity .3s ease var(--d-crown),
-             transform .45s cubic-bezier(.34,1.6,.64,1) var(--d-crown)}
-.podium.is-in .crown{opacity:1;transform:translate(-50%,0) scale(1)}
+  transform:translateX(-50%)}
 .rank{padding:2px 6px;border-radius:var(--rounded-full);
   font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
   color:var(--text-inverse);min-width:31px;text-align:center}
@@ -1024,41 +1140,30 @@ img{display:block;max-width:100%}
 .rank--second{background:var(--brand1-subtle)}
 .rank--third{background:var(--bg-darkgray-soft)}
 .stand-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%}
-/* ③ 이름 : 아바타와 같은 타이밍(그래프가 끝나갈 즈음) */
 .stand-name{width:100%;font-size:14px;font-weight:600;line-height:1.4;
-  letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  opacity:0;transform:translateY(6px);
-  transition:opacity .32s ease var(--d-avatar),
-             transform .34s cubic-bezier(.22,1,.36,1) var(--d-avatar)}
-.podium.is-in .stand-name{opacity:1;transform:none}
-/* ② 하트 + 숫자 카운팅 : 그래프가 올라가기 시작한 직후 */
+  letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stand-count{display:flex;align-items:center;justify-content:center;gap:2px;
   font-size:12px;letter-spacing:var(--tracking-1);line-height:1.4;color:var(--text-tertiary);
-  font-variant-numeric:tabular-nums;
-  opacity:0;transform:translateY(6px);
-  transition:opacity .34s ease var(--d-count),
-             transform .36s cubic-bezier(.22,1,.36,1) var(--d-count)}
-.podium.is-in .stand-count{opacity:1;transform:none}
+  font-variant-numeric:tabular-nums}
 .stand-count .ico{color:var(--icon-fill)}
 .stand--first .stand-count{font-weight:600;color:var(--brand1-default)}
 .stand--first .stand-count .ico{color:var(--brand1-default)}
-/* 시상대: 3위 → 2위 → 1위 순으로, 그래프가 가장 먼저 아래에서 위로 차오름.
-   래퍼가 최종 높이를 미리 점유하므로 애니메이션 중 아래 콘텐츠가 밀리지 않음 */
+/* ① 시상대: 3위 → 2위 → 1위 순으로 아래(--bar-from)에서 제자리로 올라오며 페이드인.
+   최종 높이를 처음부터 점유하므로 애니메이션 중 아래 콘텐츠가 밀리지 않는다 */
 .stand-block-wrap{width:100%;height:var(--h);display:flex;align-items:flex-end}
-.stand-block{width:100%;height:0;border-radius:var(--rounded-lg) var(--rounded-lg) 0 0;
+.stand-block{width:100%;height:100%;border-radius:var(--rounded-lg) var(--rounded-lg) 0 0;
   background:linear-gradient(180deg,var(--bg-gray) 0%,var(--bg-subtler) 100%);
-  transition:height .75s cubic-bezier(.22,1,.36,1) var(--d-graph)}
-.podium.is-in .stand-block{height:100%}
+  opacity:0;transform:translateY(var(--bar-from));
+  transition:opacity .3s var(--ease-out-quint) var(--d-bar),
+             transform .5s var(--ease-spring) var(--d-bar)}
+.podium.is-in .stand-block{opacity:1;transform:none}
 .stand--second{--h:70px}
 .stand--first{--h:120px}
 .stand--third{--h:50px}
 .stand--first .stand-block{background:linear-gradient(180deg,var(--bg-primary) 0%,var(--blue-50) 100%)}
 .stand--third .stand-block{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
 @media (prefers-reduced-motion:reduce){
-  .stand-avatar,.stand-name,.stand-count,.stand-block,.crown{transition:none}
-  .podium .stand-avatar,.podium .stand-name,.podium .stand-count{opacity:1;transform:none}
-  .podium .crown{opacity:1;transform:translate(-50%,0) scale(1)}
-  .podium .stand-block{height:100%}
+  .stand-top,.stand-block{transition:none;opacity:1;transform:none}
 }
 
 .notice-box{margin:0 var(--gutter);padding:var(--spacing-16);border-radius:var(--rounded-md);
@@ -1311,17 +1416,23 @@ JS = """
   window.addEventListener('load',resetRows);
 })();
 
-// ----- Main banner: 무한 루프 자동 슬라이드 (4s) + 스와이프 -----
-// 3 → 1 로 되감지 않고 같은 방향으로 계속 흐르도록, 앞뒤에 클론 슬라이드를 두고
-// 클론에 도착하면 전환 없이 원본 위치로 옮겨 놓는다. (1-2-3-1-2-3 …)
+// ----- Main banner: Figma 모션 타임라인 그대로 자동 슬라이드 + 스와이프 -----
+// Figma 5612:54824 의 16.4s 루프(4장)를 1장 단위로 풀면 4100ms:
+//   0 ─ 3300ms 정지 → 3300ms 텍스트/페이지네이션 페이드아웃(200ms, ease-out)
+//   → 3500ms 이동(600ms, cubic-bezier(.33,0,.1,1))
+//   → 4100ms 새 슬라이드 텍스트 페이드인(300ms, ease-out)
+// 이동 구간에는 어느 슬라이드의 텍스트도 보이지 않는 것이 시안의 의도다.
+// 되감기 없이 같은 방향으로 계속 흐르도록 앞뒤에 클론 슬라이드를 두고,
+// 클론에 도착하면 전환 없이 원본 위치로 옮겨 놓는다.
 (function(){
   var track=document.querySelector('.mb-track');
   var box=document.querySelector('.mainbanner');
-  var pageCur=document.querySelector('#mbPagination .mb-page-cur');
   if(!track||!box) return;
   var real=[].slice.call(track.children);
   var n=real.length;
   if(n<2) return;
+
+  var HOLD=3500, FADE_OUT=200, SLIDE=600;
 
   var head=real[n-1].cloneNode(true);   // 맨 앞에 마지막 슬라이드 클론
   var tail=real[0].cloneNode(true);     // 맨 뒤에 첫 슬라이드 클론
@@ -1330,44 +1441,59 @@ JS = """
   track.insertBefore(head, real[0]);
   track.appendChild(tail);
 
-  var TR='transform .5s cubic-bezier(.4,0,.2,1)';
-  var idx=1, moving=false, timer=null, guard=null;
+  var idx=1, moving=false, isPaused=false;
+  var guard=null, tHold=null, tFade=null;
 
   function place(k, animate){
-    track.style.transition = animate ? TR : 'none';
+    track.style.transition = animate ? '' : 'none';   // '' → CSS 의 600ms 커브
     track.style.transform = 'translateX(-'+(k*100)+'%)';
     if(!animate) void track.offsetWidth;   // reflow 를 강제해 다음 전환이 살아나게
   }
   function sync(){
-    var active=((idx-1)%n+n)%n;
-    track.dataset.active = String(active);
-    if(pageCur) pageCur.textContent = String(active+1).padStart(2,'0');
+    track.dataset.active = String(((idx-1)%n+n)%n);
+  }
+  function clearTimers(){
+    [guard,tHold,tFade].forEach(function(t){ if(t) clearTimeout(t); });
+    guard=tHold=tFade=null;
+  }
+  function schedule(){
+    clearTimers();
+    if(isPaused) return;
+    tFade=setTimeout(function(){ track.classList.add('is-fading'); }, HOLD-FADE_OUT);
+    tHold=setTimeout(function(){ go(1); }, HOLD);
   }
   function settle(){
+    if(!moving) return;                              // transitionend + guard 중복 방지
+    moving=false;
     if(idx===n+1){ idx=1; place(idx,false); }        // 마지막 클론 → 첫 원본
     else if(idx===0){ idx=n; place(idx,false); }     // 첫 클론 → 마지막 원본
     sync();
-    moving=false;
-    if(guard){ clearTimeout(guard); guard=null; }
+    track.classList.remove('is-fading');             // 새 슬라이드 텍스트가 300ms 동안 떠오른다
+    schedule();
   }
   function go(d){
     if(moving) return;
-    moving=true; idx+=d; place(idx,true); sync();
-    guard=setTimeout(settle, 700);                   // transitionend 미발생 대비
+    clearTimers();
+    moving=true;
+    track.classList.add('is-fading');                // 이동 중에는 텍스트를 감춘다
+    idx+=d; place(idx,true);
+    guard=setTimeout(settle, SLIDE+120);             // transitionend 미발생 대비
   }
   track.addEventListener('transitionend',function(e){
     if(e.target===track && e.propertyName==='transform') settle();
   });
 
-  var isPaused=false;
   // 시트가 열려 있는 등 명시적으로 일시정지된 상태에서는 절대 자동재생을 되살리지 않는다
-  function play(){ stop(); if(isPaused) return; timer=setInterval(function(){ go(1); }, 4000); }
-  function stop(){ if(timer) clearInterval(timer); timer=null; }
+  function play(){ if(isPaused) return; schedule(); }
+  function stop(){ clearTimers(); }
 
   var x0=null,dx=0,swiped=false;
   box.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; dx=0; swiped=false; stop(); },{passive:true});
   box.addEventListener('touchmove',function(e){ if(x0!==null){ dx=e.touches[0].clientX-x0; if(Math.abs(dx)>10) swiped=true; } },{passive:true});
-  box.addEventListener('touchend',function(){ if(Math.abs(dx)>40) go(dx<0?1:-1); x0=null; play(); });
+  box.addEventListener('touchend',function(){
+    if(Math.abs(dx)>40){ go(dx<0?1:-1); } else { play(); }
+    x0=null;
+  });
   // hover 로는 멈추지 않는다 -- 486px 고정폭 프로토타입이라 데스크탑에서 커서가
   // 배너 위에 얹혀 있는 시간이 길고, 그동안 배너가 완전히 멈춰 고장난 것처럼 보였다
   document.addEventListener('visibilitychange',function(){ document.hidden?stop():play(); });
@@ -1377,12 +1503,56 @@ JS = """
     active:function(){ return parseInt(track.dataset.active,10)||0; },
     swiped:function(){ return swiped; },
     pause:function(){ isPaused=true; stop(); },
-    resume:function(){ isPaused=false; play(); },
+    resume:function(){ isPaused=false; track.classList.remove('is-fading'); play(); },
     slidesFor:function(k){ return track.querySelectorAll('.mb-slide[data-slide="'+k+'"]'); }
   };
 
   place(idx,false); sync();
   play();
+})();
+
+// ----- Meet Your Artist Event: 상품 일시(event_at)와 동기화된 카운트다운 -----
+// data.json 의 event_at 을 전부 넘겨받아, 볼 때마다 그중 "가장 가까운 미래" 를
+// 골라 남은 시간을 센다. 남은 이벤트가 없으면 00 에서 멈추고 종료 상태가 된다.
+(function(){
+  var box=document.getElementById('eventCountdown');
+  if(!box) return;
+  var stamps=[];
+  try{
+    stamps=(JSON.parse(box.getAttribute('data-deadlines')||'[]')||[])
+      .map(function(s){ return Date.parse(s); })
+      .filter(function(t){ return !isNaN(t); })
+      .sort(function(a,b){ return a-b; });
+  }catch(e){ stamps=[]; }
+
+  var label=document.getElementById('cdLabelText');
+  var cells={};
+  box.querySelectorAll('.cd-num').forEach(function(el){
+    cells[el.getAttribute('data-cd')]=el;
+  });
+  function set(k,v){ if(cells[k]) cells[k].textContent=(v<10?'0':'')+v; }
+
+  function paint(){
+    var now=Date.now(), next=null;
+    for(var i=0;i<stamps.length;i++){ if(stamps[i]>now){ next=stamps[i]; break; } }
+    if(next===null){
+      box.classList.add('is-ended');
+      if(label) label.textContent='예정된 이벤트가 없어요';
+      set('d',0); set('h',0); set('m',0); set('s',0);
+      return false;
+    }
+    box.classList.remove('is-ended');
+    if(label) label.textContent='이벤트 마감까지';
+    var left=Math.max(0, Math.floor((next-now)/1000));
+    set('d', Math.floor(left/86400));
+    set('h', Math.floor(left%86400/3600));
+    set('m', Math.floor(left%3600/60));
+    set('s', left%60);
+    return true;
+  }
+
+  paint();
+  setInterval(paint, 1000);
 })();
 
 // ----- BottomNavigation: 스크롤 다운 → 내려가며 사라짐 / 스크롤 업 → 다시 나타남 -----
@@ -1543,6 +1713,7 @@ JS = """
         bg.classList.add('mb-bg--custom');              // 배경색 없이 이미지가 배너 전체를 커버
         bg.style.background='';
         var im=bg.querySelector('img');
+        if(!im){ im=document.createElement('img'); im.alt=''; bg.appendChild(im); }
         im.src=uploaded; im.style.cssText='';
       }
     });
@@ -1753,15 +1924,15 @@ def build() -> str:
 
   <section class="mainbanner">
     <div class="mb-track">{build_banners()}</div>
-    {build_banner_pagination()}
   </section>
 
   <section class="sec sec--quickmenu">
     {build_quickmenu()}
   </section>
 
-  <section class="sec">
+  <section class="sec sec--event">
     {section_header("Meet Your Artist Event!", "최애 아티스트를 만날 수 있는 특별한 이벤트", "전체보기")}
+    {build_countdown()}
     {product_row(S['event'], badge="EVENT")}
   </section>
 
