@@ -332,13 +332,19 @@ img{display:block;max-width:100%}
 /* ---------- Meet Your Artist Event — Showcase Banner (Figma 5749:63751) ---------- */
 .sec--showcase{padding-bottom:var(--spacing-8)}
 
-/* Banner Area(5749:63752) — blue-700→blue-500 바탕 위에 아티스트 컷,
-   그 위에 black80 → mask(40%) 오버레이. 시안은 이미지를 163% 높이로 얹어
-   윗부분만 보여주므로 cover + 상단 기준 포지션으로 옮겼다 */
+/* Banner Area(5749:63752 / 5762:66430) 레이어 구조를 Figma 그대로 옮긴다 —
+   ① blue-700→blue-500 바탕 그라디언트 ② 아티스트 컷(폭 100% 기준, 실제 높이가
+   컨테이너보다 큰 채로 위쪽만 노출 — Figma 원본은 h-163.04%/top,-5.49% 같은
+   퍼센트 트랜스폼을 쓴다) ③ 딤 — object-fit 한 줄로 뭉치지 않고 3장을 그대로
+   쌓는다. 지금 쓰는 사진(1168×1106)은 컨테이너보다 키가 훨씬 커서(모바일
+   375 폭 기준 151.7%, 데스크톱 520 폭 기준 210.4%) 위쪽 기준으로 노출한다 */
 .sb-banner{position:relative;overflow:hidden;
   background:linear-gradient(180deg,var(--blue-700) 0%,var(--blue-500) 100%)}
-.sb-bg{position:absolute;inset:0}
-.sb-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 0}
+.sb-bg{position:absolute;inset:0;overflow:hidden}
+.sb-bg img{position:absolute;left:0;top:0;width:100%;height:151.7%;max-width:none}
+@media (min-width:1200px){
+  .sb-bg img{height:210.4%}
+}
 /* 메인 배너 딤(.mb-dim)과 같은 "기본" 그라디언트를 그대로 쓴다 — 실측했던
    Dim(5766:73288) 전용 값은 밝은 사진 위에서 지나치게 어두워 텍스트 위 사진이
    거의 안 보였다 */
