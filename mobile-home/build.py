@@ -165,11 +165,12 @@ QUICKMENU = [
     ("lightstick", "응원봉", "https://shop.novera.town/categories/PCTGY2/PCTGY2_5"),
 ]
 
-# Fan's Pick TOP3 — 실제 아티스트 + Figma 시안의 찜 수치(실 데이터 미제공)
+# Fan's Pick TOP3 — Figma 5612:54972 실측(아티스트명·찜 수치).
+# 아바타는 assets/artist/<key>.<ext> 가 있으면 쓰고, 없으면 이니셜 자리표시로 떨어진다.
 PODIUM = [
-    dict(key="kep1er", name="케플러", count=9820, rank="2nd", place="second"),
-    dict(key="tws", name="투어스", count=12456, rank="1st", place="first"),
-    dict(key="babymonster", name="베이비몬스터", count=8120, rank="3rd", place="third"),
+    dict(key="seventeen", name="SEVENTEEN", count=9820, rank="2nd", place="second"),
+    dict(key="nct", name="NCT", count=12456, rank="1st", place="first"),
+    dict(key="kep1er", name="Kep1er", count=8120, rank="3rd", place="third"),
 ]
 
 # hero 배경색은 각 배너 이미지 가장자리에서 실측한 색 (PIL 로 좌우 6열 평균) --
@@ -209,39 +210,42 @@ CAT_TABS = [
 # Figma 5612:54824 / Main Banner(5664:102707·102734·102763·102792) 4장.
 # bg 는 각 슬라이드 Background Image 프레임의 그라디언트 실측값 — 사진이 없어도
 # 배너가 시안의 톤 그대로 서 있게 하는 바탕이다.
-# img 는 assets/banner/ 에 있으면 얹고 없으면 그라디언트만 남긴다 (파일명 규칙만
-# 지켜 두면 Figma export 를 넣는 순간 그대로 반영된다).
+# img 는 후보 파일명 목록 — assets/banner/ 에서 순서대로 찾아 첫 파일을 얹고,
+# 하나도 없으면 그라디언트만 남는다. Figma Background Image export 를
+# 첫 번째 이름으로 넣으면 코드 수정 없이 그대로 반영된다.
 MAIN_BANNERS = [
     dict(kind="vari", label="1st SINGLE [Dear]",
          title="VARI(베리)<br>VIDEO CALL EVENT",
          bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
-         img="main_vari"),
+         img=("main_vari",)),
     dict(kind="kimetsu", label="코스모시 x 귀멸의 칼날",
          title="코스모시와 함께<br>전집중전 전시 팝업 관람!",
          bg="linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%)",
-         img="main3"),
+         img=("main_kimetsu", "main3")),
     dict(kind="beboys", label="1st SINGLE [BE:2]",
          title="BE BOYS (비보이즈)<br>UNIT CALL EVENT",
          bg="linear-gradient(180deg,#d1e9ff 0%,#1871bf 100%)",
-         img="main_beboys"),
+         img=("main_beboys",)),
     # 쿠폰 배너는 Background Image 프레임을 통째로 내보낸 이미지라
     # 그라디언트·카드·그림자가 이미 합쳐져 있다
     dict(kind="coupon", label="WELCOME COUPON",
          title="회원가입만 해도<br>전상품 1,000원 즉시 할인!",
          bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
-         img="main1"),
+         img=("main_coupon", "main1")),
 ]
 
 # 배너 이미지 확장자 탐색 순서 — Figma export 가 무엇으로 떨어지든 집어 오도록
-BANNER_EXTS = (".webp", ".jpg", ".jpeg", ".png")
+IMG_EXTS = (".webp", ".jpg", ".jpeg", ".png")
 
 
-def banner_img(stem: str) -> str | None:
-    """assets/banner/<stem>.<ext> 가 있으면 data URI, 없으면 None."""
-    for ext in BANNER_EXTS:
-        p = ASSETS / "banner" / f"{stem}{ext}"
-        if p.exists():
-            return datauri(p)
+def find_img(folder: str, *stems: str) -> str | None:
+    """assets/<folder>/<stem>.<ext> 를 stem 순서대로 찾아 첫 파일을 data URI 로.
+    없으면 None — 호출부에서 시안 그라디언트/플레이스홀더로 떨어진다."""
+    for stem in stems:
+        for ext in IMG_EXTS:
+            f = ASSETS / folder / f"{stem}{ext}"
+            if f.exists():
+                return datauri(f)
     return None
 
 
@@ -251,7 +255,7 @@ def build_banners() -> str:
     out = []
     total = len(MAIN_BANNERS)
     for i, b in enumerate(MAIN_BANNERS):
-        src = banner_img(b["img"])
+        src = find_img("banner", *b["img"])
         img = f'<img src="{src}" alt="">' if src else ""
         out.append(
             f"""<div class="mb-slide" data-slide="{i}" role="button" tabindex="0"
@@ -283,17 +287,27 @@ CD_UNITS = [("d", "DAY"), ("h", "HRS"), ("m", "MIN"), ("s", "SEC")]
 SHOWCASE_CARDS = 2
 
 
-def event_items() -> list[dict]:
-    """event_at 이 있는 이벤트 상품을 임박한 순으로."""
-    return sorted(
-        (p for p in S["event"] if p.get("event_at")), key=lambda p: p["event_at"]
-    )
+def livemd_items() -> list[dict]:
+    """LIVE MD 구좌 상품 — data.json 에 적힌 노출 순서 그대로."""
+    return list(S["livemd"])
+
+
+def upcoming_events() -> list[dict]:
+    """다음 아티스트 칩 재료 — 모든 섹션에서 event_at 이 있는 상품을 모아
+    아티스트당 가장 임박한 일정 하나씩만, 임박한 순으로."""
+    seen, out = set(), []
+    pool = [p for items in S.values() for p in items if p.get("event_at")]
+    for p in sorted(pool, key=lambda p: p["event_at"]):
+        if p["brand"] in seen:          # 아티스트당 가장 임박한 일정 하나만
+            continue
+        seen.add(p["brand"])
+        out.append(p)
+    return out
 
 
 def _meta_row(p: dict) -> str:
-    """Inline Meta Row(5749:63813) — 달력·인원·혜택.
-    실제 데이터에 있는 값만 그린다. 인원(limit_count)·혜택(perk) 은 API 가
-    내려주기 시작하면 그대로 채워진다."""
+    """Inline Meta Row(5749:63813) — 달력 · 인원 · 혜택.
+    데이터에 있는 값만 그리고, 사이는 세로 구분선으로 나눈다."""
     cells = [
         f'<span class="em-cell">{icon("Calendar", 12)}'
         f'<span>{p["event_at"][5:10].replace("-", ".")}</span></span>'
@@ -311,35 +325,37 @@ def _meta_row(p: dict) -> str:
     return f'<div class="ecard-meta">{sep.join(cells)}</div>'
 
 
+def _thumb(p: dict, cls: str) -> str:
+    """상품 썸네일 — 파일이 없으면 브랜드 이니셜을 얹은 플레이스홀더."""
+    src = find_img("prod", str(p["id"]))
+    if src:
+        return f'<img src="{src}" alt="" loading="lazy">'
+    return f'<span class="{cls}-ph" aria-hidden="true">{esc(p["brand"][:1])}</span>'
+
+
 def _event_card(p: dict) -> str:
-    img = datauri(ASSETS / "prod" / f"{p['id']}.jpg")
-    chips = []
+    """Figma 5749:63784 / 5749:63801 — 가로형 ProductCard.
+    제목은 시안대로 2행: 1행 이벤트 시리즈명(sub), 2행 상품명."""
+    chip = ""
     if p.get("perk"):
-        chips.append(
+        chip = (
             f'<span class="ebadge ebadge--primary">{icon("Gift", 12)}'
             f'{esc(p["perk"])}</span>'
         )
-    if p.get("limit_count"):
-        chips.append(
-            f'<span class="ebadge ebadge--warning">{icon("User", 12)}'
-            f'{esc(p["limit_count"])}명 한정</span>'
-        )
-    elif p.get("new"):
-        chips.append('<span class="ebadge ebadge--warning">NEW</span>')
-    chip_html = f'<div class="ecard-chips">{"".join(chips)}</div>' if chips else ""
+    sub = f'<span class="ecard-sub">{esc(p["sub"])}</span>' if p.get("sub") else ""
 
     return f"""<a class="ecard" href="https://shop.novera.town/products/{p['id']}"
    data-event-at="{esc(p['event_at'])}">
   <span class="ecard-img">
-    <img src="{img}" alt="" loading="lazy">
-    <span class="ecard-kind">VIDEO CALL</span>
+    {_thumb(p, "ecard")}
+    <span class="ecard-kind">{esc(p.get('kind', 'VIDEO CALL'))}</span>
   </span>
   <span class="ecard-body">
     <span class="ecard-head">
       <span class="ecard-brand-row">
-        <span class="ecard-brand">{esc(p['brand'])}</span>{chip_html}
+        <span class="ecard-brand">{esc(p['brand'])}</span>{chip}
       </span>
-      <span class="ecard-name">{esc(p['name'])}</span>
+      <span class="ecard-name">{sub}<span class="ecard-title">{esc(p['name'])}</span></span>
     </span>
     <span class="ecard-price-area">
       <span class="price"><span class="price-cur">KRW</span><span class="price-sym">₩</span><span class="price-num">{won(p['price'])}</span></span>
@@ -349,19 +365,14 @@ def _event_card(p: dict) -> str:
 </a>"""
 
 
-def _next_artists(items: list[dict]) -> str:
-    """다음 아티스트 칩 — (아티스트, 일시) 중복을 걷어내고 임박한 순으로.
-    시각 문구는 보는 시점에 따라 달라지므로 JS 가 data-at 으로 만든다."""
-    seen, chips = set(), []
-    for p in items:
-        key = (p["brand"], p["event_at"])
-        if key in seen:
-            continue
-        seen.add(key)
-        img = datauri(ASSETS / "prod" / f"{p['id']}.jpg")
+def _next_artists() -> str:
+    """다음 아티스트 칩. 시각 문구는 보는 시점에 따라 달라지므로
+    JS 가 data-at 으로 만든다."""
+    chips = []
+    for p in upcoming_events():
         chips.append(
             f'<div class="na-item" data-at="{esc(p["event_at"])}">'
-            f'<span class="na-avatar"><img src="{img}" alt=""></span>'
+            f'<span class="na-avatar">{_thumb(p, "na")}</span>'
             f'<span class="na-text"><span class="na-name">{esc(p["brand"])}</span>'
             f'<span class="na-time">--</span></span></div>'
         )
@@ -371,11 +382,21 @@ def _next_artists(items: list[dict]) -> str:
 
 
 def build_event_showcase() -> str:
-    items = event_items()
+    items = livemd_items()
     if not items:
         return ""
     lead = items[0]
-    hero = datauri(ASSETS / "prod" / f"{lead['id']}.jpg")
+    # 시안은 아티스트 컷을 배경으로 쓴다. 아직 컷이 없으면 대표 상품 이미지로,
+    # 그것도 없으면 blue-700 → blue-500 그라디언트만 남는다.
+    hero = find_img("artist", f"{lead['brand']}", str(lead["id"])) or find_img(
+        "prod", str(lead["id"])
+    )
+    hero_img = f'<div class="sb-bg"><img src="{hero}" alt=""></div>' if hero else ""
+    avatar = (
+        f'<span class="sb-artist-avatar"><img src="{hero}" alt=""></span>'
+        if hero
+        else f'<span class="sb-artist-avatar sb-artist-avatar--ph">{esc(lead["brand"][:1])}</span>'
+    )
 
     tiles = []
     for i, (key, cap) in enumerate(CD_UNITS):
@@ -392,7 +413,7 @@ def build_event_showcase() -> str:
 
     return f"""<section class="sec--showcase">
   <div class="sb-banner">
-    <div class="sb-bg"><img src="{hero}" alt=""></div>
+    {hero_img}
     <div class="sb-scrim"></div>
     <div class="sb-inner">
       <div class="sb-head">
@@ -409,7 +430,7 @@ def build_event_showcase() -> str:
         <div class="sb-artist">
           <p class="sb-cap">아티스트</p>
           <div class="sb-artist-row">
-            <span class="sb-artist-avatar"><img src="{hero}" alt=""></span>
+            {avatar}
             <p class="sb-artist-name">{esc(lead['brand'])}</p>
           </div>
         </div>
@@ -421,7 +442,7 @@ def build_event_showcase() -> str:
     </div>
   </div>
   <div class="sb-cards">{cards}</div>
-  {_next_artists(items)}
+  {_next_artists()}
 </section>"""
 
 
@@ -456,7 +477,9 @@ PODIUM_TIMING = {           # place: (시상대 delay, 콘텐츠 delay, 시상�
 def build_podium() -> str:
     stands = []
     for p in PODIUM:
-        img = datauri(ASSETS / "artist" / f"{p['key']}.jpg")
+        src = find_img("artist", p["key"])
+        img = (f'<img src="{src}" alt="{esc(p["name"])}">' if src
+               else f'<span class="avatar-ph">{esc(p["name"][:1])}</span>')
         crown = '<span class="crown">👑</span>' if p["place"] == "first" else ""
         d_bar, d_content, from_y = PODIUM_TIMING[p["place"]]
         style = f"--d-bar:{d_bar}ms;--d-content:{d_content}ms;--bar-from:{from_y}px"
@@ -464,7 +487,7 @@ def build_podium() -> str:
             f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d_content}">
   <div class="stand-top">
     <div class="stand-avatar">{crown}
-      <span class="avatar avatar--48"><img src="{img}" alt="{esc(p['name'])}"></span>
+      <span class="avatar avatar--48">{img}</span>
       <span class="rank rank--{p['place']}">{p['rank']}</span>
     </div>
     <div class="stand-meta">
@@ -760,6 +783,56 @@ def build_drawer() -> str:
 </aside>"""
 
 
+def build_cart_panel() -> str:
+    """Figma 5477:75370 cart-sidebar-sticky — 데스크톱 우측 320px 장바구니 패널.
+    프로토타입이라 담긴 상품이 없는 Empty 상태만 그린다."""
+    def row(label, value, strong=False):
+        cls = " cart-row--total" if strong else ""
+        val = (f'<span class="cart-price"><span class="price-cur">KRW</span>'
+               f'<span class="price-sym">₩</span><span class="price-num">{value}</span></span>'
+               if strong else
+               f'<span class="cart-amount"><span>₩</span><span>{value}</span></span>')
+        return (f'<div class="cart-row{cls}"><span class="cart-key">{esc(label)}</span>'
+                f'{val}</div>')
+
+    return f"""<aside class="cartpanel" aria-label="장바구니 요약">
+  <div class="cart-sticky">
+    <div class="cart-head">
+      <div class="cart-title-row">
+        <p class="cart-title">장바구니</p>
+        <span class="cart-count">0</span>
+      </div>
+      <label class="cart-all"><span class="cart-check"></span><span>전체 선택</span></label>
+    </div>
+
+    <div class="cart-empty">
+      <span class="cart-empty-icon">{icon('Bag', 36)}</span>
+      <div class="cart-empty-text">
+        <p class="cart-empty-title">장바구니에 담긴 상품이 없어요</p>
+        <p class="cart-empty-desc">지금 인기 있는 상품을 구경해볼까요?</p>
+      </div>
+      <a class="cart-empty-btn" href="https://shop.novera.town/" target="_blank" rel="noreferrer">상품 둘러보기</a>
+    </div>
+
+    <div class="cart-divider"></div>
+
+    <div class="cart-summary">
+      <div class="cart-rows">
+        {row("총 상품 금액", "0")}
+        {row("총 배송비", "0")}
+      </div>
+      {row("결제 예정 금액", "0", strong=True)}
+    </div>
+
+    <div class="cart-actions">
+      <button class="cart-btn cart-btn--main" type="button" disabled>전체 구매하기</button>
+      <a class="cart-btn cart-btn--sub" href="https://shop.novera.town/cart" target="_blank" rel="noreferrer">
+        장바구니 전체보기{icon('ChevronRight', 20)}</a>
+    </div>
+  </div>
+</aside>"""
+
+
 def build_bottom_nav() -> str:
     # (아이콘, 라벨, 활성, 요소 id) — 카테고리가 사이드 드로어를 여는 진입점이다
     items = [
@@ -894,28 +967,12 @@ img{display:block;max-width:100%}
 }
 
 /* ---------- 사이드 내비게이션 (Figma Left Sidebar 5443:57347) ---------- */
-/* 486px 이하에서는 숨기고 햄버거+드로어를 쓴다 */
+/* 데스크톱 브레이크포인트 아래에서는 숨기고 햄버거+드로어를 쓴다.
+   데스크톱 레이아웃은 파일 하단 "Desktop 반응형" 블록에서 한꺼번에 다룬다 */
 .sidenav{display:none}
-@media (min-width:487px){
-  /* 디자인의 페이지 배경(#fcfdff)과 사이드바 흰 배경. 콘텐츠 컬럼은 배경 위에
-     그대로 얹히므로 모바일에서 쓰던 "휴대폰 카드" 그림자는 걷어낸다 */
-  body{background:var(--gray-50);justify-content:flex-start}
-  .app{margin-inline:auto;box-shadow:none}
-
-  .sidenav{
-    position:fixed;left:0;top:0;bottom:0;z-index:40;
-    width:280px;display:flex;flex-direction:column;
-    background:var(--bg-default);border-right:1px solid var(--gray-200);
-    overflow-y:auto;overscroll-behavior:contain;
-  }
-  /* 사이드바가 차지한 폭만큼 본문 컬럼을 밀어 남는 영역 가운데 정렬 */
-  body{padding-left:280px}
-
-  /* 사이드바가 내비게이션을 대신하므로 모바일 하단 탭바는 감춘다.
-     (드로어를 여는 "카테고리" 버튼도 하단 탭바 안에 있어 함께 사라진다) */
-  .bottomnav{display:none}
-  .app{padding-bottom:0}
-}
+.cartpanel{display:none}
+.app-body{display:block}
+.app-main{display:block;min-width:0}
 .sn-group{display:flex;flex-direction:column;gap:2px;
   padding:var(--spacing-24) var(--spacing-16)}
 /* 이 프로토타입의 --text-secondary 는 gray-700 에 물려 있는데 Figma 사이드바 라벨은
@@ -1167,7 +1224,7 @@ img{display:block;max-width:100%}
 .sb-artist-avatar{flex:none;width:20px;height:20px;border-radius:var(--rounded-full);
   overflow:hidden;border:1px solid var(--border-thumbnail);display:block}
 .sb-artist-avatar img{width:100%;height:100%;object-fit:cover}
-.sb-artist-name{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
+.sb-artist-name{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-inverse);white-space:nowrap}
 .sb-timer{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacing-2)}
 .cd-clock{display:flex;align-items:flex-start;gap:var(--spacing-8)}
 .cd-unit{display:flex;flex-direction:column;align-items:center;min-width:30px}
@@ -1205,9 +1262,21 @@ img{display:block;max-width:100%}
 .ebadge--primary .ico{color:var(--brand1-default)}
 .ebadge--warning{background:var(--bg-warning);color:var(--text-warning)}
 .ebadge--warning .ico{color:var(--text-warning)}
-.ecard-name{font-size:13px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
-  color:var(--text-primary);
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* 시안 제목은 2행 — 1행 이벤트 시리즈명, 2행 상품명. 둘 다 Label/3 */
+.ecard-name{display:flex;flex-direction:column;
+  font-size:13px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-primary)}
+.ecard-sub,.ecard-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 썸네일 파일이 아직 없을 때의 자리표시 — 브랜드 이니셜 */
+.ecard-ph,.na-ph,.sb-artist-avatar--ph{
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,var(--bg-gray) 0%,var(--bg-primary) 100%);
+  color:var(--brand1-default);font-weight:700}
+.ecard-ph,.na-ph{width:100%;height:100%}
+.ecard-ph{font-size:24px}
+.na-ph{font-size:13px}
+/* 아바타 자리표시는 .sb-artist-avatar 와 같은 요소에 붙으므로 크기를 다시 못박는다 */
+.sb-artist-avatar--ph{width:20px;height:20px;font-size:10px;line-height:1}
 .ecard-price-area{display:flex;flex-direction:column;gap:var(--spacing-4)}
 /* 가로형 카드의 가격은 그리드 카드(16 Bold)보다 한 단계 작다 — Subtitle/3 */
 .ecard .price-num{font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1)}
@@ -1274,6 +1343,9 @@ img{display:block;max-width:100%}
   border:1px solid var(--border-thumbnail);background:var(--bg-muted)}
 .avatar--48{width:48px;height:48px}
 .avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-ph{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
+  background:linear-gradient(180deg,var(--bg-gray) 0%,var(--bg-primary) 100%);
+  color:var(--brand1-default);font-size:18px;font-weight:700;line-height:1}
 
 /* ---------- ProductCard row ---------- */
 .prow{display:flex;gap:var(--spacing-12);padding-left:var(--gutter);
@@ -1604,12 +1676,132 @@ img{display:block;max-width:100%}
 }
 
 /* =========================================================================
-   Desktop 반응형 (1440px 기준 설계, 1200px 캡)
-   1440 뷰포트에서 --gutter 가 정확히 120px 이 되어 콘텐츠가 1200px 로 맞춰짐
-   (Figma TopNavigation 의 px-120 과 동일한 결과). 1024~1440 사이에서는 최소
-   24px 여백을 보장하고, 1440 을 넘는 와이드 모니터에서도 1200px 에서 더 안
-   늘어나고 중앙 정렬만 된다.
+   Desktop 반응형 — Figma Desktop_Default_KR (5461:140412), 1440 기준
+   Main Body 실측: 120 거터 | 232 사이드바 | 64 | 520 본문 | 64 | 320 장바구니 | 120 거터
+   → 안쪽 폭 1200 을 max-width 로 잡고 가운데 정렬하면 1440 에서 거터가 정확히 120 이 된다.
    ========================================================================= */
+
+/* ---- 헤더의 데스크톱 전용 조각 (기본은 숨김) ---- */
+.head-search{display:none}
+.head-cta{display:none}
+.touch--desktop{display:none}
+
+@media (min-width:1200px){
+  /* 페이지 배경은 시안의 #fcfdff. 모바일에서 쓰던 "휴대폰 카드" 그림자는 걷어낸다 */
+  body{background:var(--gray-50);display:block}
+  .app{max-width:none;width:100%;box-shadow:none;padding-bottom:0;overflow-x:visible}
+
+  /* ---- 헤더: 풀블리드, 안쪽만 1200 ---- */
+  .header{height:80px;padding:0;border-bottom:1px solid var(--gray-200)}
+  .header-inner{flex:none;width:min(1200px,calc(100% - 48px));margin-inline:auto;
+    gap:var(--spacing-24)}
+  .logo{margin-right:0}
+  .head-search{flex:1;max-width:420px;display:flex;align-items:center;gap:var(--spacing-8);
+    height:40px;padding:0 var(--spacing-16);border-radius:var(--rounded-sm);
+    background:var(--bg-gray);color:var(--text-muted);
+    font-size:14px;line-height:1.4;cursor:text}
+  .head-search .ico{color:var(--icon-muted)}
+  .head-actions{gap:var(--spacing-12)}
+  .touch--mobile{display:none}
+  .touch--desktop{display:flex}
+  .head-cta{display:inline-flex;align-items:center;justify-content:center;
+    height:var(--componentSize-sm-height);padding:0 var(--spacing-12);
+    border-radius:var(--rounded-xs);background:var(--brand1-default);color:var(--text-inverse);
+    font-size:12px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
+    white-space:nowrap}
+  .head-cta:hover{background:var(--brand1-strong)}
+
+  /* 사이드바가 내비게이션을 대신하므로 카테고리 탭바와 하단 탭바는 감춘다 */
+  .tabbar--category{display:none}
+  .bottomnav{display:none}
+
+  /* ---- Main Body 3단 그리드 ---- */
+  .app-body{
+    display:grid;
+    grid-template-columns:232px minmax(0,520px) 320px;
+    column-gap:64px;justify-content:center;align-items:start;
+    width:min(1200px,calc(100% - 48px));margin-inline:auto;
+    padding:var(--spacing-24) 0 0;
+  }
+
+  /* ---- 좌측 사이드바 (스크롤에 따라붙는다) ---- */
+  .sidenav{display:flex;flex-direction:column;position:sticky;top:104px}
+  .sn-group{padding:0;gap:2px}
+  .sn-item{padding:var(--spacing-16) var(--spacing-12)}
+  .sn-divider{margin:var(--spacing-8) 0}
+
+  /* ---- 본문 컬럼 520 ---- */
+  .app-main{min-width:0}
+  /* 본문 컬럼 안에서는 좌우 거터가 사라지고 섹션이 컬럼 폭을 그대로 쓴다 */
+  .app-main{--gutter:0px}
+  .mainbanner,.inline-banner .banner-frame,.col-hero{border-radius:var(--rounded-md)}
+  .mainbanner,.col-hero{overflow:hidden}
+  .sec--showcase .sb-banner{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
+  .prow{padding-left:0}
+  .row-end{flex-basis:0}
+  .footer{margin-top:56px}
+
+  /* 배너: 시안 520x280. 모바일 이미지를 가로로 늘려 채우고 위쪽 기준으로 정렬한다 */
+  .mainbanner{height:280px}
+  .mb-slide{height:280px}
+  .mb-bg img{width:100%;height:auto;min-height:100%;object-fit:cover;object-position:50% 0}
+  .mb-bg--kimetsu img,.mb-bg--vari img,.mb-bg--beboys img{
+    width:100%;height:auto;min-height:100%;object-fit:cover;object-position:50% 0}
+  .mb-bg{align-items:flex-start}
+  .mb-bottom{bottom:24px;width:calc(100% - 40px)}
+
+  /* ---- 우측 장바구니 패널 ---- */
+  .cartpanel{display:block;position:sticky;top:104px}
+}
+
+/* ---------- 장바구니 패널 (Figma 5477:75370 cart-sidebar-sticky) ---------- */
+.cart-sticky{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-20);
+  padding:var(--spacing-24);border:1px solid var(--gray-200);border-radius:var(--rounded-lg);
+  background:var(--bg-default);box-shadow:0 12px 40px rgba(0,0,0,.03);overflow:hidden}
+.cart-head{display:flex;align-items:center;justify-content:space-between;width:100%}
+.cart-title-row{display:flex;align-items:center;gap:var(--spacing-8)}
+.cart-title{font-size:18px;font-weight:600;line-height:1.4;color:var(--text-primary)}
+.cart-count{padding:var(--spacing-2) 6px;border-radius:var(--rounded-xs);
+  background:var(--bg-primary);color:var(--brand1-default);
+  font-size:12px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
+.cart-all{display:flex;align-items:center;gap:6px;
+  font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-tertiary);cursor:pointer}
+.cart-check{width:16px;height:16px;border:1px solid var(--gray-300);
+  border-radius:var(--rounded-xxs);background:var(--bg-default)}
+.cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:var(--spacing-24);width:100%;padding:var(--spacing-24) var(--spacing-32)}
+.cart-empty-icon{display:flex;align-items:center;justify-content:center;
+  padding:var(--spacing-12);border-radius:32px;background:var(--bg-subtle);color:var(--icon-fill)}
+.cart-empty-text{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-4);
+  width:100%;text-align:center}
+.cart-empty-title{font-size:16px;font-weight:600;line-height:1.4;color:var(--text-primary)}
+.cart-empty-desc{font-size:14px;font-weight:400;line-height:1.4;color:var(--text-tertiary)}
+.cart-empty-btn{display:flex;align-items:center;justify-content:center;
+  height:var(--componentSize-sm-height);padding:0 var(--spacing-12);
+  border-radius:var(--rounded-xs);background:var(--bg-gray);color:var(--text-secondary);
+  font-size:12px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
+.cart-divider{width:100%;height:1px;background:var(--gray-200)}
+.cart-summary{display:flex;flex-direction:column;gap:var(--spacing-20);width:100%}
+.cart-rows{display:flex;flex-direction:column;gap:var(--spacing-4)}
+.cart-row{display:flex;align-items:center;justify-content:space-between;width:100%}
+.cart-key{font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-tertiary)}
+.cart-amount{display:flex;align-items:center;gap:var(--spacing-2);
+  font-size:16px;font-weight:600;line-height:1.5;color:var(--text-secondary)}
+.cart-row--total .cart-key{font-size:16px;line-height:1.5;color:var(--text-secondary)}
+.cart-price{display:flex;align-items:center;gap:var(--spacing-2)}
+.cart-price .price-cur{font-size:12px;line-height:1.4}
+.cart-price .price-sym{font-size:18px;line-height:1.4}
+.cart-price .price-num{font-size:20px;font-weight:700;line-height:1.3}
+.cart-actions{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-8);width:100%}
+.cart-btn{display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;height:44px;padding:var(--spacing-12) var(--spacing-16);
+  border-radius:var(--rounded-sm);
+  font-size:14px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
+.cart-btn--main{background:var(--gray-200);color:var(--text-disabled);cursor:not-allowed}
+.cart-btn--sub{color:var(--text-primary)}
+.cart-btn--sub .ico{color:var(--icon-primary)}
 """
 
 # ---------------------------------------------------------------- JS
@@ -2145,16 +2337,22 @@ def build() -> str:
   <header class="header">
     <div class="header-inner">
       <a class="logo" href="https://shop.novera.town/" target="_blank" rel="noreferrer">{brand_svg('logo-novera-shop')}</a>
+      <div class="head-search">{icon('Search', 20)}<span>검색어를 입력해 주세요</span></div>
       <div class="head-actions">
         <div class="head-icons">
-          <button class="touch" type="button" aria-label="검색">{icon('Search', 20)}</button>
+          <button class="touch touch--mobile" type="button" aria-label="검색">{icon('Search', 20)}</button>
+          <button class="touch touch--desktop" type="button" aria-label="좋아요">{icon('Heart', 20)}</button>
           <button class="touch" type="button" aria-label="장바구니">{icon('Bag', 20)}<span class="push-badge">2</span></button>
         </div>
         <button class="lang" type="button">{icon('Globe', 16)}KO</button>
+        <a class="head-cta" href="https://shop.novera.town/sign-in" target="_blank" rel="noreferrer">회원가입 | 로그인</a>
       </div>
     </div>
   </header>
 
+  <div class="app-body">
+  {build_sidenav()}
+  <main class="app-main">
   {build_cat_tabs()}
 
   <section class="mainbanner">
@@ -2196,12 +2394,14 @@ def build() -> str:
   </div>
 
   {build_collections()}
+  </main>
+  {build_cart_panel()}
+  </div>
 
   {build_footer()}
   {build_bottom_nav()}
   {build_banner_sheet()}
 </div>
-{build_sidenav()}
 {build_drawer()}"""
 
     return f"""<!doctype html>
