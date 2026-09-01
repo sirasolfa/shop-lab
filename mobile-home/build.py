@@ -383,15 +383,25 @@ def build_event_showcase() -> str:
     if not items:
         return ""
     lead = items[0]
-    # 시안은 아티스트 컷을 배경으로 쓴다. 아직 컷이 없으면 대표 상품 이미지로,
-    # 그것도 없으면 blue-700 → blue-500 그라디언트만 남는다.
-    hero = find_img("artist", f"{lead['brand']}", str(lead["id"])) or find_img(
-        "prod", str(lead["id"])
+    # Figma Banner Area(5749:63752) export 그대로 — 이미 blue-700→blue-500 그라디언트와
+    # black80→mask 딤이 구워져 있어 우리 쪽에서 별도로 딤을 더하지 않는다(.sb-scrim 참고).
+    # 아직 export 가 없으면 아티스트/대표 상품 이미지로, 그것도 없으면 그라디언트만 남는다.
+    # 배경은 별도로 처리한 와이드 컷(assets/banner/livemd_<브랜드>.*) 을 최우선으로 찾고,
+    # 없으면 아바타 사진 → 대표 상품 이미지 순으로 내려간다. 어느 쪽이든 원본이 밝은
+    # 사진이라 .sb-scrim(딤)을 그대로 얹는다 — Figma 처럼 텍스트가 이미지에 구워져
+    # 있는 완성본이 아니므로 이중 딤 걱정은 없다
+    bg = (
+        find_img("banner", f"livemd_{lead['brand']}")
+        or find_img("artist", lead["brand"])
+        or find_img("prod", str(lead["id"]))
     )
-    hero_img = f'<div class="sb-bg"><img src="{hero}" alt=""></div>' if hero else ""
+    hero_img = f'<div class="sb-bg"><img src="{bg}" alt=""></div>' if bg else ""
+    # 아바타는 Figma Avatar(5749:65086) export — 배너 사진과 같은 인물이지만
+    # 얼굴 위주로 다시 크롭된 별도 이미지라 hero 와 분리해서 찾는다.
+    avatar_src = find_img("artist", lead["brand"]) or find_img("prod", str(lead["id"]))
     avatar = (
-        f'<span class="sb-artist-avatar"><img src="{hero}" alt=""></span>'
-        if hero
+        f'<span class="sb-artist-avatar"><img src="{avatar_src}" alt=""></span>'
+        if avatar_src
         else f'<span class="sb-artist-avatar sb-artist-avatar--ph">{esc(lead["brand"][:1])}</span>'
     )
 
@@ -1184,7 +1194,7 @@ img{display:block;max-width:100%}
 .sb-banner{position:relative;overflow:hidden;
   background:linear-gradient(180deg,var(--blue-700) 0%,var(--blue-500) 100%)}
 .sb-bg{position:absolute;inset:0}
-.sb-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.sb-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 0}
 .sb-scrim{position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(0,0,0,.8) 0%,var(--bg-mask) 100%)}
 .sb-inner{position:relative;display:flex;flex-direction:column;align-items:center;
