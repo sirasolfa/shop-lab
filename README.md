@@ -1,6 +1,17 @@
 # shop-lab
 
-NOVERA shop에 대한 코드를 저장합니다.
+NOVERA shop 관련 코드를 모아 두는 저장소입니다.
+현재는 홈 화면 개편 **모바일 프로토타입**(`mobile-home/`) 하나가 들어 있습니다.
+
+**[라이브 데모 열기](https://novera-shop-proto.vercel.app)**
+
+| | |
+|---|---|
+| 프로토타입 | [`mobile-home/`](mobile-home) — 빌드하면 에셋까지 인라인된 **단일 HTML** 하나가 나옵니다 |
+| 디자인 시스템 문서 | [`sirasolfa/design-system`](https://github.com/sirasolfa/design-system) — NDS 토큰·컴포넌트·패턴 |
+| 배포 | Vercel — [`vercel.json`](vercel.json) |
+
+---
 
 ## 디자인 시스템
 
@@ -13,9 +24,9 @@ Figma [NDS - NOVERA Design System](https://www.figma.com/design/OJqTwQ8gHDGcvOOk
 컴포넌트 인벤토리 50종, 패턴, 가이드라인으로 정리한 문서 세트입니다.
 **Figma에서 직접 확인한 사실 `[F]` 과 AI가 제안한 가이드라인 `[A]` 을 파일 단위로 분리**해 두었습니다.
 
-`mobile-home` 프로토타입의 토큰 값(색·간격·라운드 등)을 확인할 때 참고하세요.
-단, 프로토타입은 Shop 핸드오프 시안(`Li8im2dMEZygQo0p7s4ea2`)을 실측해 만든 것이라
-NDS 문서와 값이 다를 수 있습니다.
+> **두 값이 다를 수 있습니다.** `mobile-home` 은 Shop 핸드오프 시안(`Li8im2dMEZygQo0p7s4ea2`)을
+> 실측해 만든 것이고, NDS 문서는 디자인 시스템 원본(`OJqTwQ8gHDGcvOOkOfYRgM`)을 옮긴 것입니다.
+> 프로토타입의 토큰 값을 확인할 때 참고하되, 어긋나면 각 출처를 먼저 확인하세요.
 
 ## mobile-home
 
@@ -26,6 +37,19 @@ NDS 문서와 값이 다를 수 있습니다.
 | 디자인 | Figma [\[NOVERA\] Shop / Handoff / Mobile](https://www.figma.com/design/Li8im2dMEZygQo0p7s4ea2/-NOVERA--Shop?node-id=5612-54824) (`5612:54824`) |
 | 디자인 시스템 | Storybook `develop--693fcc16142e19f5d9fb6f9c.chromatic.com` — Foundation(Colors·Icon·Typo·Rounded·Spacing) + Components(Badge·Avatar·Tabs)<br>문서: [sirasolfa/design-system](https://github.com/sirasolfa/design-system) |
 | 데이터 | `shop.novera.town` 실제 상품 / `shop-api.novera.town` |
+
+아래는 구현하며 확정한 사항들입니다.
+
+- [구조](#구조)
+- [빌드](#빌드)
+- [배포 (Vercel)](#배포-vercel)
+- [데스크톱 브레이크포인트 (Figma `5461:140412`)](#데스크톱-브레이크포인트-figma-5461140412)
+- [화면 구성](#화면-구성)
+- [장르 스위치 — K-POP ↔ 캐릭터 (Figma `5612:55057` / `5620:56659`)](#장르-스위치--k-pop--캐릭터-figma-561255057--562056659)
+- [메인 배너 모션](#메인-배너-모션)
+- [Meet Your Artist Event (Figma `5749:63751`)](#meet-your-artist-event-figma-574963751)
+- [LIVE MD 이미지 — Figma 스크린샷으로 직접 캡처](#live-md-이미지--figma-스크린샷으로-직접-캡처)
+- [데스크톱 좌측 내비게이션](#데스크톱-좌측-내비게이션)
 
 ### 구조
 
