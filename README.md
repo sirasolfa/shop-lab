@@ -2,6 +2,21 @@
 
 NOVERA shop에 대한 코드를 저장합니다.
 
+## 디자인 시스템
+
+NDS(NOVERA Design System) 문서는 별도 저장소로 분리했습니다.
+
+**→ [sirasolfa/design-system](https://github.com/sirasolfa/design-system)**
+
+Figma [NDS - NOVERA Design System](https://www.figma.com/design/OJqTwQ8gHDGcvOOkOfYRgM/NDS---NOVERA-Design-System?node-id=0-1)
+(`OJqTwQ8gHDGcvOOkOfYRgM`)을 분석해 파운데이션(색·타이포·레이아웃·셰이프·엘리베이션·아이콘·브랜드),
+컴포넌트 인벤토리 50종, 패턴, 가이드라인으로 정리한 문서 세트입니다.
+**Figma에서 직접 확인한 사실 `[F]` 과 AI가 제안한 가이드라인 `[A]` 을 파일 단위로 분리**해 두었습니다.
+
+`mobile-home` 프로토타입의 토큰 값(색·간격·라운드 등)을 확인할 때 참고하세요.
+단, 프로토타입은 Shop 핸드오프 시안(`Li8im2dMEZygQo0p7s4ea2`)을 실측해 만든 것이라
+NDS 문서와 값이 다를 수 있습니다.
+
 ## mobile-home
 
 `shop.novera.town` 홈 화면 개편 **모바일 프로토타입**.
@@ -9,7 +24,7 @@ NOVERA shop에 대한 코드를 저장합니다.
 | | |
 |---|---|
 | 디자인 | Figma [\[NOVERA\] Shop / Handoff / Mobile](https://www.figma.com/design/Li8im2dMEZygQo0p7s4ea2/-NOVERA--Shop?node-id=5612-54824) (`5612:54824`) |
-| 디자인 시스템 | Storybook `develop--693fcc16142e19f5d9fb6f9c.chromatic.com` — Foundation(Colors·Icon·Typo·Rounded·Spacing) + Components(Badge·Avatar·Tabs) |
+| 디자인 시스템 | Storybook `develop--693fcc16142e19f5d9fb6f9c.chromatic.com` — Foundation(Colors·Icon·Typo·Rounded·Spacing) + Components(Badge·Avatar·Tabs)<br>문서: [sirasolfa/design-system](https://github.com/sirasolfa/design-system) |
 | 데이터 | `shop.novera.town` 실제 상품 / `shop-api.novera.town` |
 
 ### 구조
