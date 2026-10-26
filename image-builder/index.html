@@ -474,22 +474,22 @@ function renderTemplate(ctx, board, opt){
   const fg = col.fg, ex=!!opt.export && !opt.preview;
   if(T.kind==='collection'){
     const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r, bd=tv('badge',ex), ct=tv('ctitle',ex);
-    ctx.font='600 8px '+fontFam(); const bw=ctx.measureText(bd.t).width+8, bh=bd.t?12:0;
-    ctx.font='700 16px '+fontFam(); const tw=wrap(ctx,ct.t,maxW,2); const th=ct.t?tw.lines.length*16*1.3:0;
+    setFont(ctx,600,8,true); const bw=ctx.measureText(bd.t).width+8, bh=bd.t?12:0;
+    setFont(ctx,700,16); const tw=wrap(ctx,ct.t,maxW,2); const th=ct.t?tw.lines.length*16*1.3:0;
     const blockH=bh+(bh&&th?6:0)+th; let y=Math.max(T.pad.t-10,(h-blockH)/2);
     if(bd.t){
       phAlpha(ctx,bd.ph); ctx.fillStyle = col.badgeBg; rrect(ctx,x0,y,bw,bh,4); ctx.fill();
-      ctx.fillStyle=fg; ctx.font='600 8px '+fontFam(); ctx.textBaseline='middle'; ctx.fillText(bd.t,x0+4,y+bh/2+.5); y+=bh+6;
+      ctx.fillStyle=fg; setFont(ctx,600,8,true); ctx.textBaseline='middle'; ctx.fillText(bd.t,x0+4,y+bh/2+.5); y+=bh+6;
     }
-    if(ct.t){ phAlpha(ctx,ct.ph); ctx.fillStyle=fg; ctx.font='700 16px '+fontFam(); ctx.textBaseline='top'; tw.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*16*1.3+1.6)); }
+    if(ct.t){ phAlpha(ctx,ct.ph); ctx.fillStyle=fg; setFont(ctx,700,16); ctx.textBaseline='top'; tw.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*16*1.3+1.6)); }
   }else{
     const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r, hd=tv('headline',ex), sbt=tv('sub',ex);
-    ctx.font='600 12px '+fontFam(); const hl=wrap(ctx,hd.t,maxW,2);
-    ctx.font='400 9px '+fontFam(); const sb=wrap(ctx,sbt.t,maxW,1);
+    setFont(ctx,600,12,true); const hl=wrap(ctx,hd.t,maxW,2);
+    setFont(ctx,400,9,true); const sb=wrap(ctx,sbt.t,maxW,1);
     const hh=hd.t?hl.lines.length*12*1.1:0, blockH=hh+(hh&&sbt.t?4:0)+(sbt.t?9*1.5:0); let y=(h-blockH)/2;
     ctx.textBaseline='top';
-    if(hd.t){ phAlpha(ctx,hd.ph); ctx.fillStyle=fg; ctx.font='600 12px '+fontFam(); hl.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*12*1.1)); y+=hh+4; }
-    if(sbt.t){ phAlpha(ctx,sbt.ph); ctx.font='400 9px '+fontFam(); ctx.fillStyle= col.sub; ctx.fillText(sb.lines[0],x0,y+1); }
+    if(hd.t){ phAlpha(ctx,hd.ph); ctx.fillStyle=fg; setFont(ctx,600,12,true); hl.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*12*1.1)); y+=hh+4; }
+    if(sbt.t){ phAlpha(ctx,sbt.ph); setFont(ctx,400,9,true); ctx.fillStyle= col.sub; ctx.fillText(sb.lines[0],x0,y+1); }
   }
   ctx.restore();
 }
@@ -501,14 +501,14 @@ function drawMainSystem(ctx, board){
   ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
   const maxW=w-A.l-A.r;
   const lb=tv('label'), ti=tv('title'); ctx.__baseAlpha=1;
-  ctx.font='700 20px '+fontFam(); const tt=wrap(ctx,ti.t,maxW,2);
+  setFont(ctx,700,20); const tt=wrap(ctx,ti.t,maxW,2);
   const titleH=tt.lines.length*20*1.3, labelH=12*1.5;
   let y=h-A.b-titleH-labelH-6;
   ctx.textBaseline='top';
-  phAlpha(ctx,lb.ph); ctx.font='600 12px '+fontFam(); ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillText(lb.t,A.l,y+3); y+=labelH+6;
-  phAlpha(ctx,ti.ph); ctx.font='700 20px '+fontFam(); ctx.fillStyle='#fff'; tt.lines.forEach((l,i)=>ctx.fillText(l,A.l,y+i*26+3));
+  phAlpha(ctx,lb.ph); setFont(ctx,600,12,true); ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillText(lb.t,A.l,y+3); y+=labelH+6;
+  phAlpha(ctx,ti.ph); setFont(ctx,700,20); ctx.fillStyle='#fff'; tt.lines.forEach((l,i)=>ctx.fillText(l,A.l,y+i*26+3));
   phAlpha(ctx,false);
-  ctx.font='600 11px '+fontFam(); ctx.textAlign='right'; ctx.textBaseline='bottom';
+  setFont(ctx,600,11,true); ctx.textAlign='right'; ctx.textBaseline='bottom';
   ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillText('/ 03', w-A.pag.r, h-A.pag.b);
   const sw=ctx.measureText(' / 03').width; ctx.fillStyle='#fff'; ctx.fillText('01', w-A.pag.r-sw, h-A.pag.b);
   ctx.textAlign='left';
@@ -516,7 +516,7 @@ function drawMainSystem(ctx, board){
 
 function drawGuides(ctx, board){
   const p=P(), {w,h}=board;
-  ctx.save(); ctx.lineWidth=1; ctx.font='600 10px '+fontFam(); ctx.textBaseline='top';
+  ctx.save(); ctx.lineWidth=1; setFont(ctx,600,10); ctx.textBaseline='top';
   if(S.slot==='main'){
     const sh=Math.round(h*2/3);
     ctx.fillStyle='rgba(16,185,129,.10)'; ctx.fillRect(0,0,w,sh);
@@ -552,6 +552,8 @@ function label(ctx,t,x,y,c){ const tw=ctx.measureText(t).width+8; ctx.fillStyle=
 function vline(ctx,x,h){ ctx.save(); ctx.strokeStyle='rgba(79,124,255,.45)'; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,h); ctx.stroke(); ctx.restore(); }
 function hline(ctx,y,w,keep){ ctx.save(); if(!keep){ctx.strokeStyle='rgba(79,124,255,.45)'; ctx.setLineDash([3,3]);} ctx.beginPath(); ctx.moveTo(0,y+.5); ctx.lineTo(w,y+.5); ctx.stroke(); ctx.restore(); }
 function fontFam(){ return "'Pretendard Variable', Pretendard, sans-serif"; }
+// Figma 타이포 토큰: Title(16·20 Bold)은 자간 0, 나머지(Badge·Action·Caption)는 1%
+function setFont(ctx, w, size, tracked){ ctx.font=`${w} ${size}px `+fontFam(); if('letterSpacing' in ctx) ctx.letterSpacing = tracked ? (size*.01)+'px' : '0px'; }
 
 /* 내보내기용 렌더 (@scale, 가이드·시스템 레이어 제외) */
 function renderExport(board, preview){
@@ -641,12 +643,12 @@ function textField(lbl, key, opts={}){
   if(isArea) inp.value=S.text[key];
   const cnt=el('div',{class:'counter'});
   const upd=()=>{ if(opts.counter){ const r=opts.counter(S.text[key]); cnt.textContent=r.text; cnt.classList.toggle('over',!r.ok);} };
-  inp.addEventListener('input',()=>{ S.text[key]=inp.value; upd(); draw(); }); upd();
+  inp.addEventListener('input',()=>{ S.text[key]=inp.value; upd(); draw(); loadTextFonts(); }); upd();
   return el('div',{class:'field'}, el('label',{},lbl), inp, opts.counter?cnt:null);
 }
 function mainLabelCounter(v){ const n=[...v].length, nl=v.includes('\n'); return {ok:n<=20&&!nl, text:`${n}/20자 · 1줄${nl?' (줄바꿈 불가)':''}`}; }
 function mainTitleCounter(v){ const r=titleLines(v); const tot=r.reduce((a,l)=>a+[...l].length,0); const ok=r.length<=2&&r.every(l=>[...l].length<=15)&&tot<=30; return {ok, text:`${r.length}/2줄 · 줄당 ${r.map(l=>[...l].length).join('·')}/15자 · 총 ${tot}/30자`}; }
-function titleLines(v){ const c=document.createElement('canvas').getContext('2d'); c.font='700 20px '+fontFam(); const w=375-28-72; return wrap(c,v,w).lines; }
+function titleLines(v){ const c=document.createElement('canvas').getContext('2d'); setFont(c,700,20); const w=375-28-72; return wrap(c,v,w).lines; }
 
 function renderPanel(){
   const p=P(), ed=$('#panelEdit'), gd=$('#panelGuide');
@@ -917,8 +919,8 @@ function autoChecks(boards){
   }
   if(p.template){
     const c=document.createElement('canvas').getContext('2d'), T=p.template, maxW=T.textW-T.pad.l-T.pad.r;
-    if(T.kind==='collection'){ c.font='700 16px '+fontFam(); const r=wrap(c,S.text.ctitle,maxW,2); out.push({ok:!r.overflow, t:'타이틀 2줄 이내', d:r.overflow?'2줄을 넘어 잘려요':''}); }
-    else{ c.font='600 12px '+fontFam(); const r=wrap(c,S.text.headline,maxW,2); c.font='400 9px '+fontFam(); const s=wrap(c,S.text.sub,maxW,1);
+    if(T.kind==='collection'){ setFont(c,700,16); const r=wrap(c,S.text.ctitle,maxW,2); out.push({ok:!r.overflow, t:'타이틀 2줄 이내', d:r.overflow?'2줄을 넘어 잘려요':''}); }
+    else{ setFont(c,600,12,true); const r=wrap(c,S.text.headline,maxW,2); setFont(c,400,9,true); const s=wrap(c,S.text.sub,maxW,1);
       out.push({ok:!r.overflow, t:'헤드라인 최대 2줄', d:r.overflow?'2줄을 넘어 잘려요':''}); out.push({ok:!s.overflow, t:'서브타이틀 1줄', d:s.overflow?'1줄을 넘어 잘려요':''}); }
     if(S.tpl.mode==='current'){ const need=T.kind==='collection'?['ctitle']:['headline']; const miss=need.filter(k=>!S.text[k]);
       out.push({ok:!miss.length, t:'텍스트 입력', d:miss.length?'플레이스홀더만 있어요 — 내보내면 텍스트 없이 저장돼요':''}); }
@@ -956,6 +958,7 @@ function openChecklist(boards){
 }
 async function doExport(boards){
   const p=P(), files=[];
+  await loadTextFonts();
   for(const b of boards){
     const c=renderExport(b), r=await encode(c, S.format, p.limitMB);
     if(r.over){ toast(`${fileName(b,S.format)} 용량이 ${p.limitMB}MB를 넘어요${S.format==='png'?' — JPG로 바꿔 보세요':''}`); return; }
@@ -975,6 +978,13 @@ function openDone(files){
   dlg.showModal();
 }
 function download(blob,name){ const a=el('a',{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); }
+
+// Pretendard는 글자 범위별로 나눠 받는 웹폰트라, 처음 쓰는 글자는 받기 전까지 대체 폰트로 그려질 수 있음
+function loadTextFonts(){
+  const t=Object.values(S.text).join('')+Object.values(PH).join('');
+  return Promise.all(['400','600','700'].map(w=>document.fonts.load(`${w} 16px 'Pretendard Variable'`, t||'가'))).catch(()=>{});
+}
+document.fonts.addEventListener('loadingdone', ()=>{ if(S.img) draw(); });
 
 /* ===================== 시작 ====================== */
 (async function init(){
