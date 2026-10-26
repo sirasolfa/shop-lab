@@ -102,6 +102,10 @@ input[type=checkbox]:focus-visible{outline:2px solid var(--brand-default);outlin
 .badge.gray{background:var(--color-bg-muted);color:var(--color-text-tertiary)}
 .gsec p{font-size:13.5px;line-height:1.55;color:var(--color-text-secondary)}
 .gsec h3{color:var(--color-text-primary)}
+.swatches{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sw{width:28px;height:28px;border-radius:var(--rounded-full);border:1px solid var(--color-border-neutral);cursor:pointer;padding:0}
+.sw[aria-pressed=true]{outline:2px solid var(--brand-default);outline-offset:2px}
+.swatches input[type=color],.row input[type=color]{width:40px;height:32px;padding:0;border:1px solid var(--color-border-neutral);border-radius:var(--rounded-xs);background:#fff;cursor:pointer}
 .gnum{font-size:12px;font-weight:600;color:var(--brand-default);font-variant-numeric:tabular-nums}
 .gfig{display:block;width:100%;padding:0;border:1px solid var(--color-border-default);border-radius:var(--rounded-sm);background:var(--color-bg-subtle);overflow:hidden;cursor:zoom-in}
 .gfig svg{display:block;width:100%;height:auto}
@@ -222,7 +226,7 @@ const PRESETS = {
         {t:'자동 크롭 · 세이프 영역', svg:'cSafe', d:'상·하·좌·우 20px는 잘릴 수 있어요. 핵심 요소는 가운데 335×100 안에 두세요. 520으로 커지면 위아래 27px가 잘려요.'},
         {t:'그라디언트 딤', svg:'cDim', d:'가이드 본문과 도식의 방향이 서로 반대예요. 이 툴은 이미지 쪽 투명 → 텍스트 쪽 불투명으로 그려요.'},
         {t:'텍스트 스펙', svg:'cText', d:'배지 8px SemiBold · 타이틀 16px Bold, 패딩 36/20/36/6. 가이드는 "텍스트는 시스템이 그리고 이미지에는 넣지 않음"이지만 현행 쇼핑몰은 텍스트를 그리지 않아 기본은 현행 운영 모드(텍스트 합성)예요.'},
-        {t:'밝은 배경 대응', svg:'cLight', d:'밝은 배경에서는 배지 배경을 IP 키 컬러 30%, 텍스트를 IP 키 컬러로 바꾸고 WCAG AA 대비를 확인해요.'}
+        {t:'밝은 배경 대응', svg:'cLight', d:'편집 탭에서 배경색을 고르면 그라디언트가 그 색으로 맞춰지고, 밝은 배경이면 텍스트가 키 컬러(배경색을 어둡게 한 색), 배지 배경이 그 색 30%로 자동으로 바뀌어요. WCAG AA 대비도 함께 계산해요.'}
       ],
       checklist: ['핵심 비주얼이 자동 크롭 영역(상·하·좌·우 20px) 밖 세이프 영역에 있음','최대 스케일업(520px) 시 상·하 27px 크롭에도 핵심 요소가 안전함']
     }
@@ -252,9 +256,9 @@ const PRESETS = {
       title: '상품 썸네일 이미지 제작 가이드', ver: 'v1.0 · 2026.08', node: '77-3482',
       basis: '기준 1000×1000 — Figma 가이드 = 운영 일치 105/411, 2026-09 등록분 59%',
       sections: [
-        {t:'배경색', svg:'pBg', d:'#F3F3F6(RGB 243, 243, 246) 단색이에요. 이 툴에서는 고정이에요.'},
+        {t:'배경색', svg:'pBg', d:'#F3F3F6(RGB 243, 243, 246) 단색이에요. 이 툴에서는 고정이고, 배경색 변경이나 별도 편집이 필요하면 디자이너에게 요청해 주세요.'},
         {t:'이미지 영역 · 여백', svg:'pArea', d:'500×500 캔버스 가운데 320×320 영역에 상품을 넣어요. 여백은 상하좌우 90px이고, 영역 밖은 잘려요.'},
-        {t:'상품 이미지 배치', svg:'pPlace', d:'상품 핵심이 가운데 오도록 놓아요. 배경 없는 누끼 이미지와 2배 이상 원본이 필요해요.'},
+        {t:'상품 이미지 배치', svg:'pPlace', d:'상품 핵심이 가운데 오도록 놓아요. 배경 없는 누끼 이미지와 2배 이상 원본이 필요해요. 단색 배경 사진은 "자동 누끼"로 배경을 지울 수 있고, 배경이 있는 사진을 그대로 쓰면 모서리가 12px 둥글게 처리돼요.'},
         {t:'내보내기', svg:'pExport', d:'2배로 내보내 1000×1000 PNG가 돼요. 어드민은 2MB를 넘으면 다시 압축하니 2MB 이하로 내보내요.'}
       ],
       checklist: ['상품 핵심 부분이 중앙에 배치됨']
@@ -308,7 +312,8 @@ const S = {
   ident: '', identManual: false,
   format: 'png',
   text: { label:'', title:'', badge:'', ctitle:'', headline:'', sub:'' },
-  tpl: { mode:'current', light:false, key:'#1a1a1a', dim:'#000000' },
+  tpl: { mode:'current', bg:'#000000', fg:'#ffffff', fgAuto:true },   // 컬렉션·띠배너 배경/텍스트 컬러
+  imgOrig: null,                                                       // 자동 누끼 전 원본
   bg: null
 };
 const P = () => PRESETS[S.slot];
@@ -333,10 +338,44 @@ function loadImage(src, name){
 async function setImage(src, name){
   try{
     const im = await loadImage(src, name);
-    S.img = im; S.imgName = name || ''; S.imgHasAlpha = detectAlpha(im);
+    S.img = im; S.imgOrig = null; S.imgName = name || ''; S.imgHasAlpha = detectAlpha(im);
     if(!S.identManual) S.ident = slugify(name);
     S.tf = {}; fitAll(); renderPanel(); buildStage();
   }catch(e){ toast('이미지를 불러오지 못했어요 (URL은 CORS 허용 주소만 가능)'); }
+}
+/* 자동 누끼 — 가장자리에서 이어지는 단색 배경을 투명하게 만든다(브라우저 안에서만 처리).
+   배경이 단색이 아니면(사진 배경 등) 처리하지 않고 디자이너 요청을 안내한다. */
+async function autoCutout(tol=28){
+  const src=S.imgOrig||S.img, k=Math.min(1,2000/Math.max(src.naturalWidth,src.naturalHeight));
+  const W=Math.round(src.naturalWidth*k), H=Math.round(src.naturalHeight*k);
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d'); x.drawImage(src,0,0,W,H);
+  let data; try{ data=x.getImageData(0,0,W,H); }catch(e){ toast('이 이미지는 브라우저에서 편집할 수 없어요 (외부 URL)'); return false; }
+  const d=data.data, idx=(i)=>i*4;
+  // 1) 가장자리 픽셀로 배경색 추정 + 단색 여부 판단
+  const border=[]; for(let i=0;i<W;i++){ border.push(i, (H-1)*W+i); } for(let j=0;j<H;j++){ border.push(j*W, j*W+W-1); }
+  const med=ch=>{ const v=border.map(i=>d[idx(i)+ch]).sort((a,b)=>a-b); return v[v.length>>1]; };
+  const bg=[med(0),med(1),med(2)], dist=i=>Math.hypot(d[i]-bg[0],d[i+1]-bg[1],d[i+2]-bg[2]);
+  const near=border.filter(i=>dist(idx(i))<tol).length/border.length;
+  if(near<.6){ toast('배경이 단색이 아니라 자동 누끼가 어려워요. 디자이너에게 요청해 주세요.'); return false; }
+  // 2) 가장자리에서 이어지는 배경만 제거(상품 안쪽의 같은 색은 보존)
+  const seen=new Uint8Array(W*H), q=new Uint32Array(W*H); let h=0,t=0;
+  for(const i of border) if(!seen[i] && dist(idx(i))<tol){ seen[i]=1; q[t++]=i; }
+  while(h<t){ const i=q[h++], px=i%W, py=(i/W)|0;
+    for(const n of [px>0?i-1:-1, px<W-1?i+1:-1, py>0?i-W:-1, py<H-1?i+W:-1]) if(n>=0&&!seen[n]&&dist(idx(n))<tol){ seen[n]=1; q[t++]=n; } }
+  for(let i=0;i<W*H;i++) if(seen[i]) d[idx(i)+3]=0;
+  // 3) 경계 부드럽게 — 배경과 맞닿은 픽셀은 배경색과의 거리만큼 반투명
+  for(let i=0;i<W*H;i++){ if(seen[i]) continue; const px=i%W, py=(i/W)|0;
+    const edge=(px>0&&seen[i-1])||(px<W-1&&seen[i+1])||(py>0&&seen[i-W])||(py<H-1&&seen[i+W]);
+    if(edge){ const a=Math.min(1,Math.max(0,(dist(idx(i))-tol)/(tol*1.5))); d[idx(i)+3]=Math.round(d[idx(i)+3]*Math.max(a,.35)); } }
+  x.putImageData(data,0,0);
+  // 4) 투명 여백을 잘라 상품만 남김 — 320 영역 맞춤이 상품 크기 기준으로 되도록
+  let x0=W,y0=H,x1=-1,y1=-1; for(let i=0;i<W*H;i++) if(d[idx(i)+3]>10){ const px=i%W, py=(i/W)|0; if(px<x0)x0=px; if(px>x1)x1=px; if(py<y0)y0=py; if(py>y1)y1=py; }
+  let out=c; if(x1>=x0){ out=document.createElement('canvas'); out.width=x1-x0+1; out.height=y1-y0+1; out.getContext('2d').drawImage(c,x0,y0,out.width,out.height,0,0,out.width,out.height); }
+  const im=await loadImage(out.toDataURL('image/png'), S.imgName);
+  if(!S.imgOrig) S.imgOrig=S.img;
+  S.img=im; S.imgHasAlpha=true; fitAll(); renderPanel(); draw();
+  toast('단색 배경을 지웠어요. 가장자리가 어색하면 원본으로 되돌리고 디자이너에게 요청해 주세요.');
+  return true;
 }
 function detectAlpha(im){
   const c=document.createElement('canvas'); const k=Math.min(1,200/Math.max(im.naturalWidth,im.naturalHeight));
@@ -384,12 +423,22 @@ function wrap(ctx, text, maxW, maxLines){
   return {lines:out, overflow};
 }
 function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,r) : ctx.rect(x,y,w,h); }
+// 배경색에 맞는 텍스트 색 — 흰색으로 AA(4.5:1)가 나오면 흰색, 아니면 배경색을 어둡게 한 키 컬러(가이드 '밝은 배경 대응')
+function autoFg(bg){ if(ratio('#ffffff',bg)>=4.5) return '#ffffff'; const n=parseInt(bg.slice(1),16); return '#'+[16,8,0].map(k=>Math.round(((n>>k)&255)*.28).toString(16).padStart(2,'0')).join(''); }
+function tplColors(){ const bg=S.tpl.bg, fg=S.tpl.fgAuto?autoFg(bg):S.tpl.fg, white=fg.toLowerCase()==='#ffffff';
+  return {bg, fg, badgeBg:hexA(fg, white?.4:.3), sub:hexA(fg,.64)}; }
 function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
 
-function drawImageLayer(ctx, board, clip){
+const FULL_IMAGE_RADIUS = 12;   // 배경이 있는(누끼 아닌) 상품 이미지 모서리 — NDS shape.rounded.md
+function drawImageLayer(ctx, board, clip, radius){
   const t=S.tf[board.id]; if(!S.img||!t) return;
   ctx.save();
   if(clip){ ctx.beginPath(); ctx.rect(clip.x,clip.y,clip.w,clip.h); ctx.clip(); }
+  if(radius){   // 보이는 이미지 영역(이미지 ∩ 클립)의 모서리를 둥글게
+    const iw=S.img.naturalWidth*t.s, ih=S.img.naturalHeight*t.s, c=clip||{x:0,y:0,w:board.w,h:board.h};
+    const x0=Math.max(t.x,c.x), y0=Math.max(t.y,c.y), x1=Math.min(t.x+iw,c.x+c.w), y1=Math.min(t.y+ih,c.y+c.h);
+    if(x1>x0&&y1>y0){ rrect(ctx,x0,y0,x1-x0,y1-y0,radius); ctx.clip(); }
+  }
   ctx.filter=filterStr();
   ctx.drawImage(S.img, t.x, t.y, S.img.naturalWidth*t.s, S.img.naturalHeight*t.s);
   ctx.restore();
@@ -401,7 +450,7 @@ function renderBoard(ctx, board, opt){
   if(p.template){ renderTemplate(ctx, board, opt); }
   else{
     ctx.fillStyle = p.bgFixed || S.bg || p.bg || '#fff'; ctx.fillRect(0,0,w,h);
-    drawImageLayer(ctx, board, p.area || null);
+    drawImageLayer(ctx, board, p.area || null, p.area && !S.imgHasAlpha ? FULL_IMAGE_RADIUS : 0);
   }
   if(opt.system && S.slot==='main') drawMainSystem(ctx, board);
   if(opt.guides) drawGuides(ctx, board);
@@ -409,11 +458,10 @@ function renderBoard(ctx, board, opt){
 
 /* 컬렉션·띠배너 3단 레이어 템플릿 */
 function renderTemplate(ctx, board, opt){
-  const p=P(), T=p.template, {w,h}=board, light=S.tpl.light;
-  const base = light ? S.tpl.dim : '#000000';
+  const p=P(), T=p.template, {w,h}=board, col=tplColors(), base=col.bg;
   ctx.fillStyle=base; ctx.fillRect(0,0,w,h);
   drawImageLayer(ctx, board, {x:0,y:0,w:T.container,h});
-  // ② 딤 — 이미지 쪽 투명 → 텍스트 쪽 불투명
+  // ② 딤 — 배경색에 투명도만 달리해 이미지 쪽 투명 → 텍스트 쪽 불투명
   const g=ctx.createLinearGradient(0,0,w,0);
   g.addColorStop(0,hexA(base,0)); g.addColorStop(T.stops[0],hexA(base,0)); g.addColorStop(T.stops[1],hexA(base,1)); g.addColorStop(1,hexA(base,1));
   ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
@@ -423,14 +471,14 @@ function renderTemplate(ctx, board, opt){
   ctx.save();
   if(!opt.export && S.tpl.mode==='guide') ctx.globalAlpha=.55;
   ctx.__baseAlpha=ctx.globalAlpha;
-  const fg = light ? S.tpl.key : '#ffffff', ex=!!opt.export && !opt.preview;
+  const fg = col.fg, ex=!!opt.export && !opt.preview;
   if(T.kind==='collection'){
     const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r, bd=tv('badge',ex), ct=tv('ctitle',ex);
     ctx.font='600 8px '+fontFam(); const bw=ctx.measureText(bd.t).width+8, bh=bd.t?12:0;
     ctx.font='700 16px '+fontFam(); const tw=wrap(ctx,ct.t,maxW,2); const th=ct.t?tw.lines.length*16*1.3:0;
     const blockH=bh+(bh&&th?6:0)+th; let y=Math.max(T.pad.t-10,(h-blockH)/2);
     if(bd.t){
-      phAlpha(ctx,bd.ph); ctx.fillStyle = light ? hexA(S.tpl.key,.3) : 'rgba(255,255,255,.4)'; rrect(ctx,x0,y,bw,bh,4); ctx.fill();
+      phAlpha(ctx,bd.ph); ctx.fillStyle = col.badgeBg; rrect(ctx,x0,y,bw,bh,4); ctx.fill();
       ctx.fillStyle=fg; ctx.font='600 8px '+fontFam(); ctx.textBaseline='middle'; ctx.fillText(bd.t,x0+4,y+bh/2+.5); y+=bh+6;
     }
     if(ct.t){ phAlpha(ctx,ct.ph); ctx.fillStyle=fg; ctx.font='700 16px '+fontFam(); ctx.textBaseline='top'; tw.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*16*1.3+1.6)); }
@@ -441,7 +489,7 @@ function renderTemplate(ctx, board, opt){
     const hh=hd.t?hl.lines.length*12*1.1:0, blockH=hh+(hh&&sbt.t?4:0)+(sbt.t?9*1.5:0); let y=(h-blockH)/2;
     ctx.textBaseline='top';
     if(hd.t){ phAlpha(ctx,hd.ph); ctx.fillStyle=fg; ctx.font='600 12px '+fontFam(); hl.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*12*1.1)); y+=hh+4; }
-    if(sbt.t){ phAlpha(ctx,sbt.ph); ctx.font='400 9px '+fontFam(); ctx.fillStyle= light ? hexA(S.tpl.key,.64) : 'rgba(255,255,255,.64)'; ctx.fillText(sb.lines[0],x0,y+1); }
+    if(sbt.t){ phAlpha(ctx,sbt.ph); ctx.font='400 9px '+fontFam(); ctx.fillStyle= col.sub; ctx.fillText(sb.lines[0],x0,y+1); }
   }
   ctx.restore();
 }
@@ -622,7 +670,12 @@ function renderPanel(){
     const iw=S.img.naturalWidth, ih=S.img.naturalHeight;
     imgCard.append(el('div',{class:'thumb'}, el('img',{src:S.img.src,alt:''}), el('button',{class:'x',title:'이미지 제거',on:{click:()=>{S.img=null;S.tf={};renderPanel();buildStage();}}},'✕')),
       el('div',{class:'meta'}, `${S.imgName||'이미지'} · ${iw}×${ih}${S.imgHasAlpha?' · 투명 배경':''}`));
-    if(S.slot==='product' && !S.imgHasAlpha) imgCard.append(el('div',{class:'note warn'},'배경이 있는 이미지예요. 가이드는 배경 없는 누끼 이미지를 요구해요.'));
+    if(S.slot==='product'){
+      if(!S.imgHasAlpha) imgCard.append(el('div',{class:'note warn'},`배경이 있는 이미지예요. 가이드는 누끼 이미지를 요구해요. 지금은 모서리를 ${FULL_IMAGE_RADIUS}px 둥글게 처리해 보여줘요.`));
+      const cut=el('button',{class:'btn sm secondary',on:{click:async()=>{ cut.disabled=true; cut.textContent='처리 중…'; await new Promise(r=>setTimeout(r,30)); await autoCutout(); cut.disabled=false; cut.textContent='자동 누끼'; }}},'자동 누끼');
+      imgCard.append(el('div',{class:'row'}, S.imgOrig ? el('button',{class:'btn sm tertiary',on:{click:()=>{ S.img=S.imgOrig; S.imgOrig=null; S.imgHasAlpha=detectAlpha(S.img); fitAll(); renderPanel(); draw(); }}},'원본으로 되돌리기') : (!S.imgHasAlpha?cut:null),
+        el('span',{class:'meta'}, S.imgOrig?'자동 누끼 적용됨':'단색 배경만 지원해요')));
+    }
     imgCard.append(el('div',{class:'row'},
       el('button',{class:'btn sm outlined',on:{click:()=>{fitAll(p.area?'contain-area':(p.fit==='cover-top'?'cover-top':'cover-center'));draw();}}},'맞춤'),
       p.area?el('button',{class:'btn sm outlined',on:{click:()=>{fitAll('cover-area');draw();}}},'영역 채우기'):el('button',{class:'btn sm outlined',on:{click:()=>{fitAll('contain-center');draw();}}},'전체 보이기'),
@@ -638,7 +691,8 @@ function renderPanel(){
 
   // 배경색 (상품 썸네일은 고정)
   if(!p.template){
-    if(p.bgFixed) ed.append(card('배경색', el('div',{class:'row'}, el('span',{style:`width:28px;height:28px;border-radius:6px;background:${p.bgFixed};border:1px solid var(--color-border-neutral)`}), el('span',{class:'meta'},`${p.bgFixed} 고정 (가이드)`))));
+    if(p.bgFixed) ed.append(card('배경색', el('div',{class:'row'}, el('span',{style:`width:28px;height:28px;border-radius:6px;background:${p.bgFixed};border:1px solid var(--color-border-neutral)`}), el('span',{class:'meta'},`${p.bgFixed} 고정 (가이드)`)),
+      el('div',{class:'note'},'배경색 변경이나 누끼·합성·보정 같은 별도 편집이 필요하면 디자이너에게 요청해 주세요.')));
     else { const c=el('input',{type:'color',value:S.bg||p.bg}); c.addEventListener('input',()=>{S.bg=c.value;draw();}); ed.append(card(['배경색',el('small',{},'이미지가 비는 영역')], el('div',{class:'row'},c,el('span',{class:'meta'},'이미지가 화면을 다 덮으면 보이지 않아요')))); }
   }
 
@@ -656,14 +710,19 @@ function renderPanel(){
     ed.append(modeCard);
     if(T.kind==='collection') ed.append(card('텍스트', textField('배지','badge'), textField('타이틀','ctitle',{area:true})));
     else ed.append(card('텍스트', textField('헤드라인','headline'), textField('서브타이틀','sub')));
-    const lightChk=el('input',{type:'checkbox'}); lightChk.checked=S.tpl.light; lightChk.addEventListener('change',()=>{S.tpl.light=lightChk.checked; if(S.tpl.light&&S.tpl.dim==='#000000') S.tpl.dim='#f3eadb'; renderPanel();draw();});
-    const ipCard=card('밝은 배경 · IP 키 컬러', el('label',{class:'check'},lightChk,'밝은 배경 대응 사용'));
-    if(S.tpl.light){
-      const k=el('input',{type:'color',value:S.tpl.key}), d=el('input',{type:'color',value:S.tpl.dim});
-      k.addEventListener('input',()=>{S.tpl.key=k.value;draw();renderContrast();}); d.addEventListener('input',()=>{S.tpl.dim=d.value;draw();renderContrast();});
-      ipCard.append(el('div',{class:'row'}, el('div',{class:'field',style:'flex:1'},el('label',{},'IP 키 컬러 (텍스트)'),k), el('div',{class:'field',style:'flex:1'},el('label',{},'딤·배경 컬러'),d)));
-    }
-    ipCard.append(el('div',{id:'contrast',class:'note'})); ed.append(ipCard); setTimeout(renderContrast);
+    const setBg=v=>{ S.tpl.bg=v; renderPanel(); draw(); };
+    const bgIn=el('input',{type:'color',value:S.tpl.bg,title:'직접 선택'}); bgIn.addEventListener('input',()=>{ S.tpl.bg=bgIn.value; draw(); renderContrast(); syncFg(); });
+    const sw=el('div',{class:'swatches'}, BG_SWATCHES.map(([v,n])=>el('button',{class:'sw','aria-pressed':String(S.tpl.bg.toLowerCase()===v),title:n,style:`background:${v}`,on:{click:()=>setBg(v)}})), bgIn);
+    const fgAuto=el('input',{type:'checkbox',id:'fg-auto'}); fgAuto.checked=S.tpl.fgAuto;
+    const fgIn=el('input',{type:'color',value:tplColors().fg,disabled:S.tpl.fgAuto});
+    const syncFg=()=>{ if(S.tpl.fgAuto) fgIn.value=tplColors().fg; };
+    fgAuto.addEventListener('change',()=>{ S.tpl.fgAuto=fgAuto.checked; if(!fgAuto.checked) S.tpl.fg=fgIn.value; fgIn.disabled=fgAuto.checked; syncFg(); draw(); renderContrast(); });
+    fgIn.addEventListener('input',()=>{ S.tpl.fg=fgIn.value; draw(); renderContrast(); });
+    ed.append(card(['컬러',el('small',{},'그라디언트는 배경색에 맞춰 자동 적용')],
+      el('div',{class:'field'}, el('label',{},'배경'), sw),
+      el('div',{class:'field'}, el('label',{},'텍스트'), el('div',{class:'row'}, el('label',{class:'check',for:'fg-auto'},fgAuto,'배경에 맞춰 자동'), el('span',{class:'grow',style:'flex:1'}), fgIn)),
+      el('div',{class:'meta'},'밝은 배경이면 텍스트가 배경색을 어둡게 한 키 컬러로 바뀌어요(가이드 밝은 배경 대응).'),
+      el('div',{id:'contrast',class:'note'}))); setTimeout(renderContrast);
   }
 
   renderToggles();
@@ -678,6 +737,7 @@ function renderPanel(){
   ed.append(fileCard);
   renderFooter();
 }
+const BG_SWATCHES = [['#000000','블랙'],['#171c24','NDS gray 950'],['#1a318b','NDS brand strongest'],['#f3eadb','베이지'],['#ffffff','화이트']];
 function renderToggles(){
   const t=$('#toggles'); t.innerHTML='';
   const g=el('input',{type:'checkbox',id:'tg-guide'}); g.checked=S.guides; g.addEventListener('change',()=>{S.guides=g.checked;draw();});
@@ -820,10 +880,10 @@ function ratio(a,b){ const x=lum(a),y=lum(b); return (Math.max(x,y)+.05)/(Math.m
 function blend(fg,a,bg){ const f=parseInt(fg.slice(1),16),b=parseInt(bg.slice(1),16); const m=s=>Math.round(((f>>s)&255)*a+((b>>s)&255)*(1-a)); return '#'+[16,8,0].map(s=>m(s).toString(16).padStart(2,'0')).join(''); }
 function contrastChecks(){
   const T=P().template; if(!T) return [];
-  const base=S.tpl.light?S.tpl.dim:'#000000', fg=S.tpl.light?S.tpl.key:'#ffffff', out=[];
+  const col=tplColors(), base=col.bg, fg=col.fg, white=fg.toLowerCase()==='#ffffff', out=[];
   if(T.kind==='collection'){
     out.push({name:'타이틀', ratio:ratio(fg,base)});
-    const badgeBg=S.tpl.light?blend(S.tpl.key,.3,base):blend('#ffffff',.4,base); out.push({name:'배지', ratio:ratio(fg,badgeBg)});
+    const badgeBg=blend(fg, white?.4:.3, base); out.push({name:'배지', ratio:ratio(fg,badgeBg)});
   }else{
     out.push({name:'헤드라인', ratio:ratio(fg,base)});
     out.push({name:'서브타이틀', ratio:ratio(blend(fg,.64,base),base)});
