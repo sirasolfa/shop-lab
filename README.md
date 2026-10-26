@@ -8,7 +8,7 @@ NOVERA shop 관련 코드를 모아 두는 저장소입니다.
 | | |
 |---|---|
 | 프로토타입 | [`mobile-home/`](mobile-home) — 빌드하면 에셋까지 인라인된 **단일 HTML** 하나가 나옵니다 |
-| 이미지 빌더 | [`image-builder/`](image-builder) — 운영 이미지(배너·컬렉션·상품·아티스트)를 기준 사이즈대로 만드는 사내 툴 프로토타입 |
+| 이미지 빌더 | [`image-builder/`](image-builder) — 운영 이미지(배너·컬렉션·상품·아티스트)를 기준 사이즈대로 만드는 사내 툴 |
 | 디자인 시스템 문서 | [`sirasolfa/design-system`](https://github.com/sirasolfa/design-system) — NDS 토큰·컴포넌트·패턴 |
 | 배포 | Vercel — [`vercel.json`](vercel.json) |
 
