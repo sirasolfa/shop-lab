@@ -69,6 +69,7 @@ textarea.input{height:auto;padding:10px 12px;resize:vertical;line-height:1.4}
 .btn.tertiary{background:var(--color-bg-muted);color:var(--color-text-secondary)}
 .btn.outlined{background:#fff;border:1px solid var(--color-border-neutral);color:var(--color-text-secondary)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
+a.btn{text-decoration:none}
 .drop{border:1.5px dashed var(--color-border-strong);border-radius:var(--rounded-sm);padding:14px;text-align:center;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;background:var(--color-bg-subtle)}
 .drop.over{border-color:var(--brand-default);background:var(--icon-brand-bg)}
 .thumb{position:relative;border-radius:var(--rounded-sm);overflow:hidden;background:var(--color-bg-muted);height:92px;display:flex;align-items:center;justify-content:center}
@@ -173,6 +174,18 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
  * 단위: @1x(px). 출력은 scale 배.
  * ======================================================= */
 const FIGMA = 'https://www.figma.com/design/9yy6efhw9T0OTUYmt4HNTy/?node-id=';
+/* 어드민 연동 — 보안상 API로 업로드하지 않고 등록 화면 링크만 연다. 업로드는 사용자가 직접. */
+const ADMIN = 'https://shop-admin.novera.town';
+const ADMIN_PAGES = {
+  main:       {path:'/settings/banners/create', menu:'배너관리 › 등록', steps:['구분: 메인 선택','모바일 칸 ← _MO_750x640 파일','PC 칸 ← _PC_1040x560 파일 (비우면 PC에서도 모바일 이미지가 잘려 보여요)','subTitle · headline에 미리보기에서 쓴 Label · Title 입력']},
+  collection: {path:'/events/exhibitions/create', menu:'기획전관리 › 등록', steps:['썸네일 모바일 칸 ← _MO_750x280 파일','썸네일 PC 칸은 프론트에서 쓰이지 않아요 (필수라면 같은 파일)']},
+  strip:      {path:'/settings/banners/create', menu:'배너관리 › 등록', steps:['구분: 띠배너 선택','모바일 칸 ← _MO_750x120 파일','PC 칸은 띠배너에서 쓰이지 않아요']},
+  product:    {path:'/products/create', menu:'상품등록', steps:['이미지 탭 › 대표(또는 추가) 이미지 ← 1000x1000 PNG']},
+  artist:     {path:'/products/brands/create', menu:'아티스트 관리 › 등록', steps:['아티스트 이미지 칸 ← 1000x1000 파일']},
+  detail:     {path:'/products/create', menu:'상품등록 › 상세설명', steps:['상세설명 에디터에 _01, _02 … 순서대로 업로드'], alt:{exhibition:{path:'/events/exhibitions/create', menu:'기획전관리 › 본문', steps:['본문 에디터에 _01, _02 … 순서대로 업로드']}}}
+};
+function adminPage(){ const a=ADMIN_PAGES[S.slot]; if(S.slot==='detail'&&S.detailKind==='exhibition') return a.alt.exhibition; return a; }
+function adminLink(cls){ const a=adminPage(); return el('a',{class:cls||'btn outlined',href:ADMIN+a.path,target:'_blank',rel:'noopener noreferrer'},`어드민 ${a.menu} 열기 ↗`); }
 const PRESETS = {
   main: {
     name: '메인 배너', key: 'main-banner', scale: 2, formats: ['png','jpg'], limitMB: 10,
@@ -676,12 +689,13 @@ function renderGuide(gd){
 }
 function renderFooter(){
   const p=P(), f=$('#footer'); f.innerHTML='';
-  if(p.detail){ f.append(el('button',{class:'btn primary',disabled:!S.slices.length,on:{click:exportDetail}},`ZIP 다운로드 (${S.slices.length}장)`)); return; }
+  if(p.detail){ f.append(el('button',{class:'btn primary',disabled:!S.slices.length,on:{click:exportDetail}},`ZIP 다운로드 (${S.slices.length}장)`), adminLink()); return; }
   const dis=!S.img;
   if(p.boards.length>1){
     f.append(el('button',{class:'btn primary',disabled:dis,on:{click:()=>openChecklist(p.boards)}},'ZIP 다운로드 (모바일 + PC)'),
       el('div',{class:'row'}, p.boards.map(b=>el('button',{class:'btn outlined',disabled:dis,on:{click:()=>openChecklist([b])}},`${b.id==='MO'?'모바일':'PC'}만 다운로드`))));
   }else f.append(el('button',{class:'btn primary',disabled:dis,on:{click:()=>openChecklist(p.boards)}},`다운로드 (${p.boards[0].w*p.scale}×${p.boards[0].h*p.scale})`));
+  f.append(adminLink());
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{S.tab=b.dataset.tab;renderPanel();}));
 
@@ -771,7 +785,7 @@ async function doExport(boards){
   }
   if(files.length===1) download(files[0].blob, files[0].name);
   else{ const z=new JSZip(); files.forEach(f=>z.file(f.name,f.blob)); download(await z.generateAsync({type:'blob'}), `${p.key}_${S.ident||'untitled'}_${yymmdd()}.zip`); }
-  toast(files.map(f=>`${f.name} (${(f.blob.size/1024).toFixed(0)}KB)`).join(' · '));
+  openDone(files.map(f=>({name:f.name,size:f.blob.size})));
 }
 function download(blob,name){ const a=el('a',{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); }
 
@@ -815,6 +829,16 @@ async function exportDetail(){
   const pre=S.detailKind==='product'?'product-detail':'exhibition-detail', z=new JSZip();
   S.slices.forEach((s,i)=>z.file(`${pre}_${S.ident||'untitled'}_${String(i+1).padStart(2,'0')}_${s.w}x${s.h}_${yymmdd()}.${S.detailFmt}`, s.blob));
   download(await z.generateAsync({type:'blob'}), `${pre}_${S.ident||'untitled'}_${yymmdd()}.zip`);
+  openDone(S.slices.map((s,i)=>({name:`${pre}_${S.ident||'untitled'}_${String(i+1).padStart(2,'0')}_${s.w}x${s.h}_${yymmdd()}.${S.detailFmt}`, size:s.blob.size})));
+}
+function openDone(files){
+  const a=adminPage(), dlg=$('#dlg'), body=$('#dlgBody'); body.innerHTML='';
+  body.append(el('h2',{},'다운로드했어요'),
+    el('div',{class:'cl'}, el('div',{class:'grp'},'내려받은 파일'), files.map(f=>el('div',{class:'it'}, el('span',{class:'ic ok'},'✓'), el('div',{}, f.name, el('small',{},`${(f.size/1024).toFixed(0)}KB`)))),
+      el('div',{class:'grp'},`어드민 ${a.menu}에서 직접 올려 주세요`), a.steps.map((t,i)=>el('div',{class:'it'}, el('span',{class:'ic mn'},String(i+1)), el('div',{},t)))),
+    el('div',{class:'note'},'보안을 위해 이 툴은 어드민에 접속하거나 로그인 정보를 다루지 않아요. 링크로 등록 화면만 열어요.'),
+    el('div',{class:'row'}, el('button',{class:'btn tertiary',on:{click:()=>dlg.close()}},'닫기'), adminLink('btn primary')));
+  dlg.showModal();
 }
 
 /* ===================== 시작 ====================== */
