@@ -13,8 +13,10 @@ python3 -m http.server 8000   # 저장소 루트에서
 
 ### 배포
 
-- **단독 프로젝트(권장)**: Vercel에서 이 저장소로 새 프로젝트를 만들고 **Root Directory = `image-builder`** 로 지정하면 `image-builder/vercel.json` 설정으로 빌드 없이 정적 배포됩니다(예: `novera-image-builder.vercel.app`). `audit/`·`README.md` 는 `.vercelignore` 로 제외됩니다.
-- 기존 `novera-shop-proto` 프로젝트에서는 `/image-builder/` 경로로도 열립니다(루트 `vercel.json` 이 함께 복사). 브랜치 프리뷰는 Vercel 로그인이 필요합니다.
+Vercel 프로젝트 **`shop-internal`** 에서 배포합니다(Root Directory = `image-builder`). `image-builder/vercel.json` 설정으로 빌드 없이 정적 배포되고, `audit/`·`README.md` 는 `.vercelignore` 로 제외됩니다.
+
+- 주소: https://shop-internal-sirasolfa-projects.vercel.app (Vercel 로그인 필요)
+- 브랜치·PR마다 프리뷰 주소가 따로 생깁니다. `novera-shop-proto`(모바일 홈 프로토타입) 배포에는 더 이상 포함되지 않습니다.
 
 ## 슬롯과 기준 사이즈
 
