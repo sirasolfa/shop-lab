@@ -302,13 +302,19 @@ const S = {
   guides: true, system: true,
   ident: '', identManual: false,
   format: 'png',
-  text: { label:'WELCOME COUPON', title:'회원가입만 하면\n전상품 1,000원 즉시 할인!',
-          badge:'COLLECTION', ctitle:'도영 CONCERT [Yours]\nCOLLECTION',
-          headline:'SBS <인생은 오디션> TOP5 콘서트', sub:'10월 9일, 무대의 감동을 다시 한번! 예매 바로가기 >' },
+  text: { label:'', title:'', badge:'', ctitle:'', headline:'', sub:'' },
   tpl: { mode:'current', light:false, key:'#1a1a1a', dim:'#000000' },
   bg: null
 };
 const P = () => PRESETS[S.slot];
+/* 텍스트 입력 전 플레이스홀더 — 입력칸과 미리보기에 같이 쓰고, 내보내기에는 넣지 않는다 */
+const PH = {
+  label:'서브타이틀 최대 한 줄이에요', title:'헤드라인 최대 두 줄이에요',
+  badge:'배지 최대 한 줄이에요', ctitle:'타이틀 최대 두 줄이에요',
+  headline:'헤드라인 최대 두 줄이에요', sub:'서브타이틀 최대 한 줄이에요'
+};
+function tv(key, exp){ const v=S.text[key]; return v ? {t:v, ph:false} : exp ? {t:'', ph:false} : {t:PH[key], ph:true}; }
+function phAlpha(ctx, on){ ctx.globalAlpha = on ? ctx.__baseAlpha*.45 : ctx.__baseAlpha; }
 const $ = s => document.querySelector(s);
 const el = (tag, attrs={}, ...kids) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(attrs)){ if(k==='on') for(const [ev,fn] of Object.entries(v)) e.addEventListener(ev,fn); else if(k==='html') e.innerHTML=v; else if(v!==false&&v!=null) e.setAttribute(k,v===true?'':v);} for(const k of kids.flat()) if(k!=null) e.append(k.nodeType?k:document.createTextNode(k)); return e; };
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2200); }
@@ -408,24 +414,26 @@ function renderTemplate(ctx, board, opt){
   if(!showText) return;
   ctx.save();
   if(!opt.export && S.tpl.mode==='guide') ctx.globalAlpha=.55;
-  const fg = light ? S.tpl.key : '#ffffff';
+  ctx.__baseAlpha=ctx.globalAlpha;
+  const fg = light ? S.tpl.key : '#ffffff', ex=!!opt.export;
   if(T.kind==='collection'){
-    const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r;
-    ctx.font='600 8px '+fontFam(); const bw=ctx.measureText(S.text.badge).width+8, bh=12;
-    ctx.font='700 16px '+fontFam(); const tw=wrap(ctx,S.text.ctitle,maxW,2); const th=tw.lines.length*16*1.3;
-    const blockH=bh+6+th; let y=Math.max(T.pad.t-10,(h-blockH)/2);
-    ctx.fillStyle = light ? hexA(S.tpl.key,.3) : 'rgba(255,255,255,.4)'; rrect(ctx,x0,y,bw,bh,4); ctx.fill();
-    ctx.fillStyle=fg; ctx.font='600 8px '+fontFam(); ctx.textBaseline='middle'; ctx.fillText(S.text.badge,x0+4,y+bh/2+.5);
-    ctx.font='700 16px '+fontFam(); ctx.textBaseline='top'; y+=bh+6;
-    tw.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*16*1.3+1.6));
+    const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r, bd=tv('badge',ex), ct=tv('ctitle',ex);
+    ctx.font='600 8px '+fontFam(); const bw=ctx.measureText(bd.t).width+8, bh=bd.t?12:0;
+    ctx.font='700 16px '+fontFam(); const tw=wrap(ctx,ct.t,maxW,2); const th=ct.t?tw.lines.length*16*1.3:0;
+    const blockH=bh+(bh&&th?6:0)+th; let y=Math.max(T.pad.t-10,(h-blockH)/2);
+    if(bd.t){
+      phAlpha(ctx,bd.ph); ctx.fillStyle = light ? hexA(S.tpl.key,.3) : 'rgba(255,255,255,.4)'; rrect(ctx,x0,y,bw,bh,4); ctx.fill();
+      ctx.fillStyle=fg; ctx.font='600 8px '+fontFam(); ctx.textBaseline='middle'; ctx.fillText(bd.t,x0+4,y+bh/2+.5); y+=bh+6;
+    }
+    if(ct.t){ phAlpha(ctx,ct.ph); ctx.fillStyle=fg; ctx.font='700 16px '+fontFam(); ctx.textBaseline='top'; tw.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*16*1.3+1.6)); }
   }else{
-    const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r;
-    ctx.font='600 12px '+fontFam(); const hl=wrap(ctx,S.text.headline,maxW,2);
-    ctx.font='400 9px '+fontFam(); const sb=wrap(ctx,S.text.sub,maxW,1);
-    const blockH=hl.lines.length*12*1.1+4+(S.text.sub?9*1.5:0); let y=(h-blockH)/2;
-    ctx.textBaseline='top'; ctx.fillStyle=fg; ctx.font='600 12px '+fontFam();
-    hl.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*12*1.1)); y+=hl.lines.length*12*1.1+4;
-    if(S.text.sub){ ctx.font='400 9px '+fontFam(); ctx.fillStyle= light ? hexA(S.tpl.key,.64) : 'rgba(255,255,255,.64)'; ctx.fillText(sb.lines[0],x0,y+1); }
+    const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r, hd=tv('headline',ex), sbt=tv('sub',ex);
+    ctx.font='600 12px '+fontFam(); const hl=wrap(ctx,hd.t,maxW,2);
+    ctx.font='400 9px '+fontFam(); const sb=wrap(ctx,sbt.t,maxW,1);
+    const hh=hd.t?hl.lines.length*12*1.1:0, blockH=hh+(hh&&sbt.t?4:0)+(sbt.t?9*1.5:0); let y=(h-blockH)/2;
+    ctx.textBaseline='top';
+    if(hd.t){ phAlpha(ctx,hd.ph); ctx.fillStyle=fg; ctx.font='600 12px '+fontFam(); hl.lines.forEach((l,i)=>ctx.fillText(l,x0,y+i*12*1.1)); y+=hh+4; }
+    if(sbt.t){ phAlpha(ctx,sbt.ph); ctx.font='400 9px '+fontFam(); ctx.fillStyle= light ? hexA(S.tpl.key,.64) : 'rgba(255,255,255,.64)'; ctx.fillText(sb.lines[0],x0,y+1); }
   }
   ctx.restore();
 }
@@ -436,12 +444,14 @@ function drawMainSystem(ctx, board){
   const g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(.5,'rgba(0,0,0,.16)'); g.addColorStop(1,'rgba(0,0,0,.64)');
   ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
   const maxW=w-A.l-A.r;
-  ctx.font='700 20px '+fontFam(); const tt=wrap(ctx,S.text.title,maxW,2);
-  const titleH=tt.lines.length*20*1.3, labelH=S.text.label?12*1.5:0;
-  let y=h-A.b-titleH-(labelH?labelH+6:0);
+  const lb=tv('label'), ti=tv('title'); ctx.__baseAlpha=1;
+  ctx.font='700 20px '+fontFam(); const tt=wrap(ctx,ti.t,maxW,2);
+  const titleH=tt.lines.length*20*1.3, labelH=12*1.5;
+  let y=h-A.b-titleH-labelH-6;
   ctx.textBaseline='top';
-  if(S.text.label){ ctx.font='600 12px '+fontFam(); ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillText(S.text.label,A.l,y+3); y+=labelH+6; }
-  ctx.font='700 20px '+fontFam(); ctx.fillStyle='#fff'; tt.lines.forEach((l,i)=>ctx.fillText(l,A.l,y+i*26+3));
+  phAlpha(ctx,lb.ph); ctx.font='600 12px '+fontFam(); ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillText(lb.t,A.l,y+3); y+=labelH+6;
+  phAlpha(ctx,ti.ph); ctx.font='700 20px '+fontFam(); ctx.fillStyle='#fff'; tt.lines.forEach((l,i)=>ctx.fillText(l,A.l,y+i*26+3));
+  phAlpha(ctx,false);
   ctx.font='600 11px '+fontFam(); ctx.textAlign='right'; ctx.textBaseline='bottom';
   ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillText('/ 03', w-A.pag.r, h-A.pag.b);
   const sw=ctx.measureText(' / 03').width; ctx.fillStyle='#fff'; ctx.fillText('01', w-A.pag.r-sw, h-A.pag.b);
@@ -570,7 +580,7 @@ function switchSlot(k){
 function card(title, ...kids){ return el('div',{class:'card'}, el('h3',{}, ...[].concat(title)), ...kids); }
 function seg(opts, val, onPick){ return el('div',{class:'seg'}, opts.map(([v,l])=>el('button',{'aria-pressed':String(val===v),on:{click:()=>{onPick(v);}}},l))); }
 function textField(lbl, key, opts={}){
-  const isArea=opts.area; const inp=el(isArea?'textarea':'input',{class:'input',rows:isArea?2:false,value:isArea?false:S.text[key]});
+  const isArea=opts.area; const inp=el(isArea?'textarea':'input',{class:'input',rows:isArea?2:false,value:isArea?false:S.text[key],placeholder:PH[key]});
   if(isArea) inp.value=S.text[key];
   const cnt=el('div',{class:'counter'});
   const upd=()=>{ if(opts.counter){ const r=opts.counter(S.text[key]); cnt.textContent=r.text; cnt.classList.toggle('over',!r.ok);} };
@@ -727,6 +737,7 @@ function autoChecks(boards){
   }
   if(S.slot==='main'){
     const l=mainLabelCounter(S.text.label), ti=mainTitleCounter(S.text.title);
+    out.push({ok:!!S.text.label&&!!S.text.title, t:'Label · Title 입력', d:S.text.label&&S.text.title?'':'플레이스홀더만 있어요 — 어드민 subTitle · headline 칸에 넣을 문구를 입력해 주세요'});
     out.push({ok:l.ok, t:'Label 1줄 · 20자 이내', d:l.text}); out.push({ok:ti.ok, t:'Title 2줄 · 줄당 15자 · 총 30자 이내', d:ti.text});
   }
   if(p.template){
@@ -734,6 +745,8 @@ function autoChecks(boards){
     if(T.kind==='collection'){ c.font='700 16px '+fontFam(); const r=wrap(c,S.text.ctitle,maxW,2); out.push({ok:!r.overflow, t:'Collection Title 2줄 이내', d:r.overflow?'2줄을 넘어 잘려요':''}); }
     else{ c.font='600 12px '+fontFam(); const r=wrap(c,S.text.headline,maxW,2); c.font='400 9px '+fontFam(); const s=wrap(c,S.text.sub,maxW,1);
       out.push({ok:!r.overflow, t:'Headline 최대 2줄', d:r.overflow?'2줄을 넘어 잘려요':''}); out.push({ok:!s.overflow, t:'Subtitle 1줄', d:s.overflow?'1줄을 넘어 잘려요':''}); }
+    if(S.tpl.mode==='current'){ const need=T.kind==='collection'?['ctitle']:['headline']; const miss=need.filter(k=>!S.text[k]);
+      out.push({ok:!miss.length, t:'텍스트 입력', d:miss.length?'플레이스홀더만 있어요 — 내보내면 텍스트 없이 저장돼요':''}); }
     if(S.tpl.mode==='current') for(const r of contrastChecks()) out.push({ok:r.ok, t:`${r.name} 대비 WCAG AA`, d:`${r.ratio.toFixed(2)}:1`});
   }
   return out;
