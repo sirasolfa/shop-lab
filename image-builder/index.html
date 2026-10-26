@@ -20,68 +20,67 @@
   --gap-4:4px; --gap-6:6px; --gap-8:8px; --gap-12:12px; --gap-16:16px; --gap-20:20px; --gap-24:24px; --gap-32:32px;
   --spacing-3xs:8px; --spacing-2xs:12px; --spacing-xs:16px; --spacing-md:20px; --spacing-lg:24px; --spacing-xl:28px; --spacing-2xl:32px;
   --font:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;
-  --panel-w:380px;
+  --panel-w:400px;
 }
 *{box-sizing:border-box;margin:0}
 [hidden]{display:none!important}
 html,body{height:100%}
 body{font-family:var(--font);color:var(--color-text-primary);background:var(--color-bg-default);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-.app{display:grid;grid-template-rows:56px 1fr;height:100vh}
+.app{display:grid;grid-template-rows:60px 1fr;height:100vh}
 
 /* Header */
-.hd{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--gap-24);padding:0 var(--spacing-lg);border-bottom:1px solid var(--color-border-default)}
-.hd h1{justify-self:start}
-.hd h1{display:flex;align-items:center;gap:var(--gap-8);font-size:16px;font-weight:700;white-space:nowrap}
+.hd{display:flex;align-items:center;gap:var(--gap-32);padding:0 var(--spacing-lg);border-bottom:1px solid var(--color-border-default)}
+.hd h1{display:flex;align-items:center;gap:var(--gap-8);font-size:17px;font-weight:700;white-space:nowrap}
 .hd h1 .logo{display:block;height:20px;width:auto}
 .hd h1 .div{width:1px;height:14px;background:var(--color-border-neutral)}
 .slots{display:flex;gap:2px;background:var(--color-bg-muted);padding:3px;border-radius:var(--rounded-sm);overflow-x:auto}
-.slots button{border:0;background:transparent;height:30px;padding:0 14px;border-radius:var(--rounded-xs);font-size:13px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer;white-space:nowrap}
+.slots button{border:0;background:transparent;height:34px;padding:0 16px;border-radius:var(--rounded-xs);font-size:14px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer;white-space:nowrap}
 .slots button[aria-pressed=true]{background:#fff;color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 
 /* Body */
 .bd{display:grid;grid-template-columns:var(--panel-w) 1fr;min-height:0}
 .panel{display:flex;flex-direction:column;border-right:1px solid var(--color-border-default);min-height:0;background:var(--color-bg-subtle)}
 .tabs{display:flex;padding:0 var(--spacing-xs);border-bottom:1px solid var(--color-border-default);background:#fff}
-.tabs button{flex:1;border:0;background:none;height:44px;font-size:14px;font-weight:600;color:var(--color-text-muted);border-bottom:2px solid transparent;cursor:pointer}
+.tabs button{flex:1;border:0;background:none;height:48px;font-size:15px;font-weight:600;color:var(--color-text-muted);border-bottom:2px solid transparent;cursor:pointer}
 .tabs button[aria-selected=true]{color:var(--color-text-primary);border-color:var(--color-text-primary)}
 .scroll{flex:1;overflow:auto;padding:var(--spacing-xs);display:flex;flex-direction:column;gap:var(--gap-12)}
 .card{background:#fff;border:1px solid var(--color-border-default);border-radius:var(--rounded-md);padding:var(--spacing-xs);display:flex;flex-direction:column;gap:var(--gap-12)}
-.card h3{font-size:13px;font-weight:600;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px}
-.card h3 small{font-weight:400;color:var(--color-text-muted);font-size:11px}
+.card h3{font-size:14px;font-weight:600;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px}
+.card h3 small{font-weight:400;color:var(--color-text-muted);font-size:12px}
 .card h3 .grow{flex:1}
 .seg{display:flex;background:var(--color-bg-muted);border-radius:var(--rounded-sm);padding:3px;gap:2px}
-.seg button{flex:1;border:0;background:none;height:32px;border-radius:var(--rounded-xs);font-size:13px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer}
+.seg button{flex:1;border:0;background:none;height:36px;border-radius:var(--rounded-xs);font-size:14px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer}
 .seg button[aria-pressed=true]{background:#fff;color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .chips{display:flex;gap:var(--gap-8);flex-wrap:wrap}
-.chip{border:1px solid var(--color-border-neutral);background:#fff;height:32px;padding:0 14px;border-radius:var(--rounded-full);font-size:13px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer}
+.chip{border:1px solid var(--color-border-neutral);background:#fff;height:34px;padding:0 16px;border-radius:var(--rounded-full);font-size:14px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer}
 .chip[aria-pressed=true]{border-color:var(--brand-default);background:var(--icon-brand-bg);color:var(--brand-default)}
 .row{display:flex;gap:var(--gap-8);align-items:center}
 .field{display:flex;flex-direction:column;gap:6px}
-.field label,.lbl{font-size:12px;font-weight:600;color:var(--color-text-tertiary)}
-.input,select.input,textarea.input{height:40px;border:1px solid var(--color-border-neutral);border-radius:var(--rounded-sm);padding:0 12px;font-size:13px;background:#fff;width:100%;min-width:0}
+.field label,.lbl{font-size:13px;font-weight:600;color:var(--color-text-tertiary)}
+.input,select.input,textarea.input{height:44px;border:1px solid var(--color-border-neutral);border-radius:var(--rounded-sm);padding:0 12px;font-size:14px;background:#fff;width:100%;min-width:0}
 textarea.input{height:auto;padding:10px 12px;resize:vertical;line-height:1.4}
 .input:focus{outline:2px solid var(--brand-default);outline-offset:-1px}
-.counter{font-size:11px;color:var(--color-text-muted);text-align:right}
+.counter{font-size:12px;color:var(--color-text-muted);text-align:right}
 .counter.over{color:var(--status-negative);font-weight:600}
-.btn{height:44px;border:0;border-radius:var(--rounded-sm);font-size:14px;font-weight:600;cursor:pointer;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.btn.sm{height:32px;font-size:12px;padding:0 12px}
+.btn{height:44px;border:0;border-radius:var(--rounded-sm);font-size:15px;font-weight:600;cursor:pointer;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.sm{height:32px;font-size:13px;padding:0 12px}
 .btn.primary{background:var(--brand-default);color:#fff}
 .btn.secondary{background:var(--color-bg-inverse);color:#fff}
 .btn.tertiary{background:var(--color-bg-muted);color:var(--color-text-secondary)}
 .btn.outlined{background:#fff;border:1px solid var(--color-border-neutral);color:var(--color-text-secondary)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 a.btn{text-decoration:none}
-.drop{border:1.5px dashed var(--color-border-strong);border-radius:var(--rounded-sm);padding:14px;text-align:center;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;background:var(--color-bg-subtle)}
+.drop{border:1.5px dashed var(--color-border-strong);border-radius:var(--rounded-sm);padding:14px;text-align:center;font-size:13px;color:var(--color-text-tertiary);cursor:pointer;background:var(--color-bg-subtle)}
 .drop.over{border-color:var(--brand-default);background:var(--icon-brand-bg)}
-.thumb{position:relative;border-radius:var(--rounded-sm);overflow:hidden;background:var(--color-bg-muted);height:92px;display:flex;align-items:center;justify-content:center}
+.thumb{position:relative;border-radius:var(--rounded-sm);overflow:hidden;background:var(--color-bg-muted);height:100px;display:flex;align-items:center;justify-content:center}
 .thumb img{max-width:100%;max-height:100%}
 .thumb .x{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
-.meta{font-size:11px;color:var(--color-text-muted)}
+.meta{font-size:12px;color:var(--color-text-muted)}
 .adj{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.adj label{white-space:nowrap;display:flex;align-items:center;gap:4px;border:1px solid var(--color-border-neutral);border-radius:var(--rounded-sm);height:36px;padding:0 8px;font-size:11px;color:var(--color-text-muted);background:#fff}
-.adj input{width:100%;border:0;text-align:right;font-weight:600;font-size:12px;color:var(--color-text-primary);min-width:0}
-.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--color-text-secondary);cursor:pointer}
+.adj label{white-space:nowrap;display:flex;align-items:center;gap:4px;border:1px solid var(--color-border-neutral);border-radius:var(--rounded-sm);height:40px;padding:0 10px;font-size:12px;color:var(--color-text-muted);background:#fff}
+.adj input{width:100%;border:0;text-align:right;font-weight:600;font-size:13px;color:var(--color-text-primary);min-width:0}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--color-text-secondary);cursor:pointer}
 /* NDS Checkbox — └ Checkbox-atomic type=box size=lg (Figma 358:1954) */
 input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:none;width:20px;height:20px;margin:0;border:1px solid var(--color-border-neutral);border-radius:var(--rounded-xs);background:var(--color-bg-default) center/11.67px 7.92px no-repeat;cursor:pointer}
 input[type=checkbox]:hover{border-color:var(--color-border-focus)}
@@ -89,51 +88,62 @@ input[type=checkbox]:checked{border-color:transparent;background-color:var(--col
 input[type=checkbox]:disabled{cursor:not-allowed;background-color:var(--color-bg-disabled);border-color:var(--color-border-disabled)}
 input[type=checkbox]:disabled:checked{border-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2211.6662%22 height=%227.91633%22 viewBox=%220 0 11.6662 7.91633%22%3E%3Cpath d=%22M10.5557 0.187034C10.8065 -0.0590807 11.2169 -0.0628236 11.4722 0.178896C11.7274 0.420767 11.7313 0.816478 11.4806 1.06269L4.68623 7.72935C4.43679 7.97411 4.02897 7.97925 3.7731 7.74075L0.197405 4.40741C-0.0597879 4.16749 -0.0665148 3.77175 0.182215 3.52362C0.431017 3.27561 0.841408 3.26912 1.09871 3.50897L4.21194 6.41099L10.5557 0.187034Z%22 fill=%22%23C5C9D3%22/%3E%3C/svg%3E")}
 input[type=checkbox]:focus-visible{outline:2px solid var(--brand-default);outline-offset:2px}
-.note{font-size:11px;line-height:1.5;color:var(--color-text-tertiary);background:var(--color-bg-muted);border-radius:var(--rounded-sm);padding:8px 10px}
+.note{font-size:12px;line-height:1.5;color:var(--color-text-tertiary);background:var(--color-bg-muted);border-radius:var(--rounded-sm);padding:8px 10px}
 .note.warn{background:#fff7e0;color:#8a6300}
 .footer{padding:var(--spacing-xs);border-top:1px solid var(--color-border-default);background:#fff;display:flex;flex-direction:column;gap:var(--gap-8)}
 .footer .row .btn{flex:1}
 
 /* Guide tab */
-.guide h4{font-size:15px;font-weight:700}
-.guide .ver{font-size:11px;color:var(--color-text-tertiary)}
-.guide ul{padding-left:16px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.5;color:var(--color-text-secondary)}
-.badge{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:var(--rounded-xxs);font-size:11px;font-weight:600;background:var(--icon-brand-bg);color:var(--brand-default)}
+.guide h4{font-size:17px;font-weight:700}
+.guide .ver{font-size:12px;color:var(--color-text-tertiary)}
+.guide ul{padding-left:16px;display:flex;flex-direction:column;gap:6px;font-size:13.5px;line-height:1.5;color:var(--color-text-secondary)}
+/* NDS Badge — type=soft, shape=rounded, size=md (Figma 407:1070) */
+.badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:var(--rounded-xs);font-size:12px;line-height:1.5;letter-spacing:.12px;font-weight:600;background:var(--icon-brand-bg);color:var(--brand-default)}
 .badge.gray{background:var(--color-bg-muted);color:var(--color-text-tertiary)}
-.guide a{color:var(--brand-default);font-size:12px;font-weight:600;text-decoration:none}
+.gsec p{font-size:13.5px;line-height:1.55;color:var(--color-text-secondary)}
+.gsec h3{color:var(--color-text-primary)}
+.gnum{font-size:12px;font-weight:600;color:var(--brand-default);font-variant-numeric:tabular-nums}
+.gfig{display:block;width:100%;padding:0;border:1px solid var(--color-border-default);border-radius:var(--rounded-sm);background:var(--color-bg-subtle);overflow:hidden;cursor:zoom-in}
+.gfig svg{display:block;width:100%;height:auto}
+.gfig.big{cursor:default}
+.guide a{color:var(--brand-default);font-size:13px;font-weight:600;text-decoration:none}
 
 /* Stage */
 .stage{background:var(--color-bg-muted);overflow:auto;position:relative;display:flex;flex-direction:column;min-width:0}
-.hint{position:sticky;top:0;z-index:2;background:#eaf0ff;color:var(--brand-default);font-size:12px;text-align:center;padding:8px;border-bottom:1px solid #dbe5ff}
+.toolbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:var(--gap-16);padding:10px var(--spacing-lg);background:#fff;border-bottom:1px solid var(--color-border-default)}
+.toolbar .hint{flex:1;min-width:0;font-size:13px;color:var(--color-text-tertiary)}
+.toolbar .toggles{display:flex;align-items:center;gap:var(--gap-20)}
+.toolbar .check small{color:var(--color-text-muted);font-size:12px}
 .boards{flex:1;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;align-content:flex-start;justify-content:center;padding:40px 32px 120px}
 .board{display:flex;flex-direction:column;align-items:center;gap:10px}
-.board .bl{font-size:13px;font-weight:600;color:var(--color-text-secondary)}
+.board .bl{font-size:14px;font-weight:600;color:var(--color-text-secondary)}
 .board .bl small{font-weight:400;color:var(--color-text-tertiary)}
 .board canvas{background:#fff;box-shadow:0 2px 12px rgba(23,28,36,.08);border-radius:2px;touch-action:none;cursor:grab}
 .board canvas.active{outline:2px solid var(--brand-default);outline-offset:3px}
 .board canvas.ro{cursor:default}
 .board.dim canvas{opacity:.55}
 .previews{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;width:100%}
-.sec-title{width:100%;text-align:center;font-size:12px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:-24px}
+.sec-title{width:100%;text-align:center;font-size:13px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:-24px}
 .circles{display:flex;gap:24px;align-items:flex-end}
-.circles div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--color-text-tertiary)}
+.circles div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--color-text-tertiary)}
 .circles canvas{border-radius:50%;box-shadow:none;cursor:default}
-.empty{margin:auto;text-align:center;color:var(--color-text-tertiary);font-size:14px;line-height:1.6}
+.boards.is-empty{align-content:center;align-items:center}
+.empty{display:flex;flex-direction:column;align-items:center;gap:var(--gap-20);text-align:center;color:var(--color-text-secondary);font-size:17px;font-weight:600;line-height:1.5}
 
 /* Dialog */
-dialog{margin:auto;border:0;border-radius:var(--rounded-lg);padding:0;width:min(520px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.2)}
+dialog{margin:auto;border:0;border-radius:var(--rounded-lg);padding:0;width:min(760px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.2)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 .dlg{padding:var(--spacing-lg);display:flex;flex-direction:column;gap:var(--gap-16)}
-.dlg h2{font-size:18px;font-weight:700}
-.dlg p{font-size:13px;color:var(--color-text-tertiary)}
+.dlg h2{font-size:19px;font-weight:700}
+.dlg p{font-size:14px;color:var(--color-text-tertiary)}
 .cl{display:flex;flex-direction:column;gap:2px;border:1px solid var(--color-border-neutral);border-radius:var(--rounded-md);padding:8px;max-height:52vh;overflow:auto}
-.cl .it{display:flex;gap:10px;align-items:flex-start;padding:8px;font-size:13px;line-height:1.4;color:var(--color-text-secondary)}
+.cl .it{display:flex;gap:10px;align-items:flex-start;padding:8px;font-size:14px;line-height:1.4;color:var(--color-text-secondary)}
 .cl .ic{flex:none;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
 .cl .ok{background:var(--status-positive)} .cl .ng{background:var(--status-negative)} .cl .mn{background:var(--color-bg-muted);color:var(--color-text-tertiary)}
-.cl .it small{display:block;color:var(--color-text-muted);font-size:11px}
-.cl .grp{font-size:11px;font-weight:600;color:var(--color-text-muted);padding:8px 8px 2px}
+.cl .it small{display:block;color:var(--color-text-muted);font-size:12px}
+.cl .grp{font-size:12px;font-weight:600;color:var(--color-text-muted);padding:8px 8px 2px}
 .dlg .row .btn{flex:1}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--color-bg-inverse);color:#fff;padding:10px 16px;border-radius:var(--rounded-sm);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--color-bg-inverse);color:#fff;padding:10px 16px;border-radius:var(--rounded-sm);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10}
 .toast.on{opacity:1}
 
 .mobile-block{display:none}
@@ -168,7 +178,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <div class="footer" id="footer"></div>
     </aside>
     <main class="stage" id="stage">
-      <div class="hint" id="hint"></div>
+      <div class="toolbar"><div class="hint" id="hint"></div><div class="toggles" id="toggles"></div></div>
       <div class="boards" id="boards"></div>
     </main>
   </div>
@@ -188,9 +198,9 @@ const FIGMA = 'https://www.figma.com/design/9yy6efhw9T0OTUYmt4HNTy/?node-id=';
 /* 어드민 연동 — 보안상 API로 업로드하지 않고 등록 화면 링크만 연다. 업로드는 사용자가 직접. */
 const ADMIN = 'https://shop-admin.novera.town';
 const ADMIN_PAGES = {
-  main:       {path:'/settings/banners/create', menu:'배너관리 › 등록', steps:['구분: 메인 선택','모바일 칸 ← _MO_750x640 파일','PC 칸 ← _PC_1040x560 파일 (비우면 PC에서도 모바일 이미지가 잘려 보여요)','subTitle · headline에 미리보기에서 쓴 Label · Title 입력']},
-  collection: {path:'/events/exhibitions/create', menu:'기획전관리 › 등록', steps:['썸네일 모바일 칸 ← _MO_750x280 파일','썸네일 PC 칸은 프론트에서 쓰이지 않아요 (필수라면 같은 파일)']},
-  strip:      {path:'/settings/banners/create', menu:'배너관리 › 등록', steps:['구분: 띠배너 선택','모바일 칸 ← _MO_750x120 파일','PC 칸은 띠배너에서 쓰이지 않아요']},
+  main:       {path:'/settings/banners/create', menu:'배너관리 › 등록', steps:['구분: 메인 선택','모바일 칸 ← _mobile_750x640 파일','PC(데스크탑) 칸 ← _desktop_1040x560 파일 (비우면 데스크탑에서도 모바일 이미지가 잘려 보여요)','subTitle · headline에 미리보기에서 쓴 서브타이틀 · 헤드라인 입력']},
+  collection: {path:'/events/exhibitions/create', menu:'기획전관리 › 등록', steps:['썸네일 모바일 칸 ← _mobile_750x280 파일','썸네일 PC(데스크탑) 칸은 쇼핑몰에서 쓰이지 않아요 (필수라면 같은 파일)']},
+  strip:      {path:'/settings/banners/create', menu:'배너관리 › 등록', steps:['구분: 띠배너 선택','모바일 칸 ← _mobile_750x120 파일','PC(데스크탑) 칸은 띠배너에서 쓰이지 않아요']},
   product:    {path:'/products/create', menu:'상품등록', steps:['이미지 탭 › 대표(또는 추가) 이미지 ← 1000x1000 PNG']},
   artist:     {path:'/products/brands/create', menu:'아티스트 관리 › 등록', steps:['아티스트 이미지 칸 ← 1000x1000 파일']}
 };
@@ -199,39 +209,36 @@ function adminLink(cls){ const a=adminPage(); return el('a',{class:cls||'btn out
 const PRESETS = {
   collection: {
     name: '컬렉션 배너', key: 'collection', scale: 2, formats: ['png','jpg'], limitMB: 10,
-    boards: [{id:'MO', w:375, h:140}], fileTag: 'MO',
+    boards: [{id:'MO', w:375, h:140}], fileTag: 'mobile',
     template: { kind:'collection', container:180, textW:195, pad:{t:36,r:20,b:36,l:6}, stops:[0.35,0.45] },
-    crop: 20, previews: [{label:'모바일 노출 375×140', w:375, h:140}, {label:'PC 최대 노출 520×140 · 상·하 27px 잘림', w:520, h:140}],
-    hint: '기획전 MO 썸네일 1장(750×280)이 PC·MO에 모두 쓰여요 · PC에서는 위아래가 잘리니 아래 미리보기를 확인하세요',
+    crop: 20, previews: [{label:'모바일 노출 375×140', w:375, h:140}, {label:'데스크탑 최대 노출 520×140 · 상·하 27px 잘림', w:520, h:140}],
+    hint: '이미지 1장(750×280)이 모바일·데스크탑에 모두 쓰여요 · 데스크탑에서는 위아래가 잘리니 아래 미리보기를 확인하세요',
     guide: {
       title: '컬렉션(기획전) 배너 제작 가이드', ver: 'v1.0 · 2026.09 Initial', node: '77-3486',
-      basis: '기준 750×280 — Figma 가이드 = 운영 등록 6/6 일치값. PC 썸네일 필드는 프론트 미사용',
-      items: [
-        '기본 375×140, 넓은 화면에서 최대 520×140까지 스케일업(높이 140 고정).',
-        '레이어 3단: ① 이미지(좌측 180×140 컨테이너에 클리핑) ② 그라디언트 딤 ③ 텍스트(우측 195px, Badge + Title).',
-        '상·하·좌·우 20px 자동 크롭 → 세이프 영역 335×100. 520 스케일업 시 상·하 27px가 잘려요.',
-        'Badge 8px SemiBold White, 배경 White 40%, Radius 4, COLLECTION 고정 · Title 16px Bold White, LH 130% · 패딩 36/20/36/6.',
-        '밝은 배경: Badge 배경 IP 키 컬러 30%, 텍스트 IP 키 컬러, 딤도 IP 키 컬러로. WCAG AA 대비 확인.',
-        '가이드는 "텍스트는 시스템이 렌더링, 이미지에 미포함"이지만 현행 프론트는 텍스트를 그리지 않아요 → 기본은 현행 운영 모드(텍스트 합성).',
-        '딤 방향은 가이드 본문·도식이 서로 반대예요(PRD 열린 질문 2). 이 툴은 이미지 쪽 투명 → 텍스트 쪽 불투명으로 구현했어요.'
+      basis: '기준 750×280 — Figma 가이드 = 운영 등록 6/6 일치값. 어드민의 PC 썸네일 칸은 프론트에서 쓰이지 않음',
+      sections: [
+        {t:'배너 규격', svg:'cSpec', d:'기본 375×140이고, 넓은 화면에서는 최대 520×140까지 커져요. 높이 140은 고정이에요.'},
+        {t:'레이어 구성', svg:'cLayers', d:'① 이미지는 좌측 180×140 컨테이너에 잘려 들어가고 ② 그라디언트 딤이 덮은 뒤 ③ 우측 195px에 배지와 타이틀이 올라가요.'},
+        {t:'자동 크롭 · 세이프 영역', svg:'cSafe', d:'상·하·좌·우 20px는 잘릴 수 있어요. 핵심 요소는 가운데 335×100 안에 두세요. 520으로 커지면 위아래 27px가 잘려요.'},
+        {t:'그라디언트 딤', svg:'cDim', d:'가이드 본문과 도식의 방향이 서로 반대예요. 이 툴은 이미지 쪽 투명 → 텍스트 쪽 불투명으로 그려요.'},
+        {t:'텍스트 스펙', svg:'cText', d:'배지 8px SemiBold · 타이틀 16px Bold, 패딩 36/20/36/6. 가이드는 "텍스트는 시스템이 그리고 이미지에는 넣지 않음"이지만 현행 쇼핑몰은 텍스트를 그리지 않아 기본은 현행 운영 모드(텍스트 합성)예요.'},
+        {t:'밝은 배경 대응', svg:'cLight', d:'밝은 배경에서는 배지 배경을 IP 키 컬러 30%, 텍스트를 IP 키 컬러로 바꾸고 WCAG AA 대비를 확인해요.'}
       ],
       checklist: ['핵심 비주얼이 자동 크롭 영역(상·하·좌·우 20px) 밖 세이프 영역에 있음','최대 스케일업(520px) 시 상·하 27px 크롭에도 핵심 요소가 안전함']
     }
   },
   strip: {
     name: '띠배너', key: 'strip-banner', scale: 2, formats: ['png','jpg'], limitMB: 10,
-    boards: [{id:'MO', w:375, h:60}], fileTag: 'MO',
+    boards: [{id:'MO', w:375, h:60}], fileTag: 'mobile',
     template: { kind:'strip', container:140, textW:240, pad:{l:6,r:20}, stops:[0.30,0.40] },
-    safe: 8, previews: [{label:'모바일 375×60', w:375, h:60}, {label:'PC 520×83.2 (같은 비율로 확대)', w:520, h:83.2}],
-    hint: '띠배너는 모바일 이미지 1장(750×120)이 PC에서도 같은 비율로 확대돼 쓰여요',
+    safe: 8, previews: [{label:'모바일 375×60', w:375, h:60}, {label:'데스크탑 520×83.2 (같은 비율로 확대)', w:520, h:83.2}],
+    hint: '모바일 이미지 1장(750×120)이 데스크탑에서도 같은 비율로 확대돼 쓰여요',
     guide: {
       title: '띠배너 제작 가이드', ver: 'v1.0 · 2026.09 Initial', node: '99-2253',
       basis: '기준 750×120 — Figma 가이드(375×60 @2x). 운영 등록분 없음',
-      items: [
-        '모바일 375×60 기준. Desktop은 같은 비율(6.25:1)로 520×83.2까지 확대돼요.',
-        '상하좌우 안전 여백 안에서 콘텐츠를 자유롭게 구성해요(본문 8px · 도식 토큰 12px — 확인 필요).',
-        '예시: 좌측 이미지 컨테이너 140×60 + 그라디언트 + 우측 텍스트 240px — Headline 12px SemiBold White, Subtitle 9px Regular White 64%.',
-        '완성 이미지는 원본 크기 2×로 Export.'
+      sections: [
+        {t:'배너 규격', svg:'sSpec', d:'모바일 375×60 기준이고, 데스크탑에서는 같은 비율(6.25:1)로 520×83.2까지 커져요. 완성 이미지는 2배(750×120)로 내보내요.'},
+        {t:'이미지 세이프 영역', svg:'sSafe', d:'상하좌우 안전 여백 안에서 자유롭게 구성해요(본문 8px · 도식 12px — 확인 필요). 예시는 좌측 140×60 이미지 + 그라디언트 + 우측 텍스트 240px(헤드라인 12px SemiBold · 서브타이틀 9px Regular)예요.'}
       ],
       checklist: []
     }
@@ -244,12 +251,11 @@ const PRESETS = {
     guide: {
       title: '상품 썸네일 이미지 제작 가이드', ver: 'v1.0 · 2026.08', node: '77-3482',
       basis: '기준 1000×1000 — Figma 가이드 = 운영 일치 105/411, 2026-09 등록분 59%',
-      items: [
-        '캔버스 500×500, Export 2x → 1000×1000 (필수).',
-        '배경 #F3F3F6 (RGB 243, 243, 246) 단색 100%.',
-        '캔버스 중앙 320×320 이미지 영역, 상하좌우 여백 각 90px. 영역 밖은 잘려요.',
-        '상품 핵심이 중앙에 오도록 배치, 배경 없는 누끼 이미지 필수, 고해상도(2x 이상) 원본.',
-        '어드민은 2MB 초과분을 자동 압축해요 → 2MB 이하로 내보내요.'
+      sections: [
+        {t:'배경색', svg:'pBg', d:'#F3F3F6(RGB 243, 243, 246) 단색이에요. 이 툴에서는 고정이에요.'},
+        {t:'이미지 영역 · 여백', svg:'pArea', d:'500×500 캔버스 가운데 320×320 영역에 상품을 넣어요. 여백은 상하좌우 90px이고, 영역 밖은 잘려요.'},
+        {t:'상품 이미지 배치', svg:'pPlace', d:'상품 핵심이 가운데 오도록 놓아요. 배경 없는 누끼 이미지와 2배 이상 원본이 필요해요.'},
+        {t:'내보내기', svg:'pExport', d:'2배로 내보내 1000×1000 PNG가 돼요. 어드민은 2MB를 넘으면 다시 압축하니 2MB 이하로 내보내요.'}
       ],
       checklist: ['상품 핵심 부분이 중앙에 배치됨']
     }
@@ -260,11 +266,10 @@ const PRESETS = {
     hint: '원형으로 잘려 노출돼요 · 얼굴이 중앙 원 안에 오도록 맞춰 주세요',
     guide: {
       title: '아티스트 썸네일', ver: 'Figma 가이드 없음', node: null,
-      basis: '기준 1000×1000 — 운영 최빈값(37/93). 노출은 원형 MO 40 / PC 52px',
-      items: [
-        '정사각형 1000×1000으로 만들어요. 원형(지름 = 한 변)으로 잘려 노출돼요.',
-        '운영 등록분은 100²~2000², 비정방형 16개로 제각각이에요.',
-        '얼굴·로고가 중앙 원 안에 오도록 배치해요.'
+      basis: '기준 1000×1000 — 운영 최빈값(37/93). 노출은 원형 모바일 40 / 데스크탑 52px',
+      sections: [
+        {t:'규격 · 원형 노출', svg:'artist', d:'정사각형 1000×1000으로 만들면 원형(지름 = 한 변)으로 잘려 노출돼요. 모서리는 보이지 않아요.'},
+        {t:'배치', d:'얼굴이나 로고를 가운데 원 안에 두세요. 운영 등록분은 100²~2000², 비정방형 16개로 제각각이에요.'}
       ],
       checklist: ['얼굴(또는 로고)이 원 안 중앙에 위치함']
     }
@@ -275,10 +280,10 @@ const PRESETS = {
     boards: [{id:'MO', w:375, h:320}, {id:'PC', w:520, h:280}],
     fit: 'cover-top', bg: '#2f3744',
     textArea: { MO:{l:28,b:28,r:72,pag:{b:28,r:28}}, PC:{l:40,b:32,r:96,pag:{b:32,r:40}} },
-    hint: '이미지를 드래그해 위치, 휠로 크기를 조정해요 · 편집 대상 칩으로 MO/PC를 함께 또는 따로 움직일 수 있어요',
+    hint: '이미지를 드래그해 위치, 휠로 크기를 조정해요 · 편집 대상 칩으로 모바일/데스크탑을 함께 또는 따로 움직일 수 있어요',
     guide: {
       title: '메인 배너 제작 가이드', ver: 'v1.2 · 2026.09', node: '77-3485',
-      basis: '기준 750×640 / 1040×560 — Figma 가이드 = 운영 등록(MO 3/3, PC 1/3) 일치값',
+      basis: '기준 모바일 750×640 / 데스크탑 1040×560 — Figma 가이드 = 운영 등록(모바일 3/3, 데스크탑 1/3) 일치값',
       items: [
         'Mobile 375×320 · Desktop 520×280. 크기에 딱 맞춰 제작·업로드하지 않으면 상단/좌우 너비 기준으로 배치돼요.',
         '레이어 3단: ① 배경·메인 비주얼 ② 그라디언트 딤(하단→상단) ③ 텍스트·페이지네이션 — ②③은 시스템이 그려요. 이미지에는 ①만 담아요.',
@@ -307,6 +312,8 @@ const S = {
   bg: null
 };
 const P = () => PRESETS[S.slot];
+const DEVICE = {MO:'모바일',PC:'데스크탑'};          // 화면 표기
+const FILE_TAG = {MO:'mobile',PC:'desktop'}; // 파일명 표기
 /* 텍스트 입력 전 플레이스홀더 — 입력칸과 미리보기에 같이 쓰고, 내보내기에는 넣지 않는다 */
 const PH = {
   label:'서브타이틀 최대 한 줄이에요', title:'헤드라인 최대 두 줄이에요',
@@ -314,7 +321,7 @@ const PH = {
   headline:'헤드라인 최대 두 줄이에요', sub:'서브타이틀 최대 한 줄이에요'
 };
 function tv(key, exp){ const v=S.text[key]; return v ? {t:v, ph:false} : exp ? {t:'', ph:false} : {t:PH[key], ph:true}; }
-function phAlpha(ctx, on){ ctx.globalAlpha = on ? ctx.__baseAlpha*.45 : ctx.__baseAlpha; }
+function phAlpha(ctx){ ctx.globalAlpha = ctx.__baseAlpha; }
 const $ = s => document.querySelector(s);
 const el = (tag, attrs={}, ...kids) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(attrs)){ if(k==='on') for(const [ev,fn] of Object.entries(v)) e.addEventListener(ev,fn); else if(k==='html') e.innerHTML=v; else if(v!==false&&v!=null) e.setAttribute(k,v===true?'':v);} for(const k of kids.flat()) if(k!=null) e.append(k.nodeType?k:document.createTextNode(k)); return e; };
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2200); }
@@ -338,6 +345,7 @@ function detectAlpha(im){
   try{ const d=x.getImageData(0,0,c.width,c.height).data; for(let i=3;i<d.length;i+=4) if(d[i]<250) return true; }catch(e){}
   return false;
 }
+function josa(w,a,b){ const c=w.charCodeAt(w.length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28 ? a : b; }
 function slugify(n){ return (n||'').replace(/\.[a-z0-9]+$/i,'').trim().replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'').toLowerCase().slice(0,40); }
 function handleFile(f){ if(!f) return; if(!/^image\/(png|jpeg|webp)$/.test(f.type)) return toast('JPG · PNG · WebP만 올릴 수 있어요');
   const r=new FileReader(); r.onload=()=> setImage(r.result, f.name); r.readAsDataURL(f); }
@@ -415,7 +423,7 @@ function renderTemplate(ctx, board, opt){
   ctx.save();
   if(!opt.export && S.tpl.mode==='guide') ctx.globalAlpha=.55;
   ctx.__baseAlpha=ctx.globalAlpha;
-  const fg = light ? S.tpl.key : '#ffffff', ex=!!opt.export;
+  const fg = light ? S.tpl.key : '#ffffff', ex=!!opt.export && !opt.preview;
   if(T.kind==='collection'){
     const x0=w-T.textW+T.pad.l, maxW=T.textW-T.pad.l-T.pad.r, bd=tv('badge',ex), ct=tv('ctitle',ex);
     ctx.font='600 8px '+fontFam(); const bw=ctx.measureText(bd.t).width+8, bh=bd.t?12:0;
@@ -498,10 +506,10 @@ function hline(ctx,y,w,keep){ ctx.save(); if(!keep){ctx.strokeStyle='rgba(79,124
 function fontFam(){ return "'Pretendard Variable', Pretendard, sans-serif"; }
 
 /* 내보내기용 렌더 (@scale, 가이드·시스템 레이어 제외) */
-function renderExport(board){
+function renderExport(board, preview){
   const p=P(), c=document.createElement('canvas'); c.width=Math.round(board.w*p.scale); c.height=Math.round(board.h*p.scale);
   const ctx=c.getContext('2d'); ctx.scale(p.scale,p.scale); ctx.imageSmoothingQuality='high';
-  renderBoard(ctx, board, {export:true}); return c;
+  renderBoard(ctx, board, {export:true, preview:!!preview}); return c;   // preview: 노출 미리보기용(입력 전 플레이스홀더 포함)
 }
 
 /* ===================== 스테이지 ====================== */
@@ -509,9 +517,10 @@ const canvases = {};
 function buildStage(){
   const p=P(), wrapEl=$('#boards'); wrapEl.innerHTML=''; $('#hint').textContent=p.hint;
   for(const k in canvases) delete canvases[k];
+  wrapEl.classList.toggle('is-empty', !S.img);
   if(!S.img){
-    wrapEl.append(el('div',{class:'empty'}, el('div',{html:`<b>${p.name}</b> 이미지를 올려 주세요`}), el('div',{class:'meta'}, '파일 선택 · 드래그 앤 드롭 · 붙여넣기(⌘V) · URL'),
-      el('button',{class:'btn primary',style:'margin-top:16px',on:{click:()=>$('#file').click()}},'이미지 선택')));
+    wrapEl.append(el('div',{class:'empty'}, el('div',{},`${p.name}${josa(p.name,'을','를')} 만들 이미지를 올려주세요`),
+      el('button',{class:'btn primary',on:{click:()=>$('#file').click()}},'이미지 선택')));
     wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleFile(e.dataTransfer.files[0]);};
     return;
   }
@@ -519,7 +528,7 @@ function buildStage(){
     const cv=el('canvas',{width:Math.round(b.w*2),height:Math.round(b.h*2),style:`width:${b.w}px;height:${b.h}px`});
     cv.dataset.id=b.id; attachDrag(cv,b); canvases[b.id]=cv;
     const out=`${b.w*p.scale}×${b.h*p.scale}`;
-    const lab = p.boards.length>1 ? `${b.id==='MO'?'모바일':'PC'} (${b.w}×${b.h})` : `${p.name} (${b.w}×${b.h})`;
+    const lab = p.boards.length>1 ? `${DEVICE[b.id]} (${b.w}×${b.h})` : `${p.name} (${b.w}×${b.h})`;
     wrapEl.append(el('div',{class:'board'+(p.boards.length>1&&!S.targets.has(b.id)?' dim':'')}, el('div',{class:'bl'}, lab, el('small',{},` → 출력 ${out}`)), cv));
   }
   if(p.previews){
@@ -530,7 +539,7 @@ function buildStage(){
   }
   if(p.circle){
     const cs=el('div',{class:'circles'});
-    for(const d of [52,40]){ const cv=el('canvas',{class:'ro',width:d*3,height:d*3,style:`width:${d}px;height:${d}px`}); canvases['c'+d]={cv,d}; cs.append(el('div',{},cv,`${d===52?'PC':'MO'} ${d}px`)); }
+    for(const d of [52,40]){ const cv=el('canvas',{class:'ro',width:d*3,height:d*3,style:`width:${d}px;height:${d}px`}); canvases['c'+d]={cv,d}; cs.append(el('div',{},cv,`${d===52?'데스크탑':'모바일'} ${d}px`)); }
     wrapEl.append(el('div',{class:'board'},el('div',{class:'bl'},'원형 노출 미리보기'),cs));
   }
   wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleFile(e.dataTransfer.files[0]);};
@@ -544,12 +553,12 @@ function draw(){
     cv.classList.toggle('active', p.boards.length>1 && S.targets.has(b.id));
   }
   if(p.previews){
-    const src=renderExport(p.boards[0]);
+    const src=renderExport(p.boards[0], true);
     p.previews.forEach((v,i)=>{ const {cv}=canvases['pv'+i]; const ctx=cv.getContext('2d'); ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,v.w,v.h);
       const s=Math.max(v.w/src.width, v.h/src.height), dw=src.width*s, dh=src.height*s; ctx.drawImage(src,(v.w-dw)/2,(v.h-dh)/2,dw,dh); });
   }
   if(p.circle){
-    const src=renderExport(p.boards[0]);
+    const src=renderExport(p.boards[0], true);
     for(const d of [52,40]){ const {cv}=canvases['c'+d]; const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); ctx.drawImage(src,0,0,cv.width,cv.height); }
   }
 }
@@ -600,7 +609,7 @@ function renderPanel(){
 
   if(p.boards.length>1){
     ed.append(card(['편집 대상',el('small',{},'선택한 화면에 함께 적용')],
-      el('div',{class:'chips'}, p.boards.map(b=>el('button',{class:'chip','aria-pressed':String(S.targets.has(b.id)),on:{click:()=>{ S.targets.has(b.id)&&S.targets.size>1?S.targets.delete(b.id):S.targets.add(b.id); renderPanel(); buildStage(); }}}, b.id==='MO'?'모바일':'PC')))));
+      el('div',{class:'chips'}, p.boards.map(b=>el('button',{class:'chip','aria-pressed':String(S.targets.has(b.id)),on:{click:()=>{ S.targets.has(b.id)&&S.targets.size>1?S.targets.delete(b.id):S.targets.add(b.id); renderPanel(); buildStage(); }}}, DEVICE[b.id])))));
   }
 
   // 이미지 입력
@@ -636,17 +645,17 @@ function renderPanel(){
   // 텍스트
   if(S.slot==='main'){
     ed.append(card(['시스템 텍스트',el('small',{},'미리보기 전용 · 이미지에 포함 안 됨')],
-      textField('Label (subTitle)','label',{counter:mainLabelCounter}),
-      textField('Title (headline)','title',{area:true,counter:mainTitleCounter}),
+      textField('서브타이틀 (subTitle)','label',{counter:mainLabelCounter}),
+      textField('헤드라인 (headline)','title',{area:true,counter:mainTitleCounter}),
       el('div',{class:'note'},'어드민의 subTitle · headline 칸에 입력하는 값이에요. 쇼핑몰이 이미지 위에 직접 그려요.')));
   }
   if(p.template){
     const T=p.template;
     const modeCard=card('텍스트 렌더링 모드', seg([['current','현행 운영 (텍스트 합성)'],['guide','가이드 준수 (텍스트 제외)']],S.tpl.mode,v=>{S.tpl.mode=v;renderPanel();draw();}),
-      el('div',{class:'note'+(S.tpl.mode==='guide'?' warn':'')}, S.tpl.mode==='current'?'지금 운영 이미지처럼 텍스트를 이미지에 넣어 내보내요. 현행 프론트는 컬렉션·띠배너 텍스트를 그리지 않아요.':'텍스트는 미리보기에만 흐리게 보이고 이미지에서는 빠져요. 프론트가 시스템 텍스트를 도입한 뒤 사용하세요.'));
+      el('div',{class:'note'+(S.tpl.mode==='guide'?' warn':'')}, S.tpl.mode==='current'?'지금 운영 이미지처럼 텍스트를 이미지에 넣어 내보내요. 현행 프론트는 컬렉션·띠배너 텍스트를 그리지 않아요.':'텍스트는 미리보기에만 보이고 이미지에서는 빠져요. 쇼핑몰이 시스템 텍스트를 도입한 뒤 사용하세요.'));
     ed.append(modeCard);
-    if(T.kind==='collection') ed.append(card('텍스트', textField('Badge','badge'), textField('Collection Title (최대 2줄)','ctitle',{area:true})));
-    else ed.append(card('텍스트', textField('Headline (최대 2줄)','headline'), textField('Subtitle (1줄)','sub')));
+    if(T.kind==='collection') ed.append(card('텍스트', textField('배지','badge'), textField('타이틀','ctitle',{area:true})));
+    else ed.append(card('텍스트', textField('헤드라인','headline'), textField('서브타이틀','sub')));
     const lightChk=el('input',{type:'checkbox'}); lightChk.checked=S.tpl.light; lightChk.addEventListener('change',()=>{S.tpl.light=lightChk.checked; if(S.tpl.light&&S.tpl.dim==='#000000') S.tpl.dim='#f3eadb'; renderPanel();draw();});
     const ipCard=card('밝은 배경 · IP 키 컬러', el('label',{class:'check'},lightChk,'밝은 배경 대응 사용'));
     if(S.tpl.light){
@@ -657,11 +666,7 @@ function renderPanel(){
     ipCard.append(el('div',{id:'contrast',class:'note'})); ed.append(ipCard); setTimeout(renderContrast);
   }
 
-  // 표시
-  const g=el('input',{type:'checkbox'}); g.checked=S.guides; g.addEventListener('change',()=>{S.guides=g.checked;draw();});
-  const showCard=card('표시', el('label',{class:'check'},g,'가이드 영역 표시 ',el('small',{class:'meta'},'(저장 시 제외)')));
-  if(S.slot==='main'){ const s=el('input',{type:'checkbox'}); s.checked=S.system; s.addEventListener('change',()=>{S.system=s.checked;draw();}); showCard.append(el('label',{class:'check'},s,'운영 화면 미리보기 ',el('small',{class:'meta'},'(딤 · 텍스트 · 페이지네이션)'))); }
-  ed.append(showCard);
+  renderToggles();
 
   // 파일
   const id=el('input',{class:'input',value:S.ident,placeholder:'예: doyoung-yours'}); id.addEventListener('input',()=>{S.ident=slugify(id.value)||id.value; S.identManual=!!id.value; nameHint.textContent=fileName(p.boards[0],S.format);});
@@ -673,10 +678,116 @@ function renderPanel(){
   ed.append(fileCard);
   renderFooter();
 }
+function renderToggles(){
+  const t=$('#toggles'); t.innerHTML='';
+  const g=el('input',{type:'checkbox',id:'tg-guide'}); g.checked=S.guides; g.addEventListener('change',()=>{S.guides=g.checked;draw();});
+  t.append(el('label',{class:'check',for:'tg-guide'},g,'가이드 영역',el('small',{},'저장 시 제외')));
+  if(S.slot==='main'){ const s=el('input',{type:'checkbox',id:'tg-system'}); s.checked=S.system; s.addEventListener('change',()=>{S.system=s.checked;draw();}); t.append(el('label',{class:'check',for:'tg-system'},s,'운영 화면 미리보기')); }
+}
 function renderContrast(){
   const box=$('#contrast'); if(!box) return; const r=contrastChecks();
   box.innerHTML=r.map(c=>`${c.ok?'✅':'⚠️'} ${c.name} 대비 ${c.ratio.toFixed(2)}:1 ${c.ok?'(AA 통과)':'(AA 4.5:1 미달)'}`).join('<br>');
   box.className='note'+(r.every(c=>c.ok)?'':' warn');
+}
+const C = {ink:'#171c24', sub:'#4b5465', mute:'#888e9c', line:'#e3e6ee', bg:'#f9fafd', brand:'#4f7cff', safe:'#2ead66', crop:'#ff00c8', warn:'#ffb133'};
+const svgWrap = (h, body, label) => `<svg viewBox="0 0 340 ${h}" width="100%" role="img" aria-label="${label}" font-size="10" fill="${C.sub}"><rect width="340" height="${h}" fill="${C.bg}"/>${body}</svg>`;
+const T = (x,y,t,o={}) => `<text x="${x}" y="${y}" text-anchor="${o.a||'start'}" font-size="${o.s||10}" font-weight="${o.w||400}" fill="${o.c||C.sub}">${t}</text>`;
+// 미니 컬렉션 배너 (가이드 375×140 비율, k = 축척)
+function miniCollection(x,y,k,{dark=true,badge='COLLECTION',title='컬렉션 타이틀'}={}){
+  const w=375*k,h=140*k, base=dark?'#000':'#f3eadb', fg=dark?'#fff':'#5b4630', id='g'+Math.round(x)+Math.round(y);
+  return `<defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="${base}" stop-opacity="0"/><stop offset=".35" stop-color="${base}" stop-opacity="0"/><stop offset=".45" stop-color="${base}"/><stop offset="1" stop-color="${base}"/></linearGradient></defs>
+  <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${base}"/>
+  <rect x="${x}" y="${y}" width="${180*k}" height="${h}" fill="${dark?'#9aa3b5':'#e8dcc6'}"/><circle cx="${x+90*k}" cy="${y+62*k}" r="${26*k}" fill="${dark?'#c5c9d3':'#d6c3a5'}"/><rect x="${x+56*k}" y="${y+92*k}" width="${68*k}" height="${30*k}" rx="${8*k}" fill="${dark?'#c5c9d3':'#d6c3a5'}"/>
+  <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${id})"/>
+  <rect x="${x+(375-195+6)*k}" y="${y+40*k}" width="${66*k}" height="${12*k}" rx="${4*k}" fill="${dark?'rgba(255,255,255,.4)':'rgba(91,70,48,.3)'}"/>
+  ${T(x+(375-195+10)*k, y+49*k, badge, {s:8*k, w:600, c:fg})}
+  ${T(x+(375-195+6)*k, y+74*k, title, {s:16*k, w:700, c:fg})}`;
+}
+const GUIDE_SVG = {
+  cSpec: svgWrap(150, `
+    <rect x="73" y="16" width="194" height="72" fill="#fff" stroke="${C.line}"/>${T(170,56,'375 × 140',{a:'middle',w:600,c:C.ink})}
+    ${T(170,102,'모바일 기본 · 높이 140 고정',{a:'middle'})}
+    <rect x="35" y="112" width="270" height="0" stroke="${C.mute}"/>
+    ${T(170,128,'↓ 화면이 넓어지면 최대 520 × 140까지 같은 높이로 커져요',{a:'middle',c:C.brand})}
+    ${T(170,144,'출력은 2배 · 750 × 280',{a:'middle',w:600,c:C.ink})}`, '컬렉션 배너 규격'),
+  cLayers: svgWrap(170, `
+    ${[['③ 텍스트','우측 195px · 배지 + 타이틀',C.brand],['② 그라디언트 딤','이미지 쪽 투명 → 텍스트 쪽 불투명',C.ink],['① 이미지','좌측 180×140 컨테이너에 잘려 들어감',C.safe]].map(([a,b,c],i)=>`
+      <rect x="16" y="${14+i*36}" width="308" height="28" rx="6" fill="#fff" stroke="${C.line}"/><rect x="26" y="${24+i*36}" width="8" height="8" rx="2" fill="${c}"/>
+      ${T(42,32+i*36,a,{w:600,c:C.ink})}${T(130,32+i*36,b)}`).join('')}
+    ${miniCollection(91,124,0.42)}`, '컬렉션 배너 레이어 구성'),
+  cSafe: (()=>{ const k=0.8, x=20, y=14, w=375*k, h=140*k, c=20*k, pc=27*140/194.13*k;
+    return svgWrap(170, `
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" stroke="${C.line}"/>
+    <path d="M${x} ${y}h${w}v${c}h-${w}zM${x} ${y+h-c}h${w}v${c}h-${w}zM${x} ${y+c}h${c}v${h-2*c}h-${c}zM${x+w-c} ${y+c}h${c}v${h-2*c}h-${c}z" fill="${C.crop}" fill-opacity=".18"/>
+    <rect x="${x+c}" y="${y+c}" width="${w-2*c}" height="${h-2*c}" fill="${C.safe}" fill-opacity=".08" stroke="${C.safe}" stroke-dasharray="4 3"/>
+    ${T(x+w/2,y+h/2+4,'세이프 영역 335 × 100',{a:'middle',w:600,c:C.safe})}
+    ${T(x+w/2,y+11,'20px',{a:'middle',s:9,c:C.crop})}
+    <line x1="${x}" x2="${x+w}" y1="${y+pc}" y2="${y+pc}" stroke="${C.warn}" stroke-dasharray="2 2"/><line x1="${x}" x2="${x+w}" y1="${y+h-pc}" y2="${y+h-pc}" stroke="${C.warn}" stroke-dasharray="2 2"/>
+    <rect x="20" y="140" width="8" height="8" fill="${C.crop}" fill-opacity=".3"/>${T(32,148,'모든 화면에서 잘릴 수 있음')}
+    <line x1="160" x2="174" y1="144" y2="144" stroke="${C.warn}" stroke-dasharray="2 2"/>${T(178,148,'데스크탑 520px에서 위아래 27px 잘림')}`, '컬렉션 배너 크롭과 세이프 영역'); })(),
+  cDim: svgWrap(110, `
+    <defs><linearGradient id="dimg" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".35" stop-color="#000" stop-opacity="0"/><stop offset=".45" stop-color="#000"/><stop offset="1" stop-color="#000"/></linearGradient>
+    <pattern id="chk" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><rect width="4" height="4" fill="#e3e6ee"/><rect x="4" y="4" width="4" height="4" fill="#e3e6ee"/></pattern></defs>
+    <rect x="20" y="18" width="300" height="34" fill="url(#chk)"/><rect x="20" y="18" width="300" height="34" fill="url(#dimg)" stroke="${C.line}"/>
+    ${[[0,'0%','투명','start'],[.35,'35%','투명','end'],[.45,'45%','Black 100%','start'],[1,'100%','Black 100%','end']].map(([o,a,b,al])=>`<line x1="${20+300*o}" x2="${20+300*o}" y1="52" y2="60" stroke="${C.mute}"/>${T(20+300*o+(al==='end'&&o<1?-3:al==='start'&&o>0?3:0),72,a,{a:al,w:600,c:C.ink})}${T(20+300*o+(al==='end'&&o<1?-3:al==='start'&&o>0?3:0),85,b,{a:al,s:9})}`).join('')}
+    ${T(20,102,'← 이미지 쪽',{c:C.mute})}${T(320,102,'텍스트 쪽 →',{a:'end',c:C.mute})}`, '컬렉션 배너 그라디언트 딤'),
+  cText: (()=>{ const k=0.8, x=20, y=16; return svgWrap(180, `
+    ${miniCollection(x,y,k,{badge:'COLLECTION',title:'컬렉션 타이틀'})}
+    <rect x="${x+(375-195)*k}" y="${y}" width="${195*k}" height="${140*k}" fill="none" stroke="${C.brand}" stroke-dasharray="3 2"/>
+    ${T(x+(375-195)*k+2,y-4,'텍스트 영역 195',{s:9,c:C.brand})}
+    ${T(20,150,'배지  8px SemiBold · 흰색 · 배경 흰색 40% · 모서리 4',{c:C.ink})}
+    ${T(20,164,'타이틀  16px Bold · 흰색 · 줄간격 130% · 최대 2줄',{c:C.ink})}
+    ${T(20,178,'패딩  위 36 · 오른쪽 20 · 아래 36 · 왼쪽 6 / 배지–타이틀 6',{c:C.ink})}`, '컬렉션 배너 텍스트 스펙'); })(),
+  cLight: svgWrap(110, `${miniCollection(14,14,0.42)}${miniCollection(176,14,0.42,{dark:false})}
+    ${T(93,90,'어두운 배경 · 흰색 텍스트',{a:'middle'})}${T(255,90,'밝은 배경 · IP 키 컬러',{a:'middle'})}
+    ${T(255,104,'배지 배경 키 컬러 30%',{a:'middle',s:9,c:C.mute})}`, '밝은 배경 대응'),
+  sSpec: svgWrap(140, `
+    <rect x="76" y="16" width="188" height="30" fill="#fff" stroke="${C.line}"/>${T(170,35,'375 × 60',{a:'middle',w:600,c:C.ink})}
+    ${T(170,60,'모바일 기준',{a:'middle'})}
+    <rect x="40" y="70" width="260" height="41.6" fill="#fff" stroke="${C.line}"/>${T(170,95,'520 × 83.2',{a:'middle',w:600,c:C.ink})}
+    ${T(170,130,'데스크탑 · 같은 비율(6.25:1)로 확대 · 출력은 2배 750 × 120',{a:'middle',c:C.brand})}`, '띠배너 규격'),
+  sSafe: (()=>{ const k=0.8, x=20, y=18, w=375*k, h=60*k, m=8*k; return svgWrap(120, `
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#000"/>
+    <rect x="${x}" y="${y}" width="${140*k}" height="${h}" fill="#9aa3b5"/>
+    <defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-opacity="0"/><stop offset=".3" stop-opacity="0"/><stop offset=".4"/><stop offset="1"/></linearGradient></defs>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#sg)"/>
+    ${T(x+(375-240+6)*k,y+22,'헤드라인 최대 두 줄이에요',{s:12*k,w:600,c:'#fff'})}${T(x+(375-240+6)*k,y+36,'서브타이틀 최대 한 줄이에요',{s:9*k,c:'rgba(255,255,255,.64)'})}
+    <rect x="${x+m}" y="${y+m}" width="${w-2*m}" height="${h-2*m}" fill="none" stroke="${C.crop}" stroke-dasharray="3 2"/>
+    ${T(x,y+h+16,'좌측 이미지 140 · 우측 텍스트 240',{c:C.ink})}${T(x+w,y+h+16,'안전 여백 8~12px',{a:'end',c:C.crop})}
+    ${T(x,y+h+32,'헤드라인 12px SemiBold 최대 2줄 · 서브타이틀 9px Regular 1줄',{c:C.mute})}`, '띠배너 세이프 영역'); })(),
+  pBg: svgWrap(100, `<rect x="120" y="14" width="100" height="56" rx="6" fill="#F3F3F6" stroke="${C.line}"/>
+    ${T(170,86,'#F3F3F6 · RGB 243, 243, 246',{a:'middle',w:600,c:C.ink})}`, '상품 썸네일 배경색'),
+  pArea: (()=>{ const k=0.3, x=95, y=12, S=500*k, a=90*k, A=320*k; return svgWrap(180, `
+    <rect x="${x}" y="${y}" width="${S}" height="${S}" fill="#F3F3F6" stroke="${C.line}"/>
+    <rect x="${x+a}" y="${y+a}" width="${A}" height="${A}" fill="#fff" stroke="${C.brand}" stroke-dasharray="4 3"/>
+    ${T(x+S/2,y+S/2+4,'320 × 320',{a:'middle',w:600,c:C.brand})}
+    <line x1="${x+S/2}" x2="${x+S/2}" y1="${y}" y2="${y+a}" stroke="${C.mute}"/>${T(x+S/2+4,y+a/2+4,'90',{s:9})}
+    <line x1="${x}" x2="${x+a}" y1="${y+S/2}" y2="${y+S/2}" stroke="${C.mute}"/>${T(x+a/2,y+S/2-4,'90',{a:'middle',s:9})}
+    ${T(170,y+S+16,'캔버스 500 × 500 · 영역 밖은 잘려요',{a:'middle',c:C.ink})}`, '상품 썸네일 이미지 영역'); })(),
+  pPlace: svgWrap(130, `
+    ${[[60,'중앙 배치','✓',C.safe,14],[200,'한쪽으로 치우침','✕','#e6374f',4]].map(([x,t,m,c,o])=>`
+      <rect x="${x}" y="14" width="80" height="80" fill="#F3F3F6" stroke="${C.line}"/><rect x="${x+o}" y="${14+o}" width="${52}" height="${52}" rx="6" fill="#c5c9d3"/>
+      ${T(x+40,112,m+' '+t,{a:'middle',w:600,c})}`).join('')}`, '상품 이미지 배치'),
+  pExport: svgWrap(100, `
+    <rect x="30" y="20" width="50" height="50" fill="#F3F3F6" stroke="${C.line}"/>${T(55,84,'500 × 500',{a:'middle'})}
+    ${T(118,49,'→',{a:'middle',s:14})}<rect x="138" y="32" width="40" height="24" rx="6" fill="#fff" stroke="${C.line}"/>${T(158,48,'@2x',{a:'middle',w:600,c:C.ink})}
+    ${T(198,49,'→',{a:'middle',s:14})}<rect x="230" y="10" width="70" height="70" fill="#F3F3F6" stroke="${C.line}"/>${T(265,94,'1000 × 1000 PNG',{a:'middle',w:600,c:C.ink})}`, '상품 썸네일 내보내기'),
+  artist: `<svg viewBox="0 0 320 200" width="100%" role="img" aria-label="정사각형 1000×1000 이미지가 원형으로 잘려 노출되는 도식">
+    <rect x="0" y="0" width="320" height="200" fill="#f9fafd"/>
+    <rect x="40" y="20" width="160" height="160" fill="#e3e6ee"/>
+    <circle cx="120" cy="100" r="80" fill="#ffffff" stroke="#4f7cff" stroke-dasharray="5 4"/>
+    <circle cx="120" cy="88" r="22" fill="#c5c9d3"/><path d="M78 150c6-24 24-34 42-34s36 10 42 34" fill="#c5c9d3"/>
+    <text x="120" y="196" text-anchor="middle" font-size="11" fill="#888e9c">1000 × 1000</text>
+    <text x="48" y="34" font-size="10" fill="#888e9c">잘림</text>
+    <circle cx="250" cy="74" r="26" fill="#c5c9d3"/><text x="250" y="116" text-anchor="middle" font-size="11" fill="#4b5465">데스크탑 52px</text>
+    <circle cx="250" cy="146" r="20" fill="#c5c9d3"/><text x="250" y="182" text-anchor="middle" font-size="11" fill="#4b5465">모바일 40px</text>
+  </svg>`
+};
+function openFigure(sec){
+  const dlg=$('#dlg'), body=$('#dlgBody'); body.innerHTML='';
+  body.append(el('h2',{},sec.t), el('div',{class:'gfig big',html:GUIDE_SVG[sec.svg]}), el('p',{},sec.d),
+    el('div',{class:'row'}, el('button',{class:'btn tertiary',on:{click:()=>dlg.close()}},'닫기')));
+  dlg.showModal();
 }
 function renderGuide(gd){
   const p=P(), G=p.guide;
@@ -684,16 +795,20 @@ function renderGuide(gd){
     el('div',{}, el('h4',{},G.title), el('div',{class:'ver'},G.ver)),
     el('div',{class:'row',style:'flex-wrap:wrap'}, G.node?el('span',{class:'badge'},'Figma 운영 가이드'):el('span',{class:'badge gray'},'Figma 가이드 없음 — 운영 실측 기준')),
     el('div',{class:'note'},G.basis),
-    el('ul',{},G.items.map(t=>el('li',{},t))),
+    G.items?el('ul',{},G.items.map(t=>el('li',{},t))):null,
     G.node?el('a',{href:FIGMA+G.node,target:'_blank',rel:'noopener'},'Figma 원본 가이드 열기 ↗'):null));
+  (G.sections||[]).forEach((sec,i)=>{
+    const fig = sec.svg ? el('button',{class:'gfig',title:'크게 보기',html:GUIDE_SVG[sec.svg],on:{click:()=>openFigure(sec)}}) : null;
+    gd.append(el('div',{class:'card gsec'}, el('h3',{}, el('span',{class:'gnum'},String(i+1).padStart(2,'0')), sec.t), fig, el('p',{},sec.d)));
+  });
   if(G.checklist.length) gd.append(card('수동 확인 체크리스트', el('ul',{},G.checklist.map(t=>el('li',{},t))), el('div',{class:'meta'},'내보내기 직전에 자동 판정 항목과 함께 다시 확인해요.')));
 }
 function renderFooter(){
   const p=P(), f=$('#footer'); f.innerHTML='';
   const dis=!S.img;
   if(p.boards.length>1){
-    f.append(el('button',{class:'btn primary',disabled:dis,on:{click:()=>openChecklist(p.boards)}},'ZIP 다운로드 (모바일 + PC)'),
-      el('div',{class:'row'}, p.boards.map(b=>el('button',{class:'btn outlined',disabled:dis,on:{click:()=>openChecklist([b])}},`${b.id==='MO'?'모바일':'PC'}만 다운로드`))));
+    f.append(el('button',{class:'btn primary',disabled:dis,on:{click:()=>openChecklist(p.boards)}},'ZIP 다운로드 (모바일 + 데스크탑)'),
+      el('div',{class:'row'}, p.boards.map(b=>el('button',{class:'btn outlined',disabled:dis,on:{click:()=>openChecklist([b])}},`${DEVICE[b.id]}만 다운로드`))));
   }else f.append(el('button',{class:'btn primary',disabled:dis,on:{click:()=>openChecklist(p.boards)}},`다운로드 (${p.boards[0].w*p.scale}×${p.boards[0].h*p.scale})`));
   f.append(adminLink());
 }
@@ -707,18 +822,18 @@ function contrastChecks(){
   const T=P().template; if(!T) return [];
   const base=S.tpl.light?S.tpl.dim:'#000000', fg=S.tpl.light?S.tpl.key:'#ffffff', out=[];
   if(T.kind==='collection'){
-    out.push({name:'Title', ratio:ratio(fg,base)});
-    const badgeBg=S.tpl.light?blend(S.tpl.key,.3,base):blend('#ffffff',.4,base); out.push({name:'Badge', ratio:ratio(fg,badgeBg)});
+    out.push({name:'타이틀', ratio:ratio(fg,base)});
+    const badgeBg=S.tpl.light?blend(S.tpl.key,.3,base):blend('#ffffff',.4,base); out.push({name:'배지', ratio:ratio(fg,badgeBg)});
   }else{
-    out.push({name:'Headline', ratio:ratio(fg,base)});
-    out.push({name:'Subtitle', ratio:ratio(blend(fg,.64,base),base)});
+    out.push({name:'헤드라인', ratio:ratio(fg,base)});
+    out.push({name:'서브타이틀', ratio:ratio(blend(fg,.64,base),base)});
   }
   return out.map(c=>({...c, ok:c.ratio>=4.5}));
 }
 function autoChecks(boards){
   const p=P(), out=[];
   for(const b of boards){
-    const t=S.tf[b.id], f=frameOf(b), tag=boards.length>1||p.boards.length>1?`[${b.id==='MO'?'모바일':'PC'}] `:'';
+    const t=S.tf[b.id], f=frameOf(b), tag=boards.length>1||p.boards.length>1?`[${DEVICE[b.id]}] `:'';
     out.push({ok:true, t:`${tag}출력 크기 ${b.w*p.scale}×${b.h*p.scale}`, d:'기준 사이즈와 일치'});
     if(!t) continue;
     const iw=S.img.naturalWidth*t.s, ih=S.img.naturalHeight*t.s, up=t.s*p.scale;
@@ -737,14 +852,14 @@ function autoChecks(boards){
   }
   if(S.slot==='main'){
     const l=mainLabelCounter(S.text.label), ti=mainTitleCounter(S.text.title);
-    out.push({ok:!!S.text.label&&!!S.text.title, t:'Label · Title 입력', d:S.text.label&&S.text.title?'':'플레이스홀더만 있어요 — 어드민 subTitle · headline 칸에 넣을 문구를 입력해 주세요'});
-    out.push({ok:l.ok, t:'Label 1줄 · 20자 이내', d:l.text}); out.push({ok:ti.ok, t:'Title 2줄 · 줄당 15자 · 총 30자 이내', d:ti.text});
+    out.push({ok:!!S.text.label&&!!S.text.title, t:'서브타이틀 · 헤드라인 입력', d:S.text.label&&S.text.title?'':'플레이스홀더만 있어요 — 어드민 subTitle · headline 칸에 넣을 문구를 입력해 주세요'});
+    out.push({ok:l.ok, t:'서브타이틀 1줄 · 20자 이내', d:l.text}); out.push({ok:ti.ok, t:'헤드라인 2줄 · 줄당 15자 · 총 30자 이내', d:ti.text});
   }
   if(p.template){
     const c=document.createElement('canvas').getContext('2d'), T=p.template, maxW=T.textW-T.pad.l-T.pad.r;
-    if(T.kind==='collection'){ c.font='700 16px '+fontFam(); const r=wrap(c,S.text.ctitle,maxW,2); out.push({ok:!r.overflow, t:'Collection Title 2줄 이내', d:r.overflow?'2줄을 넘어 잘려요':''}); }
+    if(T.kind==='collection'){ c.font='700 16px '+fontFam(); const r=wrap(c,S.text.ctitle,maxW,2); out.push({ok:!r.overflow, t:'타이틀 2줄 이내', d:r.overflow?'2줄을 넘어 잘려요':''}); }
     else{ c.font='600 12px '+fontFam(); const r=wrap(c,S.text.headline,maxW,2); c.font='400 9px '+fontFam(); const s=wrap(c,S.text.sub,maxW,1);
-      out.push({ok:!r.overflow, t:'Headline 최대 2줄', d:r.overflow?'2줄을 넘어 잘려요':''}); out.push({ok:!s.overflow, t:'Subtitle 1줄', d:s.overflow?'1줄을 넘어 잘려요':''}); }
+      out.push({ok:!r.overflow, t:'헤드라인 최대 2줄', d:r.overflow?'2줄을 넘어 잘려요':''}); out.push({ok:!s.overflow, t:'서브타이틀 1줄', d:s.overflow?'1줄을 넘어 잘려요':''}); }
     if(S.tpl.mode==='current'){ const need=T.kind==='collection'?['ctitle']:['headline']; const miss=need.filter(k=>!S.text[k]);
       out.push({ok:!miss.length, t:'텍스트 입력', d:miss.length?'플레이스홀더만 있어요 — 내보내면 텍스트 없이 저장돼요':''}); }
     if(S.tpl.mode==='current') for(const r of contrastChecks()) out.push({ok:r.ok, t:`${r.name} 대비 WCAG AA`, d:`${r.ratio.toFixed(2)}:1`});
@@ -755,7 +870,7 @@ function autoChecks(boards){
 /* ===================== 내보내기 ====================== */
 function yymmdd(){ const d=new Date(); return String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
 function fileName(b, fmt){
-  const p=P(); const tag = p.boards.length>1 ? b.id : (p.fileTag||'');
+  const p=P(); const tag = p.boards.length>1 ? FILE_TAG[b.id] : (p.fileTag||'');
   return [p.key, S.ident||'untitled', tag, `${Math.round(b.w*p.scale)}x${Math.round(b.h*p.scale)}`, yymmdd()].filter(Boolean).join('_')+'.'+(fmt==='jpg'?'jpg':fmt);
 }
 function toBlob(c, fmt, q){ return new Promise(r=>c.toBlob(r, fmt==='jpg'?'image/jpeg':fmt==='webp'?'image/webp':'image/png', q)); }
