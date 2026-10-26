@@ -1,13 +1,14 @@
 # shop-lab
 
 NOVERA shop 관련 코드를 모아 두는 저장소입니다.
-현재는 홈 화면 개편 **모바일 프로토타입**(`mobile-home/`) 하나가 들어 있습니다.
+홈 화면 개편 **모바일 프로토타입**(`mobile-home/`)과 운영 이미지 제작 툴 **이미지 빌더**(`image-builder/`)가 들어 있습니다.
 
 **[라이브 데모 열기](https://novera-shop-proto.vercel.app)**
 
 | | |
 |---|---|
 | 프로토타입 | [`mobile-home/`](mobile-home) — 빌드하면 에셋까지 인라인된 **단일 HTML** 하나가 나옵니다 |
+| 이미지 빌더 | [`image-builder/`](image-builder) — 운영 이미지(컬렉션 배너·띠배너·상품·아티스트 썸네일)를 기준 사이즈대로 만드는 사내 툴. Vercel `shop-internal` 프로젝트로 따로 배포 |
 | 디자인 시스템 문서 | [`sirasolfa/design-system`](https://github.com/sirasolfa/design-system) — NDS 토큰·컴포넌트·패턴 |
 | 배포 | Vercel — [`vercel.json`](vercel.json) |
 
