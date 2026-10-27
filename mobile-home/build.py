@@ -817,14 +817,46 @@ def build_banner_sheet() -> str:
 <div class="bn-toast" id="bnToast">{icon('CircleCheckFill', 16)}<span id="bnToastMsg">배너가 적용되었어요</span></div>"""
 
 
-# Figma Left Sidebar(5443:57347) 항목 순서 그대로. (아이콘, 라벨, 링크, NEW배지)
-SIDENAV_MAIN = [
-    ("home", "홈", "https://shop.novera.town/", False),
-    ("album", "ALBUM", "https://shop.novera.town/categories/PCTGY1", False),
-    ("livemd", "LIVE MD", "https://shop.novera.town/categories/PCTGY3", True),
-    ("collection", "COLLECTION", "https://shop.novera.town/exhibitions", False),
-    ("profile", "ARTIST", "https://shop.novera.town/artists", False),
-    ("sphere", "SPHERE", "https://shop.novera.town/kimetsu_ex_kr", True),
+SITE = "https://shop.novera.town"
+
+# 카테고리 실측 — shop.novera.town 운영 서버 직접 확인(2026-10-27).
+# ALBUM(PCTGY1)/MD(PCTGY2) 서브카테고리를 실제 코드 그대로 쓰고, MD 쪽은 성격에 따라
+# K-POP(아이돌 이벤트형 굿즈) ↔ 캐릭터(IP 굿즈) 로 나눠 각 장르 사이드바에 배치한다.
+# 캐릭터 쪽 분류는 캐릭터 홈 퀵메뉴(피규어·인형·리빙·악세사리·문구)와 동일 기준.
+ALBUM_SUB = [
+    ("CD", f"{SITE}/categories/PCTGY1/PCTGY1_2"),
+    ("Vinyl", f"{SITE}/categories/PCTGY1/PCTGY1_3"),
+    ("DVD/Blu-ray", f"{SITE}/categories/PCTGY1/PCTGY1_1"),
+    ("Digital", f"{SITE}/categories/PCTGY1/PCTGY1_4"),
+]
+MD_SUB_KPOP = [
+    ("응원봉", f"{SITE}/categories/PCTGY2/PCTGY2_5"),
+    ("포토/카드", f"{SITE}/categories/PCTGY2/PCTGY2_2"),
+    ("의류", f"{SITE}/categories/PCTGY2/PCTGY2_1"),
+]
+MD_SUB_CHARACTER = [
+    ("피규어/인형", f"{SITE}/categories/PCTGY2/PCTGY2_6"),
+    ("리빙", f"{SITE}/categories/PCTGY2/PCTGY2_7"),
+    ("문구", f"{SITE}/categories/PCTGY2/PCTGY2_3"),
+    ("악세사리", f"{SITE}/categories/PCTGY2/PCTGY2_4"),
+]
+
+# Figma Left Sidebar(6034:190360) 실측 — ALBUM·MD 가 아코디언(서브카테고리 펼침)으로
+# 바뀌었다. K-POP 전용(ALBUM·LIVE MD·ARTIST)은 캐릭터 사이드바에는 없다.
+SIDENAV_KPOP = [
+    dict(icon="home", label="홈", kind="link", href=f"{SITE}/"),
+    dict(icon="album", label="ALBUM", kind="accordion", items=ALBUM_SUB),
+    dict(icon="md", label="MD", kind="accordion", items=MD_SUB_KPOP),
+    dict(icon="livemd", label="LIVE MD", kind="link", href=f"{SITE}/categories/PCTGY3", new=True),
+    dict(icon="sphere", label="SPHERE", kind="link", href=f"{SITE}/sphere/3", new=True),
+    dict(icon="collection", label="COLLECTION", kind="link", href=f"{SITE}/exhibitions"),
+    dict(icon="profile", label="ARTIST", kind="link", href=f"{SITE}/artists"),
+]
+SIDENAV_CHARACTER = [
+    dict(icon="home", label="홈", kind="link", href=f"{SITE}/"),
+    dict(icon="md", label="MD", kind="accordion", items=MD_SUB_CHARACTER),
+    dict(icon="collection", label="COLLECTION", kind="link", href=f"{SITE}/exhibitions"),
+    dict(icon="sphere", label="SPHERE", kind="link", href=f"{SITE}/sphere/3", new=True),
 ]
 SIDENAV_BOTTOM = [
     ("bag", "장바구니", "https://shop.novera.town/cart"),
@@ -833,26 +865,40 @@ SIDENAV_BOTTOM = [
 ]
 
 
-def build_sidenav() -> str:
+def build_sidenav(items: list[dict], genre: str) -> str:
     """486px 위에서 노출되는 고정 사이드 내비게이션.
-    Figma Left Sidebar(5443:57347) 실측: 폭 280 / 그룹 padding 24·16 / 항목 gap 2 /
+    Figma Left Sidebar(6034:190360) 실측: 폭 232 고정 / 그룹 padding 24·16 /
     항목 padding 12·16, gap 12, rounded 8 / 라벨 Action/2 (14 SemiBold, tracking-1) /
-    활성 항목만 bg #eef3ff + text #4f7cff, 나머지는 #4b5465."""
-    def row(ic, label, href, new, active=False):
-        badge = '<span class="sn-n">N</span>' if new else ""
-        cls = " is-active" if active else ""
-        return (
-            f'<a class="sn-item{cls}" href="{href}" target="_blank" rel="noreferrer">'
-            f'{sidenav_icon(ic)}<span class="sn-label">{esc(label)}{badge}</span></a>'
-        )
-
-    main = "".join(
-        row(ic, label, href, new, active=(i == 0))
-        for i, (ic, label, href, new) in enumerate(SIDENAV_MAIN)
+    활성 항목만 bg #eef3ff + text #4f7cff. ALBUM·MD 는 아코디언 — 서브카테고리는
+    실제 운영 서버 카테고리(ALBUM_SUB / MD_SUB_KPOP / MD_SUB_CHARACTER)를 그대로 쓴다."""
+    rows = []
+    for i, it in enumerate(items):
+        if it["kind"] == "accordion":
+            subs = "".join(
+                f'<a class="sn-sub-item" href="{href}" target="_blank" rel="noreferrer">{esc(label)}</a>'
+                for label, href in it["items"]
+            )
+            rows.append(f"""<div class="sn-accordion">
+  <button class="sn-item sn-accordion-trigger" type="button" aria-expanded="false">
+    {sidenav_icon(it['icon'])}<span class="sn-label">{esc(it['label'])}</span>
+    <span class="sn-chevron">{icon('ChevronRight', 16)}</span>
+  </button>
+  <div class="sn-sub" hidden>{subs}</div>
+</div>""")
+        else:
+            badge = '<span class="sn-n">N</span>' if it.get("new") else ""
+            cls = " is-active" if i == 0 else ""
+            rows.append(
+                f'<a class="sn-item{cls}" href="{it["href"]}" target="_blank" rel="noreferrer">'
+                f'{sidenav_icon(it["icon"])}<span class="sn-label">{esc(it["label"])}{badge}</span></a>'
+            )
+    bottom = "".join(
+        f'<a class="sn-item" href="{href}" target="_blank" rel="noreferrer">'
+        f'{sidenav_icon(ic)}<span class="sn-label">{esc(label)}</span></a>'
+        for ic, label, href in SIDENAV_BOTTOM
     )
-    bottom = "".join(row(ic, label, href, False) for ic, label, href in SIDENAV_BOTTOM)
-    return f"""<aside class="sidenav" aria-label="사이드 내비게이션">
-  <nav class="sn-group">{main}</nav>
+    return f"""<aside class="sidenav home-genre-nav" data-genre="{genre}" aria-label="사이드 내비게이션"{' hidden' if genre != 'kpop' else ''}>
+  <nav class="sn-group">{"".join(rows)}</nav>
   <div class="sn-divider"></div>
   <nav class="sn-group">{bottom}</nav>
 </aside>"""
@@ -868,17 +914,10 @@ def build_notice_bar() -> str:
 </div>"""
 
 
-SITE = "https://shop.novera.town"
-
-# 라이브 사이트 GNB 와 동일한 라벨/링크
-DRAWER_MENU = [
-    ("ALBUM", f"{SITE}/categories/PCTGY1", False),
-    ("MD", f"{SITE}/categories/PCTGY2", False),
-    ("LIVE MD", f"{SITE}/categories/PCTGY3", False),
-    ("COLLECTION", f"{SITE}/exhibitions", False),
-    ("ARTIST", f"{SITE}/artists", False),
-    ("SPHERE", f"{SITE}/kimetsu_ex_kr", True),
-]
+# 모바일 드로어 — 사이드바와 같은 트리(SIDENAV_KPOP/CHARACTER)를 쓰되 "홈" 항목만
+# 뺀다(드로어 헤더에 이미 로고 = 홈 링크가 있다).
+DRAWER_KPOP = [it for it in SIDENAV_KPOP if it["icon"] != "home"]
+DRAWER_CHARACTER = [it for it in SIDENAV_CHARACTER if it["icon"] != "home"]
 
 DRAWER_UTIL = [
     ("User", "로그인", f"{SITE}/sign-in"),
@@ -889,14 +928,35 @@ DRAWER_UTIL = [
 
 def build_drawer() -> str:
     """좌측 사이드 드로어 내비게이션. 헤더의 햄버거 버튼으로 열고,
-    스크림 탭 / ESC / 링크 선택 시 닫힌다. 라벨·링크는 라이브 GNB 와 동일."""
-    menu = "".join(
-        f'<a class="dw-item" href="{href}" target="_blank" rel="noreferrer">'
-        f'<span class="dw-item-label">{esc(label)}'
-        f'{"<span class=" + chr(34) + "dw-n" + chr(34) + ">N</span>" if new else ""}</span>'
-        f'{icon("ChevronRight", 16, "dw-caret")}</a>'
-        for label, href, new in DRAWER_MENU
-    )
+    스크림 탭 / ESC / 링크 선택 시 닫힌다. 라벨·링크는 사이드바(SIDENAV_KPOP/
+    CHARACTER)와 같은 트리를 공유 — ALBUM·MD 는 아코디언으로 서브카테고리를 편다.
+    두 장르 메뉴를 모두 그려 두고 장르 스위치로 보이는 쪽만 바꾼다."""
+    def build_menu(items, genre):
+        rows = []
+        for it in items:
+            if it["kind"] == "accordion":
+                subs = "".join(
+                    f'<a class="dw-sub-item" href="{href}" target="_blank" rel="noreferrer">{esc(label)}</a>'
+                    for label, href in it["items"]
+                )
+                rows.append(f"""<div class="dw-accordion">
+  <button class="dw-item dw-accordion-trigger" type="button" aria-expanded="false">
+    <span class="dw-item-label">{esc(it['label'])}</span>
+    {icon('ChevronRight', 16, 'dw-caret dw-chevron')}
+  </button>
+  <div class="dw-sub" hidden>{subs}</div>
+</div>""")
+            else:
+                badge = '<span class="dw-n">N</span>' if it.get("new") else ""
+                rows.append(
+                    f'<a class="dw-item" href="{it["href"]}" target="_blank" rel="noreferrer">'
+                    f'<span class="dw-item-label">{esc(it["label"])}{badge}</span>'
+                    f'{icon("ChevronRight", 16, "dw-caret")}</a>'
+                )
+        hidden = "" if genre == "kpop" else " hidden"
+        return f'<nav class="dw-menu home-genre-nav" data-genre="{genre}"{hidden}>{"".join(rows)}</nav>'
+
+    menu = build_menu(DRAWER_KPOP, "kpop") + build_menu(DRAWER_CHARACTER, "character")
     util = "".join(
         f'<a class="dw-util" href="{href}" target="_blank" rel="noreferrer">'
         f'{icon(ic, 20)}<span>{esc(label)}</span></a>'
@@ -909,7 +969,7 @@ def build_drawer() -> str:
     <button class="dw-close" type="button" id="dwClose" aria-label="메뉴 닫기">{icon('X', 20)}</button>
   </header>
   <div class="dw-search">{icon('Search', 18)}<span>검색어를 입력해 주세요</span></div>
-  <nav class="dw-menu">{menu}</nav>
+  {menu}
   <div class="dw-divider"></div>
   <nav class="dw-utils">{util}</nav>
   <div class="dw-foot">
@@ -1003,6 +1063,22 @@ def build_genre_switch() -> str:
             f'<button class="gs-tab{active}" type="button" data-genre="{key}">{esc(label)}</button>'
         )
     return f'<div class="genre-switch" id="genreSwitch" role="tablist">{"".join(items)}</div>'
+
+
+def build_header_genre_switch() -> str:
+    """Figma TopNavigation(7629:210837, 6034:190358 데스크톱) 실측 — 로고 옆에 붙는
+    텍스트형 K-POP/캐릭터 탭. 모바일 하단 pill(genre-switch)과 같은 역할이지만
+    데스크톱 헤더 전용 모양(구분선으로 나눈 16px SemiBold 텍스트)이라 별도로 그린다.
+    상태는 .gs-tab 과 동일하게 JS 가 함께 맞춰 준다."""
+    parts = []
+    for i, (key, label) in enumerate(GENRE_TABS):
+        if i:
+            parts.append('<span class="hdr-genre-div" aria-hidden="true"></span>')
+        active = " is-active" if i == 0 else ""
+        parts.append(
+            f'<button class="hdr-genre-tab{active}" type="button" data-genre="{key}">{esc(label)}</button>'
+        )
+    return f'<div class="hdr-genre" id="hdrGenreSwitch" role="tablist">{"".join(parts)}</div>'
 
 
 # ---------------------------------------------------------------- CSS
@@ -1147,6 +1223,18 @@ img{display:block;max-width:100%}
   background:var(--bg-negative);color:var(--text-negative);
   font-size:10px;font-weight:600;line-height:1.5}
 .sn-divider{height:1px;background:var(--gray-200)}
+.home-genre-nav[hidden]{display:none}
+/* ALBUM·MD 아코디언 — Figma 6034:190373 실측 */
+.sn-accordion-trigger{width:100%;justify-content:space-between;cursor:pointer}
+.sn-chevron{flex:none;display:flex;color:var(--icon-muted);
+  transform:rotate(90deg);transition:transform .2s ease}
+.sn-accordion.is-open .sn-chevron{transform:rotate(-90deg)}
+.sn-sub{display:flex;flex-direction:column;padding:var(--spacing-4) var(--spacing-16)
+    var(--spacing-4) 48px}
+.sn-sub[hidden]{display:none}
+.sn-sub-item{padding:var(--spacing-8) 0;color:var(--text-tertiary);
+  font-size:13px;font-weight:500;line-height:1.4}
+.sn-sub-item:hover{color:var(--text-primary)}
 
 /* ---------- 상단 고지 배너 (Figma Inline Banner 5439:86728) ---------- */
 /* 텍스트는 배너 폭 기준 중앙, 닫기 버튼은 우측 20px 절대배치 -- 텍스트가 길어져도
@@ -1226,6 +1314,15 @@ img{display:block;max-width:100%}
   font-size:10px;font-weight:700;line-height:1.5}
 .dw-caret{color:var(--icon-muted)}
 .dw-divider{height:1px;margin:var(--spacing-12) var(--spacing-16);background:var(--gray-200)}
+/* ALBUM·MD 아코디언 (드로어) */
+.dw-accordion-trigger{width:100%;cursor:pointer}
+.dw-chevron{transform:rotate(90deg);transition:transform .2s ease}
+.dw-accordion.is-open .dw-chevron{transform:rotate(-90deg)}
+.dw-sub{display:flex;flex-direction:column;padding:0 var(--spacing-8) var(--spacing-8) var(--spacing-24)}
+.dw-sub[hidden]{display:none}
+.dw-sub-item{padding:var(--spacing-8);border-radius:var(--rounded-sm);
+  color:var(--text-tertiary);font-size:14px;font-weight:500;line-height:1.4}
+.dw-sub-item:active{background:var(--bg-gray);color:var(--text-primary)}
 .dw-utils{display:flex;flex-direction:column;padding:0 var(--spacing-8)}
 .dw-util{display:flex;align-items:center;gap:var(--spacing-12);
   padding:var(--spacing-12) var(--spacing-8);border-radius:var(--rounded-sm);
@@ -1861,6 +1958,7 @@ img{display:block;max-width:100%}
 .head-search{display:none}
 .head-cta{display:none}
 .touch--desktop{display:none}
+.hdr-genre{display:none}
 
 @media (min-width:1200px){
   /* 페이지 배경은 시안의 #fcfdff. 모바일에서 쓰던 "휴대폰 카드" 그림자는 걷어낸다 */
@@ -1872,6 +1970,12 @@ img{display:block;max-width:100%}
   .header-inner{flex:none;width:min(1200px,calc(100% - 48px));margin-inline:auto;
     gap:var(--spacing-24)}
   .logo{margin-right:0}
+  /* Figma TopNavigation(7629:212143) — 로고 옆 K-POP/캐릭터 텍스트 탭 */
+  .hdr-genre{display:flex;align-items:center;gap:var(--spacing-8)}
+  .hdr-genre-tab{font-size:16px;font-weight:600;line-height:1.5;color:var(--text-muted);
+    white-space:nowrap}
+  .hdr-genre-tab.is-active{color:var(--brand1-default)}
+  .hdr-genre-div{width:1px;height:12px;background:var(--border-default)}
   .head-search{flex:1;max-width:420px;display:flex;align-items:center;gap:var(--spacing-8);
     height:40px;padding:0 var(--spacing-16);border-radius:var(--rounded-sm);
     background:var(--bg-gray);color:var(--text-muted);
@@ -2446,9 +2550,10 @@ document.querySelectorAll('.podium').forEach(function(podium){
 // 두 홈이 공유하는 하나의 DOM 노드라 앵커(.collection-anchor) 사이로 옮겨 쓴다.
 (function(){
   var sw=document.getElementById('genreSwitch');
-  if(!sw) return;
-  var tabs=[].slice.call(sw.querySelectorAll('.gs-tab'));
-  var genres=[].slice.call(document.querySelectorAll('.home-genre'));
+  var hdrSw=document.getElementById('hdrGenreSwitch');
+  if(!sw && !hdrSw) return;
+  var tabs=[].slice.call(document.querySelectorAll('.gs-tab, .hdr-genre-tab'));
+  var genres=[].slice.call(document.querySelectorAll('.home-genre, .home-genre-nav'));
   var collection=document.getElementById('collectionSection');
 
   function anchorFor(g){ return document.querySelector('.collection-anchor[data-anchor-for="'+g+'"]'); }
@@ -2475,6 +2580,19 @@ document.querySelectorAll('.podium').forEach(function(podium){
 
   setGenre('kpop');   // 초기 상태 — Collection 을 kpop 앵커 자리로 옮겨 둔다
 })();
+
+// ----- 사이드바·드로어 ALBUM/MD 아코디언 -----
+document.querySelectorAll('.sn-accordion-trigger, .dw-accordion-trigger').forEach(function(btn){
+  var wrap=btn.parentElement;
+  var sub=wrap.querySelector('.sn-sub, .dw-sub');
+  if(!sub) return;
+  btn.addEventListener('click',function(){
+    var open=!sub.hidden;
+    sub.hidden=open;
+    wrap.classList.toggle('is-open', !open);
+    btn.setAttribute('aria-expanded', String(!open));
+  });
+});
 
 // ----- 상단 카테고리 탭 -----
 document.querySelectorAll('.tabbar--category .tab').forEach(function(t){
@@ -2562,6 +2680,7 @@ def build() -> str:
   <header class="header">
     <div class="header-inner">
       <a class="logo" href="https://shop.novera.town/" target="_blank" rel="noreferrer">{brand_svg('logo-novera-shop')}</a>
+      {build_header_genre_switch()}
       <div class="head-search">{icon('Search', 20)}<span>검색어를 입력해 주세요</span></div>
       <div class="head-actions">
         <div class="head-icons">
@@ -2576,7 +2695,8 @@ def build() -> str:
   </header>
 
   <div class="app-body">
-  {build_sidenav()}
+  {build_sidenav(SIDENAV_KPOP, "kpop")}
+  {build_sidenav(SIDENAV_CHARACTER, "character")}
   <main class="app-main">
   {build_cat_tabs()}
 

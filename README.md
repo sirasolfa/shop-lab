@@ -198,7 +198,31 @@ Banner`(`5762:66429`)를 `get_design_context` 로 실측한 그대로 —
 그대로 채우기만 하면 되고, 런타임에 큰 원본을 퍼센트 트랜스폼으로 늘려-잘라내는 계산이
 필요 없습니다.
 
-### 데스크톱 좌측 내비게이션
+### 데스크톱 좌측 내비게이션 / 카테고리 (Figma `6034:190358` 데스크톱 · `6034:191019` 모바일)
+
+Figma 리비전에서 사이드바가 바뀌었습니다 — ALBUM·MD 가 **아코디언**(클릭하면 서브카테고리가
+펼쳐짐)이 됐고, 로고 옆에 **K-POP | 캐릭터** 텍스트 탭이 새로 생겼습니다(모바일 하단
+pill 과 같은 역할, 데스크톱 헤더 전용 모양). 모바일 드로어(`카테고리` 하단 탭)도 같은
+트리를 공유해 ALBUM·MD 가 아코디언으로 펼쳐집니다.
+
+**서브카테고리는 `shop.novera.town` 운영 서버를 직접 확인해 채웠습니다** — Figma 목업엔
+펼친 상태가 없어서, 실제 사이트에서 `/categories/PCTGY1`(ALBUM)·`/categories/PCTGY2`(MD)
+의 실제 하위 카테고리 코드를 하나씩 확인(`PCTGY1_1`~`_4`, `PCTGY2_1`~`_7`)하고 상품
+성격에 따라 두 장르로 나눴습니다:
+
+| 그룹 | K-POP 사이드바 | 캐릭터 사이드바 |
+|---|---|---|
+| ALBUM | CD · Vinyl · DVD/Blu-ray · Digital | *(없음 — 캐릭터 홈엔 음반이 없음)* |
+| MD | 응원봉 · 포토/카드 · 의류 (아이돌 이벤트형) | 피규어/인형 · 리빙 · 문구 · 악세사리 (캐릭터 홈 퀵메뉴와 동일 분류) |
+| 그 외 | LIVE MD(N) · SPHERE(N) · COLLECTION · ARTIST | COLLECTION · SPHERE(N) |
+
+SPHERE 링크가 가리키던 `/kimetsu_ex_kr` 은 이제 존재하지 않는 경로라, 실제 사이트에서
+확인한 현재 운영 중인 캠페인 `shop.novera.town/sphere/3` 로 바로잡았습니다.
+
+사이드바(`SIDENAV_KPOP`/`SIDENAV_CHARACTER`)와 드로어(`DRAWER_KPOP`/`DRAWER_CHARACTER`)는
+같은 트리 데이터에서 나옵니다. 둘 다 DOM 에 두 장르분을 모두 그려 두고 `[hidden]` 으로
+토글하는, 홈 콘텐츠·메인 배너와 같은 패턴입니다 — 장르 스위치(`.gs-tab` 모바일 pill,
+`.hdr-genre-tab` 데스크톱 헤더 탭) 중 아무거나 클릭해도 둘 다 같이 바뀝니다.
 
 Figma 사이드바 기준 EVENT 탭을 제거했습니다 — 같은 링크(`/categories/PCTGY3`)를 가리켜
 LIVE MD 탭과 중복이었습니다. 모바일 카테고리 탭·드로어 메뉴에는 원래 EVENT 항목이 없어
