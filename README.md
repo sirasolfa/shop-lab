@@ -50,7 +50,7 @@ Figma [NDS - NOVERA Design System](https://www.figma.com/design/OJqTwQ8gHDGcvOOk
 - [메인 배너 모션](#메인-배너-모션)
 - [Meet Your Artist Event (Figma `5749:63751`)](#meet-your-artist-event-figma-574963751)
 - [LIVE MD 이미지 — Figma 스크린샷으로 직접 캡처](#live-md-이미지--figma-스크린샷으로-직접-캡처)
-- [데스크톱 좌측 내비게이션](#데스크톱-좌측-내비게이션)
+- [데스크톱 좌측 내비게이션 / 카테고리 (Figma `6034:190358` 데스크톱 · `6034:191019` 모바일)](#데스크톱-좌측-내비게이션--카테고리-figma-6034190358-데스크톱--6034191019-모바일)
 
 ### 구조
 
