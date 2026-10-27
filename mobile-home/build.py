@@ -178,27 +178,52 @@ PODIUM = [
     dict(key="kep1er", name="Kep1er", count=8120, rank="3rd", place="third"),
 ]
 
-# hero 배경색은 각 배너 이미지 가장자리에서 실측한 색 (PIL 로 좌우 6열 평균) --
-# object-fit:contain 으로 바뀌면서 생기는 좌우 여백을 그 배너 고유 톤으로 자연스럽게 채움
-COLLECTIONS = [
-    dict(key="zo", tab="ZO&FRIENDS", hero="col_zo", hero_bg="#46a9f6", overlay=False,
+# Collection 배너는 Figma "[NOVERA]shop 운영 가이드라인" 파일의 Collection Banner
+# 템플릿(122:753 — 180px 이미지 + 195px 텍스트 패널, COLLECTION 뱃지 + 2행 헤드라인)을
+# 그대로 따른다. hero_bg 는 패널 전체 바탕색/그라디언트, fade 는 이미지 우측 가장자리를
+# 그 바탕으로 녹이는 Figma 실측 그라디언트(Gradient 레이어) 값 그대로다.
+# 윤종신은 이 가이드라인 파일에 항목이 없어 기존 사진을 그대로 쓰되 같은 템플릿(다크톤)으로 맞췄다.
+# 장르별로 노출 컬렉션이 다르다 — 캐릭터 홈: ZO&FRIENDS·귀멸의 칼날 / 케이팝 홈: 도영·윤종신·Kep1asia.
+COLLECTIONS_CHARACTER = [
+    dict(key="zo", tab="ZO&FRIENDS", hero="col_zo",
+         hero_bg="linear-gradient(180deg,#6ac3f0 42.571%,#0072e4 100%)",
+         fade="linear-gradient(-90deg,#0072e4 0%,#359aea 50%,rgba(106,195,240,0) 80%)",
+         badge_bg="rgba(255,255,255,.4)", badge_fg="#fff", headline_fg="#fff",
+         headline="ZO&FRIENDS<br>LUCKY COLLECTION",
          title="ZO&FRIENDS Collection",
          desc="사랑스러운 조앤프렌즈를 NOVERA shop에서 만나보세요",
          items=S["col_zo"]),
-    dict(key="km", tab="귀멸의 칼날", hero="col_km", hero_bg="#05060b", overlay=True,
-         badge="New release", headline="귀멸의 칼날<br>COLLECTION",
+    dict(key="km", tab="귀멸의 칼날", hero="col_km",
+         hero_bg="#05060b",
+         fade="linear-gradient(-90deg,#000 0%,#000 52%,rgba(0,0,0,0) 64%,rgba(0,0,0,0) 100%)",
+         badge_bg="rgba(255,255,255,.4)", badge_fg="#fff", headline_fg="#fff",
+         headline="귀멸의 칼날<br>ONLINE COLLECTION",
          title="귀멸의 칼날 Collection",
          desc="전집중! 귀살대 굿즈를 NOVERA shop에서 만나보세요",
          items=S["col_km"]),
-    dict(key="doy", tab="도영", hero="col_doy", hero_bg="#eddda3", overlay=False,
+]
+COLLECTIONS_KPOP = [
+    dict(key="doy", tab="도영", hero="col_doy",
+         hero_bg="linear-gradient(180deg,#f2f0ea 0%,#fff 100%)",
+         fade="linear-gradient(-90deg,#d4c9af 0%,#e5dfcc 50%,rgba(246,244,234,0) 80%)",
+         badge_bg="rgba(190,168,111,.3)", badge_fg="#6e5613", headline_fg="#5d460b",
+         headline="도영 CONCERT [Yours] COLLECTION",
          title="도영 [ Yours ] Collection",
          desc="2025 DOYOUNG ENCORE CONCERT 공식 MD",
          items=S["col_doy"]),
-    dict(key="yjs", tab="윤종신", hero="col_yjs", hero_bg="#a7a4a5", overlay=False,
+    dict(key="yjs", tab="윤종신", hero="col_yjs",
+         hero_bg="#1c1c1c",
+         fade="linear-gradient(-90deg,#000 0%,#000 52%,rgba(0,0,0,0) 64%,rgba(0,0,0,0) 100%)",
+         badge_bg="rgba(255,255,255,.4)", badge_fg="#fff", headline_fg="#fff",
+         headline="윤종신 그리고 나<br>COLLECTION",
          title="〈윤종신 그리고 나〉 Collection",
          desc="윤종신의 행보 시리즈를 NOVERA shop에서 만나보세요",
          items=S["col_yjs"]),
-    dict(key="kep", tab="Kep1asia", hero="col_kep", hero_bg="#d64d1f", overlay=False,
+    dict(key="kep", tab="Kep1asia", hero="col_kep",
+         hero_bg="#000",
+         fade="linear-gradient(-90deg,#000 0%,#000 55%,rgba(0,0,0,0) 65%,rgba(0,0,0,0) 100%)",
+         badge_bg="rgba(255,255,255,.4)", badge_fg="#fff", headline_fg="#fff",
+         headline="케플러 CONCERT Kep1asia Official MD",
          title="케플러 Kep1asia Official MD",
          desc="2025 Kep1er CONCERT TOUR 공식 MD",
          items=S["col_kep"]),
@@ -594,25 +619,29 @@ def build_podium(items=None) -> str:
     return f'<div class="podium">{"".join(stands)}</div>'
 
 
-def build_collections() -> str:
+def build_collections(items: list[dict], genre: str) -> str:
+    """NOVERA Collection 구좌. 장르별로 노출 컬렉션이 달라(COLLECTIONS_KPOP /
+    COLLECTIONS_CHARACTER) 두 홈이 각자 자신의 섹션을 따로 그린다 — 더 이상 하나의
+    DOM 노드를 앵커 사이로 옮겨 쓰지 않는다. 히어로는 Figma Collection Banner
+    템플릿(180px 이미지 + 195px 텍스트 패널) 그대로."""
     tabs, panels = [], []
-    for i, c in enumerate(COLLECTIONS):
+    for i, c in enumerate(items):
         active = " is-active" if i == 0 else ""
         tabs.append(
             f'<button class="tab{active}" type="button" data-col="{c["key"]}">'
             f'<span class="tab-label">{esc(c["tab"])}</span><span class="tab-underline"></span></button>'
         )
-        hero_src = datauri(ASSETS / "banner" / f"{c['hero']}.jpg")
-        overlay = ""
-        if c.get("overlay"):
-            overlay = f"""<div class="col-hero-text">
-  <span class="col-hero-badge">{esc(c['badge'])}</span>
-  <p class="col-hero-headline">{c['headline']}</p>
-</div>"""
+        hero_src = find_img("banner", c["hero"])
+        img_tag = f'<img src="{hero_src}" alt="{esc(c["title"])}">' if hero_src else ""
         panels.append(
             f"""<div class="col-panel{active}" data-col="{c['key']}">
-  <div class="col-hero{' col-hero--overlay' if c.get('overlay') else ''}" style="--col-bg:{c['hero_bg']}">
-    <img src="{hero_src}" alt="{esc(c['title'])}">{overlay}
+  <div class="col-hero" style="background:{c['hero_bg']}">
+    <div class="col-hero-img">{img_tag}</div>
+    <div class="col-hero-fade" style="background:{c['fade']}"></div>
+    <div class="col-hero-text">
+      <span class="col-hero-badge" style="background:{c['badge_bg']};color:{c['badge_fg']}">COLLECTION</span>
+      <p class="col-hero-headline" style="color:{c['headline_fg']}">{c['headline']}</p>
+    </div>
   </div>
   <div class="col-body">
     <div class="col-head">
@@ -623,7 +652,7 @@ def build_collections() -> str:
   </div>
 </div>"""
         )
-    return f"""<section class="sec sec--collection" id="collectionSection">
+    return f"""<section class="sec sec--collection" id="collection-{genre}">
   <div class="col-top">
     <h2 class="sec-title">NOVERA shop Collection</h2>
   </div>
@@ -633,9 +662,8 @@ def build_collections() -> str:
 
 
 def build_character_home(inline_banner: str) -> str:
-    """캐릭터 홈 전용 콘텐츠 (Figma 5596:53135). NOVERA Collection 은
-    두 홈이 공유하는 하나의 DOM 노드를 JS 로 옮겨 쓰므로 여기서는 그 자리에
-    빈 앵커만 남긴다 — collection-anchor 참고."""
+    """캐릭터 홈 전용 콘텐츠 (Figma 5596:53135). NOVERA Collection 은 케이팝 홈과
+    노출 세트가 달라(ZO&FRIENDS·귀멸의 칼날) 이 홈 전용 섹션을 따로 그린다."""
     return f"""<section class="mainbanner">
     <div class="mb-track">{build_banners(MAIN_BANNERS_CHARACTER)}</div>
   </section>
@@ -644,7 +672,7 @@ def build_character_home(inline_banner: str) -> str:
     {build_quickmenu(QUICKMENU_CHARACTER)}
   </section>
 
-  <div class="collection-anchor" data-anchor-for="character"></div>
+  {build_collections(COLLECTIONS_CHARACTER, "character")}
 
   <section class="sec sec--rank">
     {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
@@ -844,7 +872,7 @@ MD_SUB_CHARACTER = [
 # Figma Left Sidebar(6034:190360) 실측 — ALBUM·MD 가 아코디언(서브카테고리 펼침)으로
 # 바뀌었다. K-POP 전용(ALBUM·LIVE MD·ARTIST)은 캐릭터 사이드바에는 없다.
 SIDENAV_KPOP = [
-    dict(icon="home", label="홈", kind="link", href=f"{SITE}/"),
+    dict(icon="home", label="HOME", kind="link", href=f"{SITE}/"),
     dict(icon="album", label="ALBUM", kind="accordion", items=ALBUM_SUB),
     dict(icon="md", label="MD", kind="accordion", items=MD_SUB_KPOP),
     dict(icon="livemd", label="LIVE MD", kind="link", href=f"{SITE}/categories/PCTGY3", new=True),
@@ -853,15 +881,10 @@ SIDENAV_KPOP = [
     dict(icon="profile", label="ARTIST", kind="link", href=f"{SITE}/artists"),
 ]
 SIDENAV_CHARACTER = [
-    dict(icon="home", label="홈", kind="link", href=f"{SITE}/"),
+    dict(icon="home", label="HOME", kind="link", href=f"{SITE}/"),
     dict(icon="md", label="MD", kind="accordion", items=MD_SUB_CHARACTER),
     dict(icon="collection", label="COLLECTION", kind="link", href=f"{SITE}/exhibitions"),
     dict(icon="sphere", label="SPHERE", kind="link", href=f"{SITE}/sphere/3", new=True),
-]
-SIDENAV_BOTTOM = [
-    ("bag", "장바구니", "https://shop.novera.town/carts"),
-    ("heart", "좋아요", "https://shop.novera.town/mypage/likes"),
-    ("user", "마이페이지", "https://shop.novera.town/mypage"),
 ]
 
 
@@ -870,7 +893,8 @@ def build_sidenav(items: list[dict], genre: str) -> str:
     Figma Left Sidebar(6034:190360) 실측: 폭 232 고정 / 그룹 padding 24·16 /
     항목 padding 12·16, gap 12, rounded 8 / 라벨 Action/2 (14 SemiBold, tracking-1) /
     활성 항목만 bg #eef3ff + text #4f7cff. ALBUM·MD 는 아코디언 — 서브카테고리는
-    실제 운영 서버 카테고리(ALBUM_SUB / MD_SUB_KPOP / MD_SUB_CHARACTER)를 그대로 쓴다."""
+    실제 운영 서버 카테고리(ALBUM_SUB / MD_SUB_KPOP / MD_SUB_CHARACTER)를 그대로 쓴다.
+    장바구니·좋아요·마이페이지는 GNB(헤더)에 이미 있어 여기서는 중복 노출하지 않는다."""
     rows = []
     for i, it in enumerate(items):
         if it["kind"] == "accordion":
@@ -892,15 +916,8 @@ def build_sidenav(items: list[dict], genre: str) -> str:
                 f'<a class="sn-item{cls}" href="{it["href"]}" target="_blank" rel="noreferrer">'
                 f'{sidenav_icon(it["icon"])}<span class="sn-label">{esc(it["label"])}{badge}</span></a>'
             )
-    bottom = "".join(
-        f'<a class="sn-item" href="{href}" target="_blank" rel="noreferrer">'
-        f'{sidenav_icon(ic)}<span class="sn-label">{esc(label)}</span></a>'
-        for ic, label, href in SIDENAV_BOTTOM
-    )
     return f"""<aside class="sidenav home-genre-nav" data-genre="{genre}" aria-label="사이드 내비게이션"{' hidden' if genre != 'kpop' else ''}>
   <nav class="sn-group">{"".join(rows)}</nav>
-  <div class="sn-divider"></div>
-  <nav class="sn-group">{bottom}</nav>
 </aside>"""
 
 
@@ -1205,7 +1222,6 @@ img{display:block;max-width:100%}
 .app-main{display:block;min-width:0}
 /* K-POP ↔ 캐릭터 홈 전환. [hidden] 을 명시적으로 눌러 다른 규칙에 밀리지 않게 한다 */
 .home-genre[hidden]{display:none}
-.collection-anchor{display:none}
 .sn-group{display:flex;flex-direction:column;gap:2px;
   padding:var(--spacing-24) var(--spacing-16)}
 /* 이 프로토타입의 --text-secondary 는 gray-700 에 물려 있는데 Figma 사이드바 라벨은
@@ -1224,7 +1240,6 @@ img{display:block;max-width:100%}
 .sn-n{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
   background:var(--bg-negative);color:var(--text-negative);
   font-size:10px;font-weight:600;line-height:1.5}
-.sn-divider{height:1px;background:var(--gray-200)}
 .home-genre-nav[hidden]{display:none}
 /* ALBUM·MD 아코디언 — Figma 6034:190373 실측 */
 .sn-accordion-trigger{width:100%;justify-content:space-between;cursor:pointer}
@@ -1266,10 +1281,10 @@ img{display:block;max-width:100%}
 .touch{position:relative;display:flex;align-items:center;justify-content:center;
   padding:var(--spacing-8);color:var(--icon-primary)}
 .push-badge{
-  position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 var(--spacing-4);
+  position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 3px;
   display:flex;align-items:center;justify-content:center;border-radius:var(--rounded-full);
-  background:var(--brand1-default);color:var(--text-inverse);
-  font-size:11px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.4;
+  background:var(--brand1-default);color:var(--text-inverse);box-shadow:0 0 0 1.5px var(--bg-default);
+  font-size:10px;font-weight:700;letter-spacing:var(--tracking-1);line-height:1.4;
 }
 .lang{
   display:flex;align-items:center;gap:var(--spacing-4);
@@ -1735,19 +1750,20 @@ img{display:block;max-width:100%}
 .col-top{padding:0 var(--gutter);margin-bottom:var(--spacing-8)}
 .col-panel{display:none}
 .col-panel.is-active{display:block}
-/* 기획전(컬렉션) 히어로는 좌우 너비에 꽉 맞춰 늘린다. 비율은 유지한 채 넘치는
-   위아래만 크롭되고, --col-bg 는 이미지가 뜨기 전 배경으로만 남는다 */
-.col-hero{position:relative;height:140px;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;background:var(--col-bg,#000)}
-.col-hero img{width:100%;height:100%;object-fit:cover}
-.col-hero--overlay::after{content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,rgba(6,6,11,.1) 0%,rgba(6,6,11,.75) 52%,rgba(6,6,11,.9) 100%)}
-.col-hero-text{position:absolute;right:var(--gutter);top:50%;transform:translateY(-50%);
-  z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:var(--spacing-8)}
-.col-hero-badge{padding:2px var(--spacing-8);border-radius:var(--rounded-full);
-  background:var(--alpha-white24);color:var(--text-inverse);
-  font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;backdrop-filter:blur(4px)}
-.col-hero-headline{font-size:18px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
+/* 기획전(컬렉션) 히어로 — Figma "Collection Banner" 템플릿(180px 이미지 + 195px
+   텍스트 패널) 그대로. 이미지는 좌측 180px 폭에 꽉 채워 크롭하고, 우측 가장자리는
+   컬렉션별 실측 그라디언트(.col-hero-fade)로 패널 바탕색(인라인 style 의 background,
+   COLLECTIONS_* 의 hero_bg)에 자연스럽게 녹인다 */
+.col-hero{position:relative;height:140px;overflow:hidden}
+.col-hero-img{position:absolute;left:0;top:0;width:180px;height:140px}
+.col-hero-img img{width:100%;height:100%;object-fit:cover;display:block}
+.col-hero-fade{position:absolute;inset:0}
+.col-hero-text{position:absolute;right:0;top:50%;transform:translateY(-50%);
+  z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+  width:195px;box-sizing:border-box;padding:36px 6px}
+.col-hero-badge{padding:1px var(--spacing-4);border-radius:var(--rounded-xxs);
+  font-size:8px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;white-space:nowrap}
+.col-hero-headline{font-size:16px;font-weight:700;line-height:1.3}
 .col-body{padding-top:var(--spacing-16)}
 .col-head{padding:0 var(--gutter);display:flex;flex-direction:column;gap:2px}
 .col-title{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-primary)}
@@ -2012,7 +2028,6 @@ img{display:block;max-width:100%}
   .sidenav{display:flex;flex-direction:column;position:sticky;top:104px}
   .sn-group{padding:0;gap:2px}
   .sn-item{padding:var(--spacing-16) var(--spacing-12)}
-  .sn-divider{margin:var(--spacing-8) 0}
 
   /* ---- 본문 컬럼 520 ---- */
   /* Figma 는 데스크톱(520 폭)에서도 섹션 내부 좌우 여백을 모바일과 같은 20px 로
@@ -2534,9 +2549,10 @@ document.querySelectorAll('.podium').forEach(function(podium){
 });
 
 // ----- Collection 탭 -----
-(function(){
-  var tabs=document.querySelectorAll('.tabbar--collection .tab');
-  var panels=document.querySelectorAll('.col-panel');
+// 장르별로 섹션이 따로 있으므로(sec--collection 두 개) 탭·패널을 그 섹션 안에서만 묶는다.
+document.querySelectorAll('.sec--collection').forEach(function(sec){
+  var tabs=[].slice.call(sec.querySelectorAll('.tabbar--collection .tab'));
+  var panels=sec.querySelectorAll('.col-panel');
   tabs.forEach(function(t){
     t.addEventListener('click',function(){
       var key=t.getAttribute('data-col');
@@ -2545,27 +2561,23 @@ document.querySelectorAll('.podium').forEach(function(podium){
       t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
     });
   });
-})();
+});
 
 // ----- 장르 스위치 (CategoryTab, Figma 5612:55057 / 5620:56659) -----
-// K-POP ↔ 캐릭터 전환 시 홈 콘텐츠 전체(메인 배너·퀵메뉴·Fan's Pick·
-// Now Trending·New Arrival·인라인 배너)를 갈아 끼운다. NOVERA Collection 은
-// 두 홈이 공유하는 하나의 DOM 노드라 앵커(.collection-anchor) 사이로 옮겨 쓴다.
+// K-POP ↔ 캐릭터 전환 시 홈 콘텐츠 전체(메인 배너·퀵메뉴·Fan's Pick·Now Trending·
+// New Arrival·인라인 배너·NOVERA Collection)를 갈아 끼운다. Collection 은 장르별로
+// 노출 세트가 달라 각 홈이 이미 자신의 섹션을 갖고 있어(홈 전환과 함께 hidden) 별도
+// DOM 이동이 필요 없다.
 (function(){
   var sw=document.getElementById('genreSwitch');
   var hdrSw=document.getElementById('hdrGenreSwitch');
   if(!sw && !hdrSw) return;
   var tabs=[].slice.call(document.querySelectorAll('.gs-tab, .hdr-genre-tab'));
   var genres=[].slice.call(document.querySelectorAll('.home-genre, .home-genre-nav'));
-  var collection=document.getElementById('collectionSection');
-
-  function anchorFor(g){ return document.querySelector('.collection-anchor[data-anchor-for="'+g+'"]'); }
 
   function setGenre(g){
     tabs.forEach(function(t){ t.classList.toggle('is-active', t.getAttribute('data-genre')===g); });
     genres.forEach(function(el){ el.hidden = el.getAttribute('data-genre')!==g; });
-    var anchor=anchorFor(g);
-    if(collection && anchor) anchor.parentNode.insertBefore(collection, anchor.nextSibling);
 
     var next=window.NoveraBanners && window.NoveraBanners[g];
     if(window.NoveraBanner && window.NoveraBanner!==next) window.NoveraBanner.pause();
@@ -2581,7 +2593,7 @@ document.querySelectorAll('.podium').forEach(function(podium){
     });
   });
 
-  setGenre('kpop');   // 초기 상태 — Collection 을 kpop 앵커 자리로 옮겨 둔다
+  setGenre('kpop');   // 초기 상태
 })();
 
 // ----- 사이드바·드로어 ALBUM/MD 아코디언 -----
@@ -2688,6 +2700,7 @@ def build() -> str:
       <div class="head-actions">
         <div class="head-icons">
           <a class="touch touch--mobile" href="https://shop.novera.town/search" target="_blank" rel="noreferrer" aria-label="검색">{icon('Search', 20)}</a>
+          <a class="touch touch--desktop" href="https://shop.novera.town/mypage" target="_blank" rel="noreferrer" aria-label="마이페이지">{icon('User', 20)}</a>
           <a class="touch touch--desktop" href="https://shop.novera.town/mypage/likes" target="_blank" rel="noreferrer" aria-label="좋아요">{icon('Heart', 20)}</a>
           <a class="touch" href="https://shop.novera.town/carts" target="_blank" rel="noreferrer" aria-label="장바구니">{icon('Bag', 20)}<span class="push-badge">2</span></a>
         </div>
@@ -2742,14 +2755,12 @@ def build() -> str:
     <a class="banner-frame" href="#"><img src="{inline_banner}" alt="&lt;귀멸의 칼날: 전집중展&gt; 전시 2026년 6월 27일 ~ 9월 27일"></a>
   </div>
 
-  <div class="collection-anchor" data-anchor-for="kpop"></div>
+  {build_collections(COLLECTIONS_KPOP, "kpop")}
   </div>
 
   <div class="home-genre" data-genre="character" id="homeCharacter" hidden>
   {build_character_home(inline_banner)}
   </div>
-
-  {build_collections()}
   </main>
   {build_cart_panel()}
   </div>
