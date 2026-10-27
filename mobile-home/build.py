@@ -252,7 +252,7 @@ MAIN_BANNERS_CHARACTER = [
     dict(kind="zo-char", label="서툴러서 더 완벽한 친구들",
          title="ZO&FRIENDS<br>LUCKY COLLECTION",
          bg="linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%)",
-         img=("col_zo",)),
+         img=("main_zo_char",)),
     dict(kind="coupon", label="WELCOME COUPON",
          title="회원가입만 해도<br>전상품 1,000원 즉시 할인!",
          bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
@@ -859,9 +859,9 @@ SIDENAV_CHARACTER = [
     dict(icon="sphere", label="SPHERE", kind="link", href=f"{SITE}/sphere/3", new=True),
 ]
 SIDENAV_BOTTOM = [
-    ("bag", "장바구니", "https://shop.novera.town/cart"),
-    ("heart", "좋아요", "https://shop.novera.town/likes"),
-    ("user", "마이페이지", "https://shop.novera.town/sign-in"),
+    ("bag", "장바구니", "https://shop.novera.town/carts"),
+    ("heart", "좋아요", "https://shop.novera.town/mypage/likes"),
+    ("user", "마이페이지", "https://shop.novera.town/mypage"),
 ]
 
 
@@ -880,7 +880,7 @@ def build_sidenav(items: list[dict], genre: str) -> str:
             )
             rows.append(f"""<div class="sn-accordion">
   <button class="sn-item sn-accordion-trigger" type="button" aria-expanded="false">
-    {sidenav_icon(it['icon'])}<span class="sn-label">{esc(it['label'])}</span>
+    <span class="sn-item-main">{sidenav_icon(it['icon'])}<span class="sn-label">{esc(it['label'])}</span></span>
     <span class="sn-chevron">{icon('ChevronRight', 16)}</span>
   </button>
   <div class="sn-sub" hidden>{subs}</div>
@@ -921,8 +921,8 @@ DRAWER_CHARACTER = [it for it in SIDENAV_CHARACTER if it["icon"] != "home"]
 
 DRAWER_UTIL = [
     ("User", "로그인", f"{SITE}/sign-in"),
-    ("Heart", "좋아요", f"{SITE}/likes"),
-    ("Bag", "장바구니", f"{SITE}/cart"),
+    ("Heart", "좋아요", f"{SITE}/mypage/likes"),
+    ("Bag", "장바구니", f"{SITE}/carts"),
 ]
 
 
@@ -1021,7 +1021,7 @@ def build_cart_panel() -> str:
 
     <div class="cart-actions">
       <button class="cart-btn cart-btn--main" type="button" disabled>전체 구매하기</button>
-      <a class="cart-btn cart-btn--sub" href="https://shop.novera.town/cart" target="_blank" rel="noreferrer">
+      <a class="cart-btn cart-btn--sub" href="https://shop.novera.town/carts" target="_blank" rel="noreferrer">
         장바구니 전체보기{icon('ChevronRight', 20)}</a>
     </div>
   </div>
@@ -1029,20 +1029,22 @@ def build_cart_panel() -> str:
 
 
 def build_bottom_nav() -> str:
-    # (아이콘, 라벨, 활성, 요소 id) — 카테고리가 사이드 드로어를 여는 진입점이다
+    # (아이콘, 라벨, 활성, 링크|None, 요소 id) — 카테고리는 링크 없이 사이드 드로어를 연다
     items = [
-        ("HomeFill", "홈", True, None),
-        ("Category", "카테고리", False, "dwOpen"),
-        ("Heart", "좋아요", False, None),
-        ("User", "마이", False, None),
+        ("HomeFill", "홈", True, f"{SITE}/", None),
+        ("Category", "카테고리", False, None, "dwOpen"),
+        ("Heart", "좋아요", False, f"{SITE}/mypage/likes", None),
+        ("User", "마이", False, f"{SITE}/mypage", None),
     ]
     cells = ""
-    for ic, label, act, el_id in items:
-        attrs = ' id="dwOpen" aria-controls="drawer" aria-expanded="false"' if el_id else ""
-        cells += (
-            f'<button class="bn-item{" is-active" if act else ""}" type="button"{attrs}>'
-            f'{icon(ic, 24)}<span>{esc(label)}</span></button>'
-        )
+    for ic, label, act, href, el_id in items:
+        cls = f'bn-item{" is-active" if act else ""}'
+        inner = f'{icon(ic, 24)}<span>{esc(label)}</span>'
+        if href:
+            cells += f'<a class="{cls}" href="{href}" target="_blank" rel="noreferrer">{inner}</a>'
+        else:
+            attrs = ' id="dwOpen" aria-controls="drawer" aria-expanded="false"' if el_id else ""
+            cells += f'<button class="{cls}" type="button"{attrs}>{inner}</button>'
     return f"""<nav class="bottomnav" id="bottomnav">
   <div class="bn-items">{cells}</div>
   <div class="bn-home-indicator"><span></span></div>
@@ -1226,6 +1228,7 @@ img{display:block;max-width:100%}
 .home-genre-nav[hidden]{display:none}
 /* ALBUM·MD 아코디언 — Figma 6034:190373 실측 */
 .sn-accordion-trigger{width:100%;justify-content:space-between;cursor:pointer}
+.sn-item-main{display:flex;align-items:center;gap:var(--spacing-12);min-width:0}
 .sn-chevron{flex:none;display:flex;color:var(--icon-muted);
   transform:rotate(90deg);transition:transform .2s ease}
 .sn-accordion.is-open .sn-chevron{transform:rotate(-90deg)}
@@ -1979,7 +1982,7 @@ img{display:block;max-width:100%}
   .head-search{flex:1;max-width:420px;display:flex;align-items:center;gap:var(--spacing-8);
     height:40px;padding:0 var(--spacing-16);border-radius:var(--rounded-sm);
     background:var(--bg-gray);color:var(--text-muted);
-    font-size:14px;line-height:1.4;cursor:text}
+    font-size:14px;line-height:1.4}
   .head-search .ico{color:var(--icon-muted)}
   .head-actions{gap:var(--spacing-12)}
   .touch--mobile{display:none}
@@ -2681,12 +2684,12 @@ def build() -> str:
     <div class="header-inner">
       <a class="logo" href="https://shop.novera.town/" target="_blank" rel="noreferrer">{brand_svg('logo-novera-shop')}</a>
       {build_header_genre_switch()}
-      <div class="head-search">{icon('Search', 20)}<span>검색어를 입력해 주세요</span></div>
+      <a class="head-search" href="https://shop.novera.town/search" target="_blank" rel="noreferrer">{icon('Search', 20)}<span>검색어를 입력해 주세요</span></a>
       <div class="head-actions">
         <div class="head-icons">
-          <button class="touch touch--mobile" type="button" aria-label="검색">{icon('Search', 20)}</button>
-          <button class="touch touch--desktop" type="button" aria-label="좋아요">{icon('Heart', 20)}</button>
-          <button class="touch" type="button" aria-label="장바구니">{icon('Bag', 20)}<span class="push-badge">2</span></button>
+          <a class="touch touch--mobile" href="https://shop.novera.town/search" target="_blank" rel="noreferrer" aria-label="검색">{icon('Search', 20)}</a>
+          <a class="touch touch--desktop" href="https://shop.novera.town/mypage/likes" target="_blank" rel="noreferrer" aria-label="좋아요">{icon('Heart', 20)}</a>
+          <a class="touch" href="https://shop.novera.town/carts" target="_blank" rel="noreferrer" aria-label="장바구니">{icon('Bag', 20)}<span class="push-badge">2</span></a>
         </div>
         <button class="lang" type="button">{icon('Globe', 16)}KO</button>
         <a class="head-cta" href="https://shop.novera.town/sign-in" target="_blank" rel="noreferrer">회원가입 | 로그인</a>
