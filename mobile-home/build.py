@@ -1155,7 +1155,6 @@ def build_bottom_nav() -> str:
             cells += f'<button class="{cls}" type="button"{attrs}>{inner}</button>'
     return f"""<nav class="bottomnav" id="bottomnav">
   <div class="bn-items">{cells}</div>
-  <div class="bn-home-indicator"><span></span></div>
 </nav>"""
 
 
@@ -2014,8 +2013,6 @@ img{display:block;max-width:100%}
   color:var(--text-tertiary)}
 .bn-item.is-active{color:var(--icon-primary)}
 .bn-item.is-active span{color:var(--text-primary)}
-.bn-home-indicator{display:flex;align-items:center;justify-content:center;padding:var(--spacing-8) 0}
-.bn-home-indicator span{width:120px;height:5px;border-radius:100px;background:var(--alpha-black40)}
 @media (prefers-reduced-motion:reduce){ .bottomnav{transition:none} }
 
 /* ---------- 어드민 배너 등록 시트 ---------- */
