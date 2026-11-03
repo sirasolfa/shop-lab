@@ -144,6 +144,74 @@
         "event_at": "2026-09-05T20:00:00+09:00"
       }
     ],
+    "preorder": [
+      {
+        "id": 333,
+        "brand": "디즈니",
+        "name": "토이스토리 버즈라이트이어 CC01",
+        "price": 42000,
+        "free": false,
+        "new": true,
+        "best": false,
+        "soon": false,
+        "img": 333
+      },
+      {
+        "id": 324,
+        "brand": "하츠네 미쿠",
+        "name": "테라스파티 DVB01 (랜덤)",
+        "price": 21000,
+        "free": false,
+        "new": false,
+        "best": false,
+        "soon": false,
+        "img": 324
+      },
+      {
+        "id": 340,
+        "brand": "DC",
+        "name": "수어사이드 스쿼드 할리퀸 CC04",
+        "price": 33000,
+        "free": false,
+        "new": false,
+        "best": false,
+        "soon": true,
+        "img": 340
+      },
+      {
+        "id": 326,
+        "brand": "디즈니",
+        "name": "만달로리안 딘자린&그로구 CC05",
+        "price": 40000,
+        "free": false,
+        "new": true,
+        "best": false,
+        "soon": true,
+        "img": 326
+      },
+      {
+        "id": 320,
+        "brand": "마블",
+        "name": "안티 베놈 CC15",
+        "price": 42000,
+        "free": false,
+        "new": false,
+        "best": false,
+        "soon": true,
+        "img": 320
+      },
+      {
+        "id": 321,
+        "brand": "트랜스포머",
+        "name": "미라지 CC06",
+        "price": 22000,
+        "free": false,
+        "new": false,
+        "best": false,
+        "soon": true,
+        "img": 321
+      }
+    ],
     "livemd": [
       {
         "id": 306,
@@ -154,7 +222,7 @@
         "kind": "VIDEO CALL",
         "perk": "미공개 포토카드",
         "limit_count": 30,
-        "event_at": "2026-09-20T20:00:00+09:00",
+        "event_at": "2026-10-30T20:00:00+09:00",
         "img": 306
       },
       {
@@ -166,7 +234,7 @@
         "kind": "대면 이벤트",
         "perk": "미공개 포토카드",
         "limit_count": 30,
-        "event_at": "2026-09-20T14:00:00+09:00",
+        "event_at": "2026-10-30T14:00:00+09:00",
         "img": 307
       }
     ],
