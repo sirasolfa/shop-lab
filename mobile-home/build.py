@@ -129,7 +129,27 @@ def product_card(p: dict, badge: str | None = None) -> str:
 </a>"""
 
 
-def section_header(title: str, sub: str | None = None, action: str | None = None) -> str:
+def cascade_text(text: str, cls: str, stagger_ms: int = 28, start_ms: int = 0) -> str:
+    """글자 하나하나를 좌 → 우 순서로 촤라락 훑고 지나가듯 띄우는 연출용 마크업.
+    공백은 레이아웃만 차지하도록 그대로 두고, 나머지 글자만 span 으로 감싸 각자
+    --d(지연)를 순서대로 매긴다 — 실제 토글은 CSS(.is-in)가 한다."""
+    out = []
+    i = 0
+    for ch in text:
+        if ch == " ":
+            out.append(" ")
+            continue
+        out.append(
+            f'<span class="{cls}" style="--d:{start_ms + i * stagger_ms}ms">{esc(ch)}</span>'
+        )
+        i += 1
+    return "".join(out)
+
+
+def section_header(title: str, sub: str | None = None, action: str | None = None,
+                    title_html: str | None = None) -> str:
+    """title_html 이 있으면 그대로(이스케이프 없이) 제목으로 쓴다 — 강조색 <span> 이
+    섞인 2색 제목(예: "당신의 <강조>최애는?</강조>")을 위한 탈출구."""
     action_html = ""
     if action:
         action_html = (
@@ -138,8 +158,9 @@ def section_header(title: str, sub: str | None = None, action: str | None = None
             + "</button>"
         )
     sub_html = f'<p class="sec-sub">{esc(sub)}</p>' if sub else ""
+    title_inner = title_html if title_html is not None else esc(title)
     return f"""<div class="sec-head">
-  <div class="sec-head-text"><h2 class="sec-title">{esc(title)}</h2>{sub_html}</div>
+  <div class="sec-head-text"><h2 class="sec-title">{title_inner}</h2>{sub_html}</div>
   {action_html}
 </div>"""
 
@@ -243,11 +264,19 @@ COLLECTIONS_KPOP = [
          items=S["col_kep"]),
 ]
 
-CAT_TABS = [
+CAT_TABS_KPOP = [
     ("HOME", True, False),
     ("LIVE MD", False, True),
     ("COLLECTION", False, False),
     ("ARTIST", False, False),
+    ("SPHERE", False, True),
+]
+# 캐릭터 홈은 LIVE MD(비디오콜·팬사인 등 아이돌 이벤트) 구좌가 없어 탭에서 빼고,
+# "아티스트" 대신 IP 단위를 가리키는 "브랜드"로 라벨을 바꿔 쓴다.
+CAT_TABS_CHARACTER = [
+    ("HOME", True, False),
+    ("COLLECTION", False, False),
+    ("브랜드", False, False),
     ("SPHERE", False, True),
 ]
 
@@ -382,13 +411,16 @@ def build_banners(banners=None) -> str:
 
 # ------------------------------ Meet Your Artist Event (Showcase Banner)
 # Figma 7703:122894 "Concept 3 - Showcase Banner"
-#   Banner Area                   다크 쇼케이스 배너 + 진행 상태 배지(상시 진행중)
+#   Banner Area(7703:125449)      다크 쇼케이스 배너 + 구매 종료 카운트다운
 #   Overlapping Cards(5749:63783) 배너 위로 30px 올라탄 가로형 카드 2장
 #   NextArtistPreview(5749:63826) 다음 아티스트 칩 (가로 스크롤)
 #
-# "오늘 오후 8:00" 같은 다음 아티스트 칩의 상대 시각은 data.json 의 event_at
-# (상품명 앞머리 "[09.05 …]" 를 승격시킨 ISO 일시) 을 넘겨주고, 브라우저가 볼 때마다
-# 계산한다. 배너 자체의 구매 종료 카운트다운은 상시 진행 이벤트로 바뀌면서 뺐다.
+# data.json 의 event_at(상품명 앞머리 "[09.05 …]" 를 승격시킨 ISO 일시) 을 넘겨주고,
+# 브라우저가 볼 때마다 가장 가까운 미래를 골라 실제로 카운트다운하고 다음 아티스트
+# 칩의 "오늘 오후 8:00" 같은 상대 시각도 같은 값에서 만든다.
+CD_UNITS = [("d", "DAY"), ("h", "HRS"), ("m", "MIN"), ("s", "SEC")]
+
+# 시안이 카드에 얹는 칩 수 — Overlapping Cards 는 2장이다
 SHOWCASE_CARDS = 2
 
 
@@ -524,11 +556,19 @@ def build_event_showcase() -> str:
         else f'<span class="sb-artist-avatar sb-artist-avatar--ph">{esc(lead["brand"][:1])}</span>'
     )
 
+    tiles = []
+    for i, (key, cap) in enumerate(CD_UNITS):
+        if i:
+            tiles.append('<span class="cd-colon" aria-hidden="true">:</span>')
+        tiles.append(
+            f'<span class="cd-unit"><span class="cd-num" data-cd="{key}">--</span>'
+            f'<span class="cd-cap">{cap}</span></span>'
+        )
+    deadlines = html.escape(
+        json.dumps(sorted({p["event_at"] for p in items})), quote=True
+    )
     cards = "".join(_event_card(p) for p in items[:SHOWCASE_CARDS])
 
-    # LIVE MD 는 특정 마감 시각을 세는 대신 상시 진행중 상태만 보여준다
-    # (2026-11 업데이트) — 종료일이 지나도 수동으로 event_at 을 계속 당겨줄 필요가
-    # 없도록, 구매 종료 카운트다운 대신 "진행중" 배지로 고정했다.
     return f"""<section class="sec--showcase">
   <div class="sb-banner">
     {hero_img}
@@ -552,9 +592,9 @@ def build_event_showcase() -> str:
             <p class="sb-artist-name">{esc(lead['brand'])}</p>
           </div>
         </div>
-        <div class="sb-ongoing">
-          <p class="sb-cap">진행 상태</p>
-          <p class="sb-ongoing-badge"><span class="sb-ongoing-dot"></span>상시 진행중</p>
+        <div class="sb-timer" id="eventCountdown" data-deadlines="{deadlines}">
+          <p class="sb-cap" id="cdLabelText">구매 종료까지</p>
+          <div class="cd-clock" role="timer" aria-live="off">{''.join(tiles)}</div>
         </div>
       </div>
     </div>
@@ -605,7 +645,7 @@ def build_podium(items=None) -> str:
         d_bar, d_content, from_y = PODIUM_TIMING[p["place"]]
         style = f"--d-bar:{d_bar}ms;--d-content:{d_content}ms;--bar-from:{from_y}px"
         stands.append(
-            f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d_content}">
+            f"""<div class="stand stand--{p['place']}" style="{style}" data-delay="{d_content}" data-key="{p['key']}">
   <div class="stand-top">
     <div class="stand-avatar">{crown}
       <span class="avatar avatar--48">{img}</span>
@@ -636,7 +676,7 @@ def build_artist_wish(items=None) -> str:
         )
         liked = bool(a.get("liked"))
         base_count = a["count"] - 1 if liked else a["count"]  # JS 는 이 기준치에 ±1 한다
-        cards.append(f"""<div class="awish-card{' is-liked' if liked else ''}" data-count="{base_count}">
+        cards.append(f"""<div class="awish-card{' is-liked' if liked else ''}" data-count="{base_count}" data-key="{a['key']}">
   <span class="awish-rank">{esc(a['rank'])}</span>
   <span class="awish-avatar">{avatar}</span>
   <p class="awish-name">{esc(a['name'])}</p>
@@ -649,7 +689,7 @@ def build_artist_wish(items=None) -> str:
     return f"""<section class="sec sec--artistwish">
   <div class="awish-head">
     <div class="awish-head-text">
-      <h2 class="sec-title">나의 <span class="awish-accent">최애 아티스트</span>를 찜해 보세요!</h2>
+      <h2 class="sec-title">나의 <span class="accent">최애 아티스트</span>를 찜해 보세요!</h2>
       <p class="sec-sub">매일 새롭게 찜할 수 있어요</p>
     </div>
     <button class="text-btn" type="button">찜하러 가기{icon('ChevronRight', 18)}</button>
@@ -717,7 +757,8 @@ def build_character_home(inline_banner: str) -> str:
   {build_collections(COLLECTIONS_CHARACTER, "character")}
 
   <section class="sec sec--rank">
-    {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
+    {section_header(None, "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기",
+                     title_html='당신의 <span class="accent">최애는?</span>')}
     {build_podium(PODIUM_CHARACTER)}
     <div class="notice-box">
       <p class="notice-head">아티스트 랭킹 정보
@@ -745,16 +786,17 @@ def build_character_home(inline_banner: str) -> str:
   </section>"""
 
 
-def build_cat_tabs() -> str:
+def build_cat_tabs(items: list[tuple], genre: str) -> str:
     out = []
-    for label, active, new in CAT_TABS:
+    for label, active, new in items:
         cls = " is-active" if active else ""
         badge = '<span class="tab-n">N</span>' if new else ""
         out.append(
             f'<button class="tab{cls}" type="button"><span class="tab-label">{esc(label)}{badge}</span>'
             '<span class="tab-underline"></span></button>'
         )
-    return ('<nav class="tabbar tabbar--category"><div class="tabs">'
+    hidden = "" if genre == "kpop" else " hidden"
+    return (f'<nav class="tabbar tabbar--category home-genre-nav" data-genre="{genre}"{hidden}><div class="tabs">'
             f'<div class="tabs-inner">{"".join(out)}</div></div></nav>')
 
 
@@ -764,6 +806,10 @@ def build_footer() -> str:
     menu = ["공지사항", "FAQ", "이용약관"]
     menu_html = "".join(f'<a class="ft-menu-item" href="#">{esc(m)}</a>' for m in menu)
     menu_html += '<a class="ft-menu-item ft-menu-item--strong" href="#">개인정보처리방침</a>'
+    menu_html += "".join(
+        f'<a class="ft-menu-item" href="#">{esc(m)}</a>'
+        for m in ["쿠키 정책", "쿠키 설정", "개인정보 선택"]
+    )
 
     def pair(label, value, link=None):
         v = f'<span class="ft-val">{value}</span>'
@@ -775,7 +821,7 @@ def build_footer() -> str:
     row1 = sep.join([
         pair("상호", "(주)다날엔터테인먼트"),
         pair("대표이사", "현능호"),
-        pair("주소", "(13595) 경기도 성남시 분당구 백현로 93, 11층(수내동, 후너스빌딩)"),
+        pair("주소", "(13590) 경기도 성남시 분당구 황새울로311번길 36 2층"),
         pair("사업자등록번호", "129-86-70437"),
         pair("통신판매업신고번호", "2012-경기성남-0116", ("정보확인", "#")),
     ])
@@ -913,12 +959,15 @@ MD_SUB_CHARACTER = [
 
 # Figma Left Sidebar(6034:190360) 실측 — ALBUM·MD 가 아코디언(서브카테고리 펼침)으로
 # 바뀌었다. K-POP 전용(ALBUM·LIVE MD·ARTIST)은 캐릭터 사이드바에는 없다.
+# LIVE MD 는 Figma 7744:245430 기준 ALBUM·MD 와 같은 아코디언(쉐브런 포함) 컴포넌트를
+# 쓴다 — 운영 사이트엔 LIVE MD 하위 카테고리가 따로 없어, 펼치면 실제 LIVE MD
+# 카테고리로 가는 링크 한 줄만 보여준다.
+LIVEMD_SUB = [("LIVE MD 전체보기", f"{SITE}/categories/PCTGY3")]
 SIDENAV_KPOP = [
     dict(icon="home", label="HOME", kind="link", href=f"{SITE}/"),
     dict(icon="album", label="ALBUM", kind="accordion", items=ALBUM_SUB),
     dict(icon="md", label="MD", kind="accordion", items=MD_SUB_KPOP),
-    dict(icon="livemd", label="LIVE MD", kind="link", href=f"{SITE}/categories/PCTGY3", new=True),
-    dict(icon="sphere", label="SPHERE", kind="link", href=f"{SITE}/sphere/3", new=True),
+    dict(icon="livemd", label="LIVE MD", kind="accordion", items=LIVEMD_SUB),
     dict(icon="collection", label="COLLECTION", kind="link", href=f"{SITE}/exhibitions"),
     dict(icon="profile", label="ARTIST", kind="link", href=f"{SITE}/artists"),
 ]
@@ -1476,7 +1525,11 @@ img{display:block;max-width:100%}
 }
 
 /* ---------- Section ---------- */
-.sec{padding:var(--spacing-12) 0 var(--spacing-28)}
+/* Figma 는 섹션 컨테이너 대부분이 상하 28px 로 균일하다(예: 7703:122996 Artist
+   Ranking Section, 7703:231973 Participation section, PRE-ORDER/New Products
+   Section 컨테이너) — 이전에 top 만 12px 로 좁게 잡혀 있던 걸 맞췄다. 퀵메뉴·
+   Collection 처럼 다른 값을 쓰는 섹션은 각자 자기 클래스에서 덮어쓴다 */
+.sec{padding:var(--spacing-28) 0}
 .sec-head{display:flex;align-items:flex-start;gap:var(--spacing-20);padding:0 var(--gutter)}
 .sec-head-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .sec-title{font-size:18px;font-weight:600;line-height:1.4;color:var(--text-primary)}
@@ -1534,18 +1587,17 @@ img{display:block;max-width:100%}
   overflow:hidden;border:1px solid var(--border-thumbnail);display:block}
 .sb-artist-avatar img{width:100%;height:100%;object-fit:cover}
 .sb-artist-name{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-inverse);white-space:nowrap}
-.sb-ongoing{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacing-2)}
-.sb-ongoing-badge{display:flex;align-items:center;gap:6px;
-  font-size:20px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
-.sb-ongoing-dot{flex:none;width:8px;height:8px;border-radius:var(--rounded-full);
-  background:var(--green-500);box-shadow:0 0 0 0 rgba(63,190,117,.6);
-  animation:sb-pulse 1.8s ease-out infinite}
-@keyframes sb-pulse{
-  0%{box-shadow:0 0 0 0 rgba(63,190,117,.55)}
-  70%{box-shadow:0 0 0 6px rgba(63,190,117,0)}
-  100%{box-shadow:0 0 0 0 rgba(63,190,117,0)}
-}
-@media (prefers-reduced-motion:reduce){ .sb-ongoing-dot{animation:none} }
+.sb-timer{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacing-2)}
+.cd-clock{display:flex;align-items:flex-start;gap:var(--spacing-8)}
+.cd-unit{display:flex;flex-direction:column;align-items:center;min-width:30px}
+.cd-num{font-size:26px;font-weight:700;line-height:1.3;color:var(--text-inverse);
+  font-variant-numeric:tabular-nums}
+.cd-cap{font-size:10px;font-weight:400;line-height:1.5;letter-spacing:var(--tracking-1);
+  color:var(--alpha-white64)}
+.cd-colon{width:8px;text-align:center;font-size:20px;font-weight:700;line-height:1.3;
+  color:var(--alpha-white40)}
+/* 남은 이벤트가 없을 때 — 숫자는 00 에서 멈추고 라벨만 종료를 알린다 */
+.sb-timer.is-ended .cd-num{color:var(--alpha-white40)}
 
 /* Overlapping Cards(5749:63783) — 배너 위로 30px 올라탄다 */
 .sb-cards{position:relative;z-index:1;margin-top:-30px;padding:0 var(--gutter);
@@ -1620,7 +1672,7 @@ img{display:block;max-width:100%}
 
 /* ---------- Quick Menu (Figma 5612:54901, 이벤트 바로가기) ---------- */
 /* 셀 60×73 / 갭 8 / 아이콘 스퀘어 48×48 rounded-12 (좌우 6·상하 4) / 라벨 60×17 */
-.sec--quickmenu{padding:var(--spacing-24) 0}
+.sec--quickmenu{padding:var(--spacing-24) 0 var(--spacing-20)}
 .qm-list{display:flex;align-items:flex-start;justify-content:center;gap:6px 8px;
   padding:0 var(--gutter);
   overflow-x:auto;scrollbar-width:none}
@@ -1782,10 +1834,10 @@ img{display:block;max-width:100%}
 }
 
 /* ---------- 아티스트 찜하기 (Figma 7703:231973 Participation section) ---------- */
-.sec--artistwish{display:flex;flex-direction:column;gap:var(--spacing-16)}
+.sec--artistwish{display:flex;flex-direction:column;gap:var(--spacing-20)}
 .awish-head{display:flex;align-items:flex-start;gap:var(--spacing-20);padding:0 var(--gutter)}
 .awish-head-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.awish-accent{color:var(--brand1-default)}
+.accent{color:var(--brand1-default)}
 .awish-row{display:flex;gap:var(--spacing-12);padding-left:var(--gutter);
   overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .awish-row::-webkit-scrollbar{display:none}
@@ -1829,7 +1881,7 @@ img{display:block;max-width:100%}
 .awish-request-link{color:var(--text-tertiary);text-decoration:underline}
 
 /* ---------- New Arrival(Figma "New Products Section") — 그라디언트 배너 헤더 ---------- */
-.sec--newarrival{display:flex;flex-direction:column;gap:var(--spacing-16)}
+.sec--newarrival{display:flex;flex-direction:column;gap:var(--spacing-32)}
 .newarrival-banner{margin:0 var(--gutter);padding:var(--spacing-20) var(--spacing-24);
   border-radius:var(--rounded-sm);text-align:center;
   background:linear-gradient(180deg,var(--green-100) 0%,#b3f2ff 100%)}
@@ -1838,6 +1890,13 @@ img{display:block;max-width:100%}
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .newarrival-sub{margin-top:2px;font-size:12px;letter-spacing:var(--tracking-1);
   line-height:1.4;color:var(--text-primary)}
+/* 글자가 좌 → 우 순서로 촤라락 훑고 지나가듯 등장 (스크롤 진입 시 1회, cascade_text 가
+   글자마다 --d 지연을 매겨 둔다). transform 은 inline 요소에도 적용되므로 inline-block
+   으로 바꾸지 않는다 — 그래야 줄바꿈이 평범한 텍스트와 똑같이 단어 경계에서만 일어난다 */
+.na-ch{display:inline;opacity:0;transform:translateX(-12px);
+  transition:opacity .32s ease var(--d),transform .42s cubic-bezier(.22,1,.36,1) var(--d)}
+.newarrival-banner.is-in .na-ch{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){ .na-ch{transition:none;opacity:1;transform:none} }
 
 /* ---------- Inline banner (full-bleed) ---------- */
 .inline-banner{padding:var(--spacing-24) 0}
@@ -1847,7 +1906,7 @@ img{display:block;max-width:100%}
 .inline-banner img{width:100%;height:100%;object-fit:cover}
 
 /* ---------- Collection ---------- */
-.sec--collection{padding:var(--spacing-24) 0 var(--spacing-28)}
+.sec--collection{padding:var(--spacing-24) 0 var(--spacing-40)}
 .col-top{padding:0 var(--gutter);margin-bottom:var(--spacing-8)}
 .col-title-lines{display:flex;flex-direction:column;gap:2px}
 .col-title-pre{font-size:18px;font-weight:600;line-height:1.4;color:var(--text-primary)}
@@ -1873,30 +1932,33 @@ img{display:block;max-width:100%}
 .col-title{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-primary)}
 .col-desc{font-size:11px;letter-spacing:var(--tracking-1);line-height:1.4;color:var(--text-tertiary)}
 
-/* ---------- Footer (Figma 5257:59492) ---------- */
-/* 바깥 px 12 + 내부 px 8 = 좌우 거터 20 (본문과 동일) */
-.footer{background:var(--bg-darkgray-strong);
+/* ---------- Footer (Figma 7703:123095) ---------- */
+/* 2026-11 업데이트로 다크 배경 → 라이트(subtle gray) 배경으로 바뀌었다 — 로고·SNS
+   아이콘 SVG 는 원래부터 고정 회색(#888e9c·#697180)이라 손댈 필요가 없었고,
+   텍스트·구분선·SNS 칩 배경 토큰만 라이트 배경에 맞춰 다시 골랐다.
+   바깥 px 12 + 내부 px 8 = 좌우 거터 20 (본문과 동일) */
+.footer{background:var(--bg-subtle);
   margin-top:56px;                       /* 직전 섹션 여백 28 + 56 = 84 (기존의 3배) */
   display:flex;flex-direction:column;align-items:center}
-.ft-divider{width:100%;height:1px;background:rgba(255,255,255,.08)}
+.ft-divider{width:100%;height:1px;background:var(--gray-150)}
 .ft-contents{width:100%;display:flex;flex-direction:column;gap:var(--spacing-16);
   padding:var(--spacing-32) var(--spacing-12) var(--spacing-8)}
 .ft-top{display:flex;flex-direction:column;gap:var(--spacing-12)}
 .ft-logo{padding-left:var(--spacing-8)}
-.ft-logo svg{width:150px;height:40px;opacity:.9}
+.ft-logo svg{width:150px;height:40px}
 .ft-menu{display:flex;flex-wrap:wrap;align-items:center;gap:var(--spacing-16)}
-/* Label/3 — 13 / SemiBold 600 / text-tertiary */
+/* Label/3 — 13 / SemiBold 600 / text-secondary */
 .ft-menu-item{padding:var(--spacing-8);font-size:13px;font-weight:600;line-height:1.4;
-  letter-spacing:var(--tracking-1);color:var(--text-tertiary)}
-/* Action/2 — 14 / SemiBold 600 / text-muted (굵기가 아니라 크기·명도로 강조) */
-.ft-menu-item--strong{font-size:14px;font-weight:600;line-height:1.5;color:var(--text-muted)}
+  letter-spacing:var(--tracking-1);color:var(--text-secondary)}
+/* Action/2 — 14 / SemiBold 600 / text-primary (굵기가 아니라 크기·명도로 강조) */
+.ft-menu-item--strong{font-size:14px;font-weight:600;line-height:1.5;color:var(--text-primary)}
 .ft-info{display:flex;flex-direction:column;gap:var(--spacing-4);padding:0 var(--spacing-8)}
 .ft-info-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--spacing-8)}
 .ft-pair{display:flex;align-items:flex-start;gap:var(--spacing-8);
-  font-size:13px;line-height:1.4;color:var(--text-tertiary)}
+  font-size:13px;line-height:1.4;color:var(--text-secondary)}
 /* 구분선을 항목 안쪽에 붙여 줄바꿈 시 줄머리에 남지 않도록 */
 .ft-pair:not(:last-child)::after{content:'';flex:none;width:1px;height:8px;margin-top:5px;
-  background:var(--alpha-white24)}
+  background:var(--gray-200)}
 .ft-key{font-weight:600;letter-spacing:var(--tracking-1);flex:none}   /* Label/3 */
 .ft-val{font-weight:400}                                              /* Body/4 */
 /* Action/underline/3 — 12 / SemiBold 600 / underline */
@@ -1904,14 +1966,13 @@ img{display:block;max-width:100%}
   letter-spacing:var(--tracking-1);color:var(--text-tertiary);text-decoration:underline}
 .ft-sns{display:flex;gap:var(--spacing-8);padding:0 var(--spacing-8)}
 .ft-sns-item{padding:var(--spacing-4);border-radius:var(--rounded-sm);
-  background:var(--bg-inverse);display:flex;align-items:center;justify-content:center;
-  color:var(--icon-inverse)}
+  background:var(--gray-300);display:flex;align-items:center;justify-content:center}
 .ft-sns-item svg{width:24px;height:24px}
 .ft-rights{display:flex;flex-direction:column;padding:0 var(--spacing-8)}
-/* Caption/2 — 11 / Regular 400 / text-secondary */
+/* Caption/2 — 11 / Regular 400 / text-muted */
 .ft-copy{padding:var(--spacing-12) 0;text-align:center;
   font-size:11px;font-weight:400;line-height:1.4;letter-spacing:var(--tracking-1);
-  color:var(--text-secondary)}
+  color:var(--text-muted)}
 
 /* ---------- 하단 고정 영역: CategoryTab(K-POP↔캐릭터) + BottomNavigation ----------
    Figma 5620:56659(pill, bottom:92px) / 5620:56660(nav, bottom:0) 실측 그대로 —
@@ -2329,12 +2390,31 @@ function initMainBanner(track, box){
   if(window.NoveraBanner) window.NoveraBanner.resume();
 })();
 
-// ----- 다음 아티스트 칩: event_at 을 "오늘 오후 8:00" 같은 상대 시각으로 -----
-// LIVE MD 배너 자체는 상시 진행중 배지로 고정돼 더는 카운트다운하지 않지만,
-// 다음 아티스트 칩의 상대 시각 문구는 보는 시점에 따라 계속 달라져야 한다.
+// ----- Meet Your Artist Event: 상품 일시(event_at)와 동기화된 카운트다운 -----
+// data.json 의 event_at 을 전부 넘겨받아, 볼 때마다 그중 "가장 가까운 미래" 를
+// 골라 남은 시간을 센다. 남은 이벤트가 없으면 00 에서 멈추고 종료 상태가 된다.
+// 다음 아티스트 칩의 "오늘 오후 8:00" 같은 문구도 같은 시각에서 만들어진다.
 (function(){
+  var box=document.getElementById('eventCountdown');
   var next=document.getElementById('nextArtists');
-  if(!next) return;
+  if(!box && !next) return;
+
+  function parseList(el,attr){
+    try{
+      return (JSON.parse(el.getAttribute(attr)||'[]')||[])
+        .map(function(s){ return Date.parse(s); })
+        .filter(function(t){ return !isNaN(t); })
+        .sort(function(a,b){ return a-b; });
+    }catch(e){ return []; }
+  }
+
+  var stamps = box ? parseList(box,'data-deadlines') : [];
+  var label  = document.getElementById('cdLabelText');
+  var cells={};
+  if(box) box.querySelectorAll('.cd-num').forEach(function(el){
+    cells[el.getAttribute('data-cd')]=el;
+  });
+  function set(k,v){ if(cells[k]) cells[k].textContent=(v<10?'0':'')+v; }
 
   // "오늘 오후 8:00" / "내일 오후 8:00" / "9.30 오후 8:00" — 보는 사람의 로컬 시각 기준
   function whenText(ts){
@@ -2349,11 +2429,35 @@ function initMainBanner(track, box){
     return (d.getMonth()+1)+'.'+d.getDate()+' '+t;
   }
 
-  next.querySelectorAll('.na-item').forEach(function(el){
-    var ts=Date.parse(el.getAttribute('data-at'));
-    var out=el.querySelector('.na-time');
-    if(out) out.textContent = isNaN(ts) ? '' : whenText(ts);
-  });
+  if(next){
+    next.querySelectorAll('.na-item').forEach(function(el){
+      var ts=Date.parse(el.getAttribute('data-at'));
+      var out=el.querySelector('.na-time');
+      if(out) out.textContent = isNaN(ts) ? '' : whenText(ts);
+    });
+  }
+
+  function paint(){
+    if(!box) return;
+    var now=Date.now(), target=null;
+    for(var i=0;i<stamps.length;i++){ if(stamps[i]>now){ target=stamps[i]; break; } }
+    if(target===null){
+      box.classList.add('is-ended');
+      if(label) label.textContent='예정된 이벤트가 없어요';
+      set('d',0); set('h',0); set('m',0); set('s',0);
+      return;
+    }
+    box.classList.remove('is-ended');
+    if(label) label.textContent='구매 종료까지';
+    var left=Math.max(0, Math.floor((target-now)/1000));
+    set('d', Math.floor(left/86400));
+    set('h', Math.floor(left%86400/3600));
+    set('m', Math.floor(left%3600/60));
+    set('s', left%60);
+  }
+
+  paint();
+  setInterval(paint, 1000);
 })();
 
 // ----- 하단 고정 영역(장르 스위치 + BottomNavigation): 스크롤 다운 → 내려가며
@@ -2571,6 +2675,18 @@ document.querySelectorAll('.qm-list').forEach(function(list){
   },{threshold:.3}).observe(list);
 });
 
+// ----- New Arrival 배너: 글자가 좌→우로 촤라락 훑고 지나가며 등장 -----
+document.querySelectorAll('.newarrival-banner').forEach(function(banner){
+  if(!('IntersectionObserver' in window)){ banner.classList.add('is-in'); return; }
+  new IntersectionObserver(function(entries,obs){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      banner.classList.add('is-in');
+      obs.disconnect();
+    });
+  },{threshold:.3}).observe(banner);
+});
+
 // ----- Fan's Pick: 순위가 순차적으로 차오르는 인터랙션 -----
 document.querySelectorAll('.podium').forEach(function(podium){
   var stands=[].slice.call(podium.querySelectorAll('.stand'));
@@ -2671,12 +2787,15 @@ document.querySelectorAll('.sn-accordion-trigger, .dw-accordion-trigger').forEac
 });
 
 // ----- 상단 카테고리 탭 -----
-document.querySelectorAll('.tabbar--category .tab').forEach(function(t){
-  t.addEventListener('click',function(){
-    document.querySelectorAll('.tabbar--category .tab').forEach(function(x){
-      x.classList.toggle('is-active', x===t);
+// 장르별로 탭 구성이 달라(캐릭터는 LIVE MD 없음·ARTIST 대신 브랜드) nav 가 두 개라,
+// 활성 상태 토글도 그 nav 안에서만 묶는다.
+document.querySelectorAll('.tabbar--category').forEach(function(bar){
+  var tabs=[].slice.call(bar.querySelectorAll('.tab'));
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      tabs.forEach(function(x){ x.classList.toggle('is-active', x===t); });
+      t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
     });
-    t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   });
 });
 
@@ -2747,10 +2866,35 @@ document.querySelectorAll('.pcard-wish').forEach(function(b){
 
 // ----- 아티스트 찜하기 (나의 최애 아티스트를 찜해 보세요!) -----
 // 버튼을 실제로 눌렀을 때만 하트가 채워지는 신규 인터렉션 — 카드째 is-liked 를
-// 토글해 테두리·버튼 배경·라벨·하트 아이콘·찜 수치가 한번에 바뀐다.
+// 토글해 테두리·버튼 배경·라벨·하트 아이콘·찜 수치가 한번에 바뀐다. 같은 아티스트가
+// "당신의 최애는?" 순위(.stand)에도 있으면 그쪽 찜 수치도 함께 업카운트된다.
+function awishBumpStand(key, delta){
+  var stand=document.querySelector('.stand[data-key="'+key+'"]');
+  if(!stand) return;
+  var el=stand.querySelector('.count');
+  if(!el) return;
+  var to=(parseInt(el.getAttribute('data-to'),10)||0) + delta;
+  el.setAttribute('data-to', to);
+  var podium=stand.closest('.podium');
+  // 시상대가 이미 화면에 들어와 카운트업을 마친 상태라면(.is-in) 관전자가 보는 그 자리에서
+  // 바로 새 숫자로 짧게 틱 애니메이션 — 아직 안 들어왔다면 data-to 만 갱신해 두고
+  // IntersectionObserver 가 처음 들어올 때 새 합계로 카운트업하게 둔다.
+  if(podium && podium.classList.contains('is-in')){
+    var from=parseInt((el.textContent||'0').replace(/[^0-9]/g,''),10) || 0;
+    var dur=400, t0=null;
+    function step(ts){
+      if(t0===null) t0=ts;
+      var p=Math.min(1,(ts-t0)/dur);
+      el.textContent=Math.round(from+(to-from)*(1-Math.pow(1-p,3))).toLocaleString('ko-KR');
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+}
 document.querySelectorAll('.awish-btn').forEach(function(btn){
   var card=btn.closest('.awish-card');
   if(!card) return;
+  var key=card.getAttribute('data-key');
   var base=parseInt(card.getAttribute('data-count'),10) || 0;
   var num=card.querySelector('.awish-count-num');
   var label=btn.querySelector('.awish-label');
@@ -2759,6 +2903,7 @@ document.querySelectorAll('.awish-btn').forEach(function(btn){
     btn.setAttribute('aria-pressed', String(on));
     if(label) label.textContent = on ? '찜 완료!' : '찜하기';
     if(num) num.textContent = (base + (on ? 1 : 0)).toLocaleString('ko-KR');
+    if(key) awishBumpStand(key, on ? 1 : -1);
   });
 });
 """
@@ -2791,7 +2936,8 @@ def build() -> str:
   {build_sidenav(SIDENAV_KPOP, "kpop")}
   {build_sidenav(SIDENAV_CHARACTER, "character")}
   <main class="app-main">
-  {build_cat_tabs()}
+  {build_cat_tabs(CAT_TABS_KPOP, "kpop")}
+  {build_cat_tabs(CAT_TABS_CHARACTER, "character")}
 
   <div class="home-genre" data-genre="kpop" id="homeKpop">
   <section class="mainbanner">
@@ -2810,7 +2956,8 @@ def build() -> str:
   </section>
 
   <section class="sec sec--rank">
-    {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
+    {section_header(None, "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기",
+                     title_html='당신의 <span class="accent">최애는?</span>')}
     {build_podium()}
     <div class="notice-box">
       <p class="notice-head">아티스트 랭킹 정보
@@ -2832,8 +2979,8 @@ def build() -> str:
 
   <section class="sec sec--newarrival">
     <div class="newarrival-banner">
-      <p class="newarrival-title">오늘의 신상품, 새로 들어왔어요</p>
-      <p class="newarrival-sub">따끈따끈 새로운 상품을 먼저 만나보세요!</p>
+      <p class="newarrival-title">{cascade_text("오늘의 신상품, 새로 들어왔어요", "na-ch")}</p>
+      <p class="newarrival-sub">{cascade_text("따끈따끈 새로운 상품을 먼저 만나보세요!", "na-ch", start_ms=620)}</p>
     </div>
     {product_row(S['new'])}
   </section>
