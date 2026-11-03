@@ -213,6 +213,15 @@ ARTIST_WISH = [
     dict(key="ive", name="IVE", count=6950, rank="5위", liked=False),
 ]
 
+# 캐릭터 홈 버전 — PODIUM_CHARACTER(IP 3종)와 같은 랭킹·찜 수치를 그대로 쓴다.
+# "아티스트" 대신 "브랜드"로 부르는 건 캐릭터 홈 상단 탭(CAT_TABS_CHARACTER)에서
+# ARTIST -> 브랜드로 이미 바꾼 것과 같은 맥락이다.
+ARTIST_WISH_CHARACTER = [
+    dict(key="demonslayer", name="Demon Slayer", count=12456, rank="1위", liked=True),
+    dict(key="zofriends", name="ZO&FRIENDS", count=9820, rank="2위", liked=False),
+    dict(key="hatsunemiku", name="HATSUNE MIKU", count=8120, rank="3위", liked=False),
+]
+
 # Collection 배너는 Figma "[NOVERA]shop 운영 가이드라인" 파일의 Collection Banner
 # 템플릿(122:753 — 180px 이미지 + 195px 텍스트 패널, COLLECTION 뱃지 + 2행 헤드라인)을
 # 그대로 따른다. hero_bg 는 패널 전체 바탕색/그라디언트, fade 는 이미지 우측 가장자리를
@@ -662,10 +671,12 @@ def build_podium(items=None) -> str:
     return f'<div class="podium">{"".join(stands)}</div>'
 
 
-def build_artist_wish(items=None) -> str:
+def build_artist_wish(items=None, noun: str = "아티스트") -> str:
     """'나의 최애 아티스트를 찜해 보세요!' — Figma 7703:231973 Participation section.
     1위 카드만 처음부터 찜한 상태(파란 테두리 + '찜 완료!')로 시작하고 나머지는
-    빈 하트 '찜하기' 상태 — 실제로 버튼을 누르면 두 상태를 오간다(awish-btn, JS)."""
+    빈 하트 '찜하기' 상태 — 실제로 버튼을 누르면 두 상태를 오간다(awish-btn, JS).
+    캐릭터 홈에서는 noun="브랜드" 로 불러 상단 탭(CAT_TABS_CHARACTER)의 ARTIST ->
+    브랜드 변경과 같은 표현을 쓴다."""
     items = ARTIST_WISH if items is None else items
     cards = []
     for a in items:
@@ -689,13 +700,13 @@ def build_artist_wish(items=None) -> str:
     return f"""<section class="sec sec--artistwish">
   <div class="awish-head">
     <div class="awish-head-text">
-      <h2 class="sec-title">나의 <span class="accent">최애 아티스트</span>를 찜해 보세요!</h2>
+      <h2 class="sec-title">나의 <span class="accent">최애 {esc(noun)}</span>를 찜해 보세요!</h2>
       <p class="sec-sub">매일 새롭게 찜할 수 있어요</p>
     </div>
     <button class="text-btn" type="button">찜하러 가기{icon('ChevronRight', 18)}</button>
   </div>
   <div class="awish-row">{''.join(cards)}<i class="row-end"></i></div>
-  <button class="awish-more" type="button">다른 아티스트 찜하기{icon('ChevronRight', 20)}</button>
+  <button class="awish-more" type="button">다른 {esc(noun)} 찜하기{icon('ChevronRight', 20)}</button>
   <p class="awish-request">아직 내 최애가 등록되지 않았다면? <a href="#" class="awish-request-link">요청하기</a></p>
 </section>"""
 
@@ -744,8 +755,11 @@ def build_collections(items: list[dict], genre: str) -> str:
 
 
 def build_character_home(inline_banner: str) -> str:
-    """캐릭터 홈 전용 콘텐츠 (Figma 5596:53135). NOVERA Collection 은 케이팝 홈과
-    노출 세트가 달라(ZO&FRIENDS·귀멸의 칼날) 이 홈 전용 섹션을 따로 그린다."""
+    """캐릭터 홈 전용 콘텐츠 (Figma 5596:53135). 케이팝 홈과 섹션 구성·순서를 그대로
+    맞추되(지금 가장 인기 있어요 -> 당신의 최애는? -> 찜하기 캐러셀 -> PRE-ORDER ->
+    New Arrival -> 인라인 배너 -> Collection), LIVE MD(비디오콜·팬사인 등 아이돌
+    이벤트) 쇼케이스만 캐릭터 홈엔 해당 구좌가 없어 뺀다. NOVERA Collection 은
+    케이팝 홈과 노출 세트가 달라(ZO&FRIENDS·귀멸의 칼날) 캐릭터 전용 데이터로 그린다."""
     return f"""<section class="mainbanner">
     <div class="mb-track">{build_banners(MAIN_BANNERS_CHARACTER)}</div>
   </section>
@@ -754,7 +768,10 @@ def build_character_home(inline_banner: str) -> str:
     {build_quickmenu(QUICKMENU_CHARACTER)}
   </section>
 
-  {build_collections(COLLECTIONS_CHARACTER, "character")}
+  <section class="sec">
+    {section_header("지금 가장 인기 있어요", "지금 이 순간, 핫한 인기 상품들만 모았어요")}
+    {product_row(CHAR_TRENDING)}
+  </section>
 
   <section class="sec sec--rank">
     {section_header(None, "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기",
@@ -771,19 +788,26 @@ def build_character_home(inline_banner: str) -> str:
     </div>
   </section>
 
+  {build_artist_wish(ARTIST_WISH_CHARACTER, noun="브랜드")}
+
+  <section class="sec">
+    {section_header("PRE-ORDER", "지금 가장 핫한 블로키 신상 피규어를 만나보세요")}
+    {product_row(S['preorder'])}
+  </section>
+
+  <section class="sec sec--newarrival">
+    <div class="newarrival-banner">
+      <p class="newarrival-title">{cascade_text("오늘의 신상품, 새로 들어왔어요", "na-ch")}</p>
+      <p class="newarrival-sub">{cascade_text("따끈따끈 새로운 상품을 먼저 만나보세요!", "na-ch", start_ms=620)}</p>
+    </div>
+    {product_row(CHAR_NEW_ARRIVAL)}
+  </section>
+
   <div class="inline-banner">
     <a class="banner-frame" href="#"><img src="{inline_banner}" alt=""></a>
   </div>
 
-  <section class="sec">
-    {section_header("Now Trending", "지금 이 순간, 핫한 인기 상품들만 모았어요")}
-    {product_row(CHAR_TRENDING)}
-  </section>
-
-  <section class="sec">
-    {section_header("New Arrival", "따끈따끈 새로운 상품을 만나보세요!")}
-    {product_row(CHAR_NEW_ARRIVAL)}
-  </section>"""
+  {build_collections(COLLECTIONS_CHARACTER, "character")}"""
 
 
 def build_cat_tabs(items: list[tuple], genre: str) -> str:

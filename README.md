@@ -425,3 +425,19 @@ COLLECTION")가 또 얹혀 글자가 두 겹으로 보였습니다. Figma 레이
   캐스케이드 순서(`cascade_text()` 의 글자별 지연)는 그대로 둔 채 방향만 보강했습니다.
 - LIVE MD 쇼케이스 배너의 "LIVE MD" 뱃지가 검정 필이었는데, 시안(`7744:242229`)은
   blue-500→blue-600 그라디언트에 10px 글자(기존 12px)라 그대로 맞췄습니다.
+
+**캐릭터 홈 구성을 케이팝 홈과 동일하게 재배치, Collection 배너 교체 (2026-11-03):**
+- 캐릭터 홈의 섹션 순서가 케이팝 홈과 달랐습니다(Collection 이 퀵메뉴 바로 뒤에
+  있었고, "당신의 최애는?"/찜하기 캐러셀/PRE-ORDER 가 아예 없었습니다). 케이팝 홈과
+  똑같은 순서(메인배너 → 퀵메뉴 → 지금 가장 인기 있어요 → 당신의 최애는?/랭킹 →
+  나의 최애 브랜드를 찜해 보세요! → PRE-ORDER → New Arrival → 인라인 배너 →
+  Collection)로 맞추되, LIVE MD(비디오콜·팬사인 등 아이돌 전용 이벤트) 쇼케이스
+  구좌는 캐릭터 홈에 해당 사항이 없어 그대로 뺐습니다. Collection 은 맨 끝으로
+  옮겼습니다.
+- 찜하기 캐러셀(`build_artist_wish()`)에 `noun` 인자를 추가해 캐릭터 홈에서는
+  "아티스트" 대신 "브랜드"로 부르도록 했습니다(상단 탭의 ARTIST→브랜드 변경과 같은
+  맥락). 랭킹(`PODIUM_CHARACTER`)과 같은 3개 IP(Demon Slayer/ZO&FRIENDS/HATSUNE
+  MIKU) 데이터를 그대로 재사용해 수치가 서로 어긋나지 않게 했습니다.
+- 캐릭터 홈 Collection 배너를 ZO&FRIENDS LUCKY COLLECTION / 귀멸의 칼날 ONLINE
+  COLLECTION 으로 교체했습니다(기존에 이미 반영돼 있던 콘텐츠를 그대로 유지한 채
+  섹션 위치만 재배치).
