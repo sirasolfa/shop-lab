@@ -159,13 +159,13 @@ S = DATA["sections"]
 # 같은 5개 항목이 반복 배치돼 있었음 — 자리 채우기용 목업으로 보고 1행 5개로 정리).
 # 아이콘은 Figma 쪽에 아직 채워지지 않은 빈 그라디언트 사각형이라 직접 제작.
 # 링크는 라이브 사이트 실제 카테고리 경로.
-# Figma 5612:54901 기준 라벨 — 카테고리 바로가기에서 "이벤트 바로가기"로 성격이 바뀌었다.
-# 시안의 아이콘 자리는 아직 빈 그라디언트 사각형이라 앞의 3종은 직접 제작했다.
-# 이벤트 3종은 라이브 사이트에 대응 카테고리 경로가 아직 없어 LIVE MD(PCTGY3)로 보낸다.
+# Figma 7703:122715 업데이트(2026-11) — 퀵메뉴가 "이벤트 바로가기"에서 실제 상품
+# 대카테고리 바로가기(Live MD·CD·DVD·포토/카드·응원봉)로 다시 바뀌었다. 링크는
+# 실제 운영 카테고리 경로 그대로.
 QUICKMENU = [
-    ("videocall", "비디오콜", "https://shop.novera.town/categories/PCTGY3"),
-    ("fansign", "팬사인회", "https://shop.novera.town/categories/PCTGY3"),
-    ("offline_event", "대면 이벤트", "https://shop.novera.town/categories/PCTGY3"),
+    ("live_md", "Live MD", "https://shop.novera.town/categories/PCTGY3"),
+    ("cd", "CD", "https://shop.novera.town/categories/PCTGY1/PCTGY1_2"),
+    ("dvd", "DVD", "https://shop.novera.town/categories/PCTGY1/PCTGY1_1"),
     ("photocard", "포토/카드", "https://shop.novera.town/categories/PCTGY2/PCTGY2_2"),
     ("lightstick", "응원봉", "https://shop.novera.town/categories/PCTGY2/PCTGY2_5"),
 ]
@@ -176,6 +176,20 @@ PODIUM = [
     dict(key="seventeen", name="SEVENTEEN", count=9820, rank="2nd", place="second"),
     dict(key="nct", name="NCT", count=12456, rank="1st", place="first"),
     dict(key="kep1er", name="Kep1er", count=8120, rank="3rd", place="third"),
+]
+
+# "나의 최애 아티스트를 찜해 보세요!" — Figma 7703:231973 Participation section
+# (2026-11 업데이트로 신설). Fan's Pick TOP3(PODIUM)와 같은 랭킹 순위를 TOP5 로
+# 늘려 그대로 이어 쓴다 — 1위(NCT)만 처음부터 찜한 상태로 시작하는 것도 시안 그대로.
+# aespa·IVE 는 아직 아바타 사진이 없어(시안도 "ae"/"IVE" 이니셜 자리표시) 찜하기
+# 버튼을 실제로 눌렀을 때 하트가 채워지는 인터렉션은 awish-btn(JS)이 새로 담당하고,
+# 상품 카드의 기존 찜 토글(.pcard-wish)은 그대로 둔다.
+ARTIST_WISH = [
+    dict(key="nct", name="NCT", count=12456, rank="1위", liked=True),
+    dict(key="seventeen", name="SEVENTEEN", count=9820, rank="2위", liked=False),
+    dict(key="kep1er", name="Kep1er", count=8120, rank="3위", liked=False),
+    dict(key="aespa", name="aespa", count=7640, rank="4위", liked=False),
+    dict(key="ive", name="IVE", count=6950, rank="5위", liked=False),
 ]
 
 # Collection 배너는 Figma "[NOVERA]shop 운영 가이드라인" 파일의 Collection Banner
@@ -367,17 +381,14 @@ def build_banners(banners=None) -> str:
 
 
 # ------------------------------ Meet Your Artist Event (Showcase Banner)
-# Figma 5749:63751 "Concept 3 - Showcase Banner"
-#   Banner Area(5749:63752)       다크 쇼케이스 배너 + 구매 종료 카운트다운
+# Figma 7703:122894 "Concept 3 - Showcase Banner"
+#   Banner Area                   다크 쇼케이스 배너 + 진행 상태 배지(상시 진행중)
 #   Overlapping Cards(5749:63783) 배너 위로 30px 올라탄 가로형 카드 2장
 #   NextArtistPreview(5749:63826) 다음 아티스트 칩 (가로 스크롤)
 #
-# 시안의 "01 : 02 : 40 : 30" 과 "오늘 오후 8:00" 은 목업 숫자다. 여기서는
-# data.json 의 event_at(상품명 앞머리 "[09.05 …]" 를 승격시킨 ISO 일시) 을 넘겨주고,
-# 브라우저가 볼 때마다 가장 가까운 미래를 골라 실제로 카운트다운하고 상대 시각을 만든다.
-CD_UNITS = [("d", "DAY"), ("h", "HRS"), ("m", "MIN"), ("s", "SEC")]
-
-# 시안이 카드에 얹는 칩 수 — Overlapping Cards 는 2장이다
+# "오늘 오후 8:00" 같은 다음 아티스트 칩의 상대 시각은 data.json 의 event_at
+# (상품명 앞머리 "[09.05 …]" 를 승격시킨 ISO 일시) 을 넘겨주고, 브라우저가 볼 때마다
+# 계산한다. 배너 자체의 구매 종료 카운트다운은 상시 진행 이벤트로 바뀌면서 뺐다.
 SHOWCASE_CARDS = 2
 
 
@@ -513,19 +524,11 @@ def build_event_showcase() -> str:
         else f'<span class="sb-artist-avatar sb-artist-avatar--ph">{esc(lead["brand"][:1])}</span>'
     )
 
-    tiles = []
-    for i, (key, cap) in enumerate(CD_UNITS):
-        if i:
-            tiles.append('<span class="cd-colon" aria-hidden="true">:</span>')
-        tiles.append(
-            f'<span class="cd-unit"><span class="cd-num" data-cd="{key}">--</span>'
-            f'<span class="cd-cap">{cap}</span></span>'
-        )
-    deadlines = html.escape(
-        json.dumps(sorted({p["event_at"] for p in items})), quote=True
-    )
     cards = "".join(_event_card(p) for p in items[:SHOWCASE_CARDS])
 
+    # LIVE MD 는 특정 마감 시각을 세는 대신 상시 진행중 상태만 보여준다
+    # (2026-11 업데이트) — 종료일이 지나도 수동으로 event_at 을 계속 당겨줄 필요가
+    # 없도록, 구매 종료 카운트다운 대신 "진행중" 배지로 고정했다.
     return f"""<section class="sec--showcase">
   <div class="sb-banner">
     {hero_img}
@@ -537,7 +540,7 @@ def build_event_showcase() -> str:
           <button class="sb-more" type="button">전체보기{icon('ChevronRight', 14)}</button>
         </div>
         <div class="sb-titles">
-          <p class="sb-title">Meet Your Artist Event!</p>
+          <p class="sb-title">최애와 더 가까이!</p>
           <p class="sb-desc">최애 아티스트를 만날 수 있는 특별한 이벤트</p>
         </div>
       </div>
@@ -549,9 +552,9 @@ def build_event_showcase() -> str:
             <p class="sb-artist-name">{esc(lead['brand'])}</p>
           </div>
         </div>
-        <div class="sb-timer" id="eventCountdown" data-deadlines="{deadlines}">
-          <p class="sb-cap" id="cdLabelText">구매 종료까지</p>
-          <div class="cd-clock" role="timer" aria-live="off">{''.join(tiles)}</div>
+        <div class="sb-ongoing">
+          <p class="sb-cap">진행 상태</p>
+          <p class="sb-ongoing-badge"><span class="sb-ongoing-dot"></span>상시 진행중</p>
         </div>
       </div>
     </div>
@@ -619,6 +622,44 @@ def build_podium(items=None) -> str:
     return f'<div class="podium">{"".join(stands)}</div>'
 
 
+def build_artist_wish(items=None) -> str:
+    """'나의 최애 아티스트를 찜해 보세요!' — Figma 7703:231973 Participation section.
+    1위 카드만 처음부터 찜한 상태(파란 테두리 + '찜 완료!')로 시작하고 나머지는
+    빈 하트 '찜하기' 상태 — 실제로 버튼을 누르면 두 상태를 오간다(awish-btn, JS)."""
+    items = ARTIST_WISH if items is None else items
+    cards = []
+    for a in items:
+        src = find_img("artist", a["key"])
+        avatar = (
+            f'<img src="{src}" alt="{esc(a["name"])}">' if src
+            else f'<span class="awish-avatar-ph">{esc(a["name"][:2])}</span>'
+        )
+        liked = bool(a.get("liked"))
+        base_count = a["count"] - 1 if liked else a["count"]  # JS 는 이 기준치에 ±1 한다
+        cards.append(f"""<div class="awish-card{' is-liked' if liked else ''}" data-count="{base_count}">
+  <span class="awish-rank">{esc(a['rank'])}</span>
+  <span class="awish-avatar">{avatar}</span>
+  <p class="awish-name">{esc(a['name'])}</p>
+  <p class="awish-count"><span class="awish-count-num">{a['count']:,}</span>명 이 찜했어요</p>
+  <button class="awish-btn" type="button" aria-pressed="{'true' if liked else 'false'}">
+    {icon('HeartFill', 18, 'awish-ico awish-ico--on')}{icon('Heart', 18, 'awish-ico awish-ico--off')}
+    <span class="awish-label">{'찜 완료!' if liked else '찜하기'}</span>
+  </button>
+</div>""")
+    return f"""<section class="sec sec--artistwish">
+  <div class="awish-head">
+    <div class="awish-head-text">
+      <h2 class="sec-title">나의 <span class="awish-accent">최애 아티스트</span>를 찜해 보세요!</h2>
+      <p class="sec-sub">매일 새롭게 찜할 수 있어요</p>
+    </div>
+    <button class="text-btn" type="button">찜하러 가기{icon('ChevronRight', 18)}</button>
+  </div>
+  <div class="awish-row">{''.join(cards)}<i class="row-end"></i></div>
+  <button class="awish-more" type="button">다른 아티스트 찜하기{icon('ChevronRight', 20)}</button>
+  <p class="awish-request">아직 내 최애가 등록되지 않았다면? <a href="#" class="awish-request-link">요청하기</a></p>
+</section>"""
+
+
 def build_collections(items: list[dict], genre: str) -> str:
     """NOVERA Collection 구좌. 장르별로 노출 컬렉션이 달라(COLLECTIONS_KPOP /
     COLLECTIONS_CHARACTER) 두 홈이 각자 자신의 섹션을 따로 그린다 — 더 이상 하나의
@@ -654,7 +695,8 @@ def build_collections(items: list[dict], genre: str) -> str:
         )
     return f"""<section class="sec sec--collection" id="collection-{genre}">
   <div class="col-top">
-    <h2 class="sec-title">NOVERA shop Collection</h2>
+    <h2 class="sec-title col-title-lines"><span class="col-title-pre">오직 NOVERA shop에서만,</span>
+      <span class="col-title-accent">NOVERA Collection</span></h2>
   </div>
   <div class="tabbar tabbar--collection"><div class="tabs"><div class="tabs-inner">{''.join(tabs)}</div></div></div>
   <div class="col-panels">{''.join(panels)}</div>
@@ -1492,17 +1534,18 @@ img{display:block;max-width:100%}
   overflow:hidden;border:1px solid var(--border-thumbnail);display:block}
 .sb-artist-avatar img{width:100%;height:100%;object-fit:cover}
 .sb-artist-name{font-size:16px;font-weight:700;line-height:1.3;color:var(--text-inverse);white-space:nowrap}
-.sb-timer{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacing-2)}
-.cd-clock{display:flex;align-items:flex-start;gap:var(--spacing-8)}
-.cd-unit{display:flex;flex-direction:column;align-items:center;min-width:30px}
-.cd-num{font-size:26px;font-weight:700;line-height:1.3;color:var(--text-inverse);
-  font-variant-numeric:tabular-nums}
-.cd-cap{font-size:10px;font-weight:400;line-height:1.5;letter-spacing:var(--tracking-1);
-  color:var(--alpha-white64)}
-.cd-colon{width:8px;text-align:center;font-size:20px;font-weight:700;line-height:1.3;
-  color:var(--alpha-white40)}
-/* 남은 이벤트가 없을 때 — 숫자는 00 에서 멈추고 라벨만 종료를 알린다 */
-.sb-timer.is-ended .cd-num{color:var(--alpha-white40)}
+.sb-ongoing{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacing-2)}
+.sb-ongoing-badge{display:flex;align-items:center;gap:6px;
+  font-size:20px;font-weight:700;line-height:1.3;color:var(--text-inverse)}
+.sb-ongoing-dot{flex:none;width:8px;height:8px;border-radius:var(--rounded-full);
+  background:var(--green-500);box-shadow:0 0 0 0 rgba(63,190,117,.6);
+  animation:sb-pulse 1.8s ease-out infinite}
+@keyframes sb-pulse{
+  0%{box-shadow:0 0 0 0 rgba(63,190,117,.55)}
+  70%{box-shadow:0 0 0 6px rgba(63,190,117,0)}
+  100%{box-shadow:0 0 0 0 rgba(63,190,117,0)}
+}
+@media (prefers-reduced-motion:reduce){ .sb-ongoing-dot{animation:none} }
 
 /* Overlapping Cards(5749:63783) — 배너 위로 30px 올라탄다 */
 .sb-cards{position:relative;z-index:1;margin-top:-30px;padding:0 var(--gutter);
@@ -1738,6 +1781,64 @@ img{display:block;max-width:100%}
   .tooltip-wrap:hover .tooltip-bubble{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
 }
 
+/* ---------- 아티스트 찜하기 (Figma 7703:231973 Participation section) ---------- */
+.sec--artistwish{display:flex;flex-direction:column;gap:var(--spacing-16)}
+.awish-head{display:flex;align-items:flex-start;gap:var(--spacing-20);padding:0 var(--gutter)}
+.awish-head-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.awish-accent{color:var(--brand1-default)}
+.awish-row{display:flex;gap:var(--spacing-12);padding-left:var(--gutter);
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.awish-row::-webkit-scrollbar{display:none}
+.awish-card{flex:none;width:140px;display:flex;flex-direction:column;align-items:center;
+  gap:var(--spacing-12);padding:var(--spacing-12) var(--spacing-12) var(--spacing-16);
+  border-radius:var(--rounded-md);background:var(--bg-default);
+  border:1px solid var(--gray-200);transition:background .15s ease,border-color .15s ease}
+.awish-card.is-liked{background:var(--bg-primary);border-color:var(--brand1-default)}
+.awish-rank{align-self:flex-start;padding:var(--spacing-2) 6px;border-radius:var(--rounded-full);
+  background:var(--bg-gray);color:var(--text-secondary);
+  font-size:10px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5}
+.awish-card.is-liked .awish-rank{background:var(--bg-primary);color:var(--brand1-default)}
+.awish-avatar{display:block;width:64px;height:64px;border-radius:var(--rounded-full);
+  overflow:hidden;border:1px solid var(--border-thumbnail);background:var(--bg-primary)}
+.awish-avatar img{width:100%;height:100%;object-fit:cover}
+.awish-avatar-ph{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
+  color:var(--brand1-strong);font-size:18px;font-weight:600}
+.awish-name{font-size:14px;font-weight:600;line-height:1.4;letter-spacing:var(--tracking-1);
+  color:var(--text-primary);text-align:center;width:100%;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.awish-count{font-size:11px;letter-spacing:var(--tracking-1);text-align:center;white-space:nowrap}
+.awish-count-num{font-weight:600;color:var(--text-tertiary)}
+.awish-card.is-liked .awish-count-num{color:var(--brand1-default)}
+.awish-btn{width:100%;height:32px;display:flex;align-items:center;justify-content:center;
+  gap:6px;border-radius:var(--rounded-xs);background:var(--bg-gray);color:var(--text-secondary);
+  font-size:12px;font-weight:600;letter-spacing:var(--tracking-1);line-height:1.5;
+  transition:background .15s ease,color .15s ease}
+.awish-btn:active{transform:scale(.97)}
+.awish-ico{display:none}
+.awish-ico--off{display:block;color:var(--icon-secondary)}
+.awish-card.is-liked .awish-btn{background:var(--brand1-default);color:var(--text-inverse)}
+.awish-card.is-liked .awish-ico--off{display:none}
+.awish-card.is-liked .awish-ico--on{display:block;color:var(--text-inverse)}
+.awish-more{width:calc(100% - var(--gutter) * 2);margin:0 var(--gutter);height:44px;
+  display:flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--rounded-sm);
+  background:var(--bg-gray);color:var(--text-secondary);
+  font-size:14px;font-weight:600;letter-spacing:var(--tracking-1)}
+.awish-more .ico{color:var(--icon-secondary)}
+.awish-request{padding:0 var(--gutter);display:flex;align-items:center;justify-content:center;
+  gap:var(--spacing-4);font-size:12px;letter-spacing:var(--tracking-1);color:var(--text-tertiary)}
+.awish-request-link{color:var(--text-tertiary);text-decoration:underline}
+
+/* ---------- New Arrival(Figma "New Products Section") — 그라디언트 배너 헤더 ---------- */
+.sec--newarrival{display:flex;flex-direction:column;gap:var(--spacing-16)}
+.newarrival-banner{margin:0 var(--gutter);padding:var(--spacing-20) var(--spacing-24);
+  border-radius:var(--rounded-sm);text-align:center;
+  background:linear-gradient(180deg,var(--green-100) 0%,#b3f2ff 100%)}
+.newarrival-title{font-size:18px;font-weight:600;line-height:1.4;
+  background:linear-gradient(91.8deg,#004452 22.7%,var(--green-500) 77.8%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.newarrival-sub{margin-top:2px;font-size:12px;letter-spacing:var(--tracking-1);
+  line-height:1.4;color:var(--text-primary)}
+
 /* ---------- Inline banner (full-bleed) ---------- */
 .inline-banner{padding:var(--spacing-24) 0}
 .inline-banner .banner-frame{width:100%;height:77px;overflow:hidden;
@@ -1748,6 +1849,9 @@ img{display:block;max-width:100%}
 /* ---------- Collection ---------- */
 .sec--collection{padding:var(--spacing-24) 0 var(--spacing-28)}
 .col-top{padding:0 var(--gutter);margin-bottom:var(--spacing-8)}
+.col-title-lines{display:flex;flex-direction:column;gap:2px}
+.col-title-pre{font-size:18px;font-weight:600;line-height:1.4;color:var(--text-primary)}
+.col-title-accent{font-size:18px;font-weight:600;line-height:1.4;color:var(--brand1-default)}
 .col-panel{display:none}
 .col-panel.is-active{display:block}
 /* 기획전(컬렉션) 히어로 — Figma "Collection Banner" 템플릿(180px 이미지 + 195px
@@ -2225,31 +2329,12 @@ function initMainBanner(track, box){
   if(window.NoveraBanner) window.NoveraBanner.resume();
 })();
 
-// ----- Meet Your Artist Event: 상품 일시(event_at)와 동기화된 카운트다운 -----
-// data.json 의 event_at 을 전부 넘겨받아, 볼 때마다 그중 "가장 가까운 미래" 를
-// 골라 남은 시간을 센다. 남은 이벤트가 없으면 00 에서 멈추고 종료 상태가 된다.
-// 다음 아티스트 칩의 "오늘 오후 8:00" 같은 문구도 같은 시각에서 만들어진다.
+// ----- 다음 아티스트 칩: event_at 을 "오늘 오후 8:00" 같은 상대 시각으로 -----
+// LIVE MD 배너 자체는 상시 진행중 배지로 고정돼 더는 카운트다운하지 않지만,
+// 다음 아티스트 칩의 상대 시각 문구는 보는 시점에 따라 계속 달라져야 한다.
 (function(){
-  var box=document.getElementById('eventCountdown');
   var next=document.getElementById('nextArtists');
-  if(!box && !next) return;
-
-  function parseList(el,attr){
-    try{
-      return (JSON.parse(el.getAttribute(attr)||'[]')||[])
-        .map(function(s){ return Date.parse(s); })
-        .filter(function(t){ return !isNaN(t); })
-        .sort(function(a,b){ return a-b; });
-    }catch(e){ return []; }
-  }
-
-  var stamps = box ? parseList(box,'data-deadlines') : [];
-  var label  = document.getElementById('cdLabelText');
-  var cells={};
-  if(box) box.querySelectorAll('.cd-num').forEach(function(el){
-    cells[el.getAttribute('data-cd')]=el;
-  });
-  function set(k,v){ if(cells[k]) cells[k].textContent=(v<10?'0':'')+v; }
+  if(!next) return;
 
   // "오늘 오후 8:00" / "내일 오후 8:00" / "9.30 오후 8:00" — 보는 사람의 로컬 시각 기준
   function whenText(ts){
@@ -2264,35 +2349,11 @@ function initMainBanner(track, box){
     return (d.getMonth()+1)+'.'+d.getDate()+' '+t;
   }
 
-  if(next){
-    next.querySelectorAll('.na-item').forEach(function(el){
-      var ts=Date.parse(el.getAttribute('data-at'));
-      var out=el.querySelector('.na-time');
-      if(out) out.textContent = isNaN(ts) ? '' : whenText(ts);
-    });
-  }
-
-  function paint(){
-    if(!box) return;
-    var now=Date.now(), target=null;
-    for(var i=0;i<stamps.length;i++){ if(stamps[i]>now){ target=stamps[i]; break; } }
-    if(target===null){
-      box.classList.add('is-ended');
-      if(label) label.textContent='예정된 이벤트가 없어요';
-      set('d',0); set('h',0); set('m',0); set('s',0);
-      return;
-    }
-    box.classList.remove('is-ended');
-    if(label) label.textContent='구매 종료까지';
-    var left=Math.max(0, Math.floor((target-now)/1000));
-    set('d', Math.floor(left/86400));
-    set('h', Math.floor(left%86400/3600));
-    set('m', Math.floor(left%3600/60));
-    set('s', left%60);
-  }
-
-  paint();
-  setInterval(paint, 1000);
+  next.querySelectorAll('.na-item').forEach(function(el){
+    var ts=Date.parse(el.getAttribute('data-at'));
+    var out=el.querySelector('.na-time');
+    if(out) out.textContent = isNaN(ts) ? '' : whenText(ts);
+  });
 })();
 
 // ----- 하단 고정 영역(장르 스위치 + BottomNavigation): 스크롤 다운 → 내려가며
@@ -2683,6 +2744,23 @@ document.querySelectorAll('.pcard-wish').forEach(function(b){
     b.style.color = on ? 'var(--red-500)' : 'var(--icon-inverse)';
   });
 });
+
+// ----- 아티스트 찜하기 (나의 최애 아티스트를 찜해 보세요!) -----
+// 버튼을 실제로 눌렀을 때만 하트가 채워지는 신규 인터렉션 — 카드째 is-liked 를
+// 토글해 테두리·버튼 배경·라벨·하트 아이콘·찜 수치가 한번에 바뀐다.
+document.querySelectorAll('.awish-btn').forEach(function(btn){
+  var card=btn.closest('.awish-card');
+  if(!card) return;
+  var base=parseInt(card.getAttribute('data-count'),10) || 0;
+  var num=card.querySelector('.awish-count-num');
+  var label=btn.querySelector('.awish-label');
+  btn.addEventListener('click',function(){
+    var on=card.classList.toggle('is-liked');
+    btn.setAttribute('aria-pressed', String(on));
+    if(label) label.textContent = on ? '찜 완료!' : '찜하기';
+    if(num) num.textContent = (base + (on ? 1 : 0)).toLocaleString('ko-KR');
+  });
+});
 """
 
 
@@ -2700,7 +2778,6 @@ def build() -> str:
       <div class="head-actions">
         <div class="head-icons">
           <a class="touch touch--mobile" href="https://shop.novera.town/search" target="_blank" rel="noreferrer" aria-label="검색">{icon('Search', 20)}</a>
-          <a class="touch touch--desktop" href="https://shop.novera.town/mypage" target="_blank" rel="noreferrer" aria-label="마이페이지">{icon('User', 20)}</a>
           <a class="touch touch--desktop" href="https://shop.novera.town/mypage/likes" target="_blank" rel="noreferrer" aria-label="좋아요">{icon('Heart', 20)}</a>
           <a class="touch" href="https://shop.novera.town/carts" target="_blank" rel="noreferrer" aria-label="장바구니">{icon('Bag', 20)}<span class="push-badge">2</span></a>
         </div>
@@ -2727,6 +2804,11 @@ def build() -> str:
 
   {build_event_showcase()}
 
+  <section class="sec">
+    {section_header("지금 가장 인기 있어요", "지금 이 순간, 핫한 인기 상품들만 모았어요")}
+    {product_row(S['trend'])}
+  </section>
+
   <section class="sec sec--rank">
     {section_header("Fan's Pick!", "팬들이 선택한 최애 TOP 3를 확인해 보세요", "찜하러 가기")}
     {build_podium()}
@@ -2741,13 +2823,18 @@ def build() -> str:
     </div>
   </section>
 
-  <section class="sec">
-    {section_header("Now Trending", "지금 이 순간, 핫한 인기 상품들만 모았어요")}
-    {product_row(S['trend'])}
-  </section>
+  {build_artist_wish()}
 
   <section class="sec">
-    {section_header("New Arrival", "따끈따끈 새로운 상품을 만나보세요!")}
+    {section_header("PRE-ORDER", "지금 가장 핫한 블로키 신상 피규어를 만나보세요")}
+    {product_row(S['preorder'])}
+  </section>
+
+  <section class="sec sec--newarrival">
+    <div class="newarrival-banner">
+      <p class="newarrival-title">오늘의 신상품, 새로 들어왔어요</p>
+      <p class="newarrival-sub">따끈따끈 새로운 상품을 먼저 만나보세요!</p>
+    </div>
     {product_row(S['new'])}
   </section>
 
