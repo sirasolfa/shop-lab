@@ -321,15 +321,21 @@ MAIN_BANNERS = [
 # 전용으로 새로 채운다. NOVERA Collection 은 두 홈 모두 같은 섹션(같은 탭
 # 순서 — ZO&FRIENDS 가 기본 활성)이라 DOM 에 하나만 두고 JS 로 옮겨 쓴다.
 # ============================================================
+# main_km_char / main_zo_char_bg — Figma 128:207(117:665·117:690 Background
+# Image 레이어)을 그대로 캡처한 375x320 합성 이미지. 기존엔 가공 전 원본
+# 소스컷을 그대로 썼던 탓에(달 배경이 다 드러나는 풀샷, 고양이도 꽉 찬 클로즈업)
+# 시안의 다크 베녜트/글로우/크롭과 달랐는데, 이제 시안이 실제로 내보내는 배경
+# 합성본으로 교체해 그대로 맞춘다. col_km(Collection 히어로용 가로 배너)과는
+# 별개 에셋이다 — 같은 원화를 다른 비율/페이드로 쓰는 다른 구좌라 공유하면 안 된다.
 MAIN_BANNERS_CHARACTER = [
     dict(kind="kimetsu-char", label="전집중, 귀살대 주목!",
          title="귀멸의 칼날 굿즈<br>COLLECTION Open!",
          bg="#05060b",
-         img=("col_km",)),
+         img=("main_km_char",)),
     dict(kind="zo-char", label="서툴러서 더 완벽한 친구들",
          title="ZO&FRIENDS<br>LUCKY COLLECTION",
          bg="linear-gradient(180deg,#6ac3f0 42.57%,#0072e4 100%)",
-         img=("main_zo_char",)),
+         img=("main_zo_char_bg",)),
     dict(kind="coupon", label="WELCOME COUPON",
          title="회원가입만 해도<br>전상품 1,000원 즉시 할인!",
          bg="linear-gradient(180deg,#ebfcff 0%,#08a2c2 100%)",
