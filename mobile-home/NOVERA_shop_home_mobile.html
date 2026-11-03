@@ -380,9 +380,11 @@ img{display:block;max-width:100%}
   gap:var(--spacing-24);padding:var(--spacing-20) var(--gutter) 48px}
 .sb-head{display:flex;flex-direction:column;gap:var(--spacing-4);width:100%}
 .sb-toprow{position:relative;display:flex;align-items:center;justify-content:space-between}
+/* Figma 7744:242229 — 검정 필 대신 blue-500→blue-600 그라디언트, 10px 로 축소 */
 .sb-kind{padding:var(--spacing-2) 6px;border-radius:var(--rounded-xxs);
-  background:var(--bg-darkgray-strong);color:var(--text-inverse);
-  font-size:12px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
+  background:linear-gradient(180deg,var(--blue-500) 0%,var(--blue-600) 100%);
+  color:var(--text-inverse);
+  font-size:10px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1)}
 .sb-more{position:absolute;top:-4px;right:-4px;display:flex;align-items:center;
   gap:var(--spacing-4);height:26px;padding:var(--spacing-4) 0;border-radius:var(--rounded-xs);
   font-size:11px;font-weight:600;line-height:1.5;letter-spacing:var(--tracking-1);
@@ -696,18 +698,21 @@ img{display:block;max-width:100%}
 
 /* ---------- New Arrival(Figma "New Products Section") — 그라디언트 배너 헤더 ---------- */
 .sec--newarrival{display:flex;flex-direction:column;gap:var(--spacing-32)}
-.newarrival-banner{margin:0 var(--gutter);padding:var(--spacing-20) var(--spacing-24);
-  border-radius:var(--rounded-sm);text-align:center;
+/* Figma 모바일(7744:244897)·데스크톱 모두 콘텐츠 폭에 꽉 채운 풀블리드 띠라서
+   다른 섹션처럼 거터 인셋을 주지 않는다 — 대신 64px 라는 큰 내부 여백으로 텍스트를
+   가운데로 모은다. 둥근 모서리는 데스크톱(7703:242059)에만 있어 모바일은 각진 채로 둔다 */
+.newarrival-banner{padding:var(--spacing-20) 64px;text-align:center;
   background:linear-gradient(180deg,var(--green-100) 0%,#b3f2ff 100%)}
 .newarrival-title{font-size:18px;font-weight:600;line-height:1.4;
   background:linear-gradient(91.8deg,#004452 22.7%,var(--green-500) 77.8%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .newarrival-sub{margin-top:2px;font-size:12px;letter-spacing:var(--tracking-1);
   line-height:1.4;color:var(--text-primary)}
-/* 글자가 좌 → 우 순서로 촤라락 훑고 지나가듯 등장 (스크롤 진입 시 1회, cascade_text 가
-   글자마다 --d 지연을 매겨 둔다). transform 은 inline 요소에도 적용되므로 inline-block
-   으로 바꾸지 않는다 — 그래야 줄바꿈이 평범한 텍스트와 똑같이 단어 경계에서만 일어난다 */
-.na-ch{display:inline;opacity:0;transform:translateX(-12px);
+/* 글자가 좌 → 우 순서(cascade_text 의 --d 지연)로 촤라락 훑으며, 동시에 아래에서
+   위로도 떠오르듯 등장한다 — 대각선(좌·아래 → 제자리) 한 번의 transform 으로 두
+   방향을 같이 준다. transform 은 inline 요소에도 적용되므로 inline-block 으로
+   바꾸지 않는다 — 그래야 줄바꿈이 평범한 텍스트와 똑같이 단어 경계에서만 일어난다 */
+.na-ch{display:inline;opacity:0;transform:translate(-10px,10px);
   transition:opacity .32s ease var(--d),transform .42s cubic-bezier(.22,1,.36,1) var(--d)}
 .newarrival-banner.is-in .na-ch{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){ .na-ch{transition:none;opacity:1;transform:none} }
@@ -1015,6 +1020,8 @@ img{display:block;max-width:100%}
      히어로와 인라인 배너는 모바일과 동일하게 각진 채로 유지한다 (5461:140412 실측) */
   .mainbanner{border-radius:var(--rounded-md);overflow:hidden}
   .sec--showcase .sb-banner{border-radius:var(--rounded-md) var(--rounded-md) 0 0}
+  /* New Arrival 그라디언트 배너도 데스크톱(7703:242059)에서만 둥글다 */
+  .newarrival-banner{border-radius:var(--rounded-sm)}
   .footer{margin-top:56px}
 
   /* 배너: 시안 520x280. 모바일 이미지를 가로로 늘려 채우고 위쪽 기준으로 정렬한다 */
