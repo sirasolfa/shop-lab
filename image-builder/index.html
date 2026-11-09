@@ -340,13 +340,23 @@ function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on
 function loadImage(src, name){
   return new Promise((res,rej)=>{ const im=new Image(); im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=rej; im.src=src; im.dataset.name=name||''; });
 }
+// 외부 URL은 먼저 브라우저에서 바로 받고, CORS로 막히면 같은 출처의 프록시(api/image)로 다시 받는다
+async function loadAnyImage(src, name){
+  try{ return await loadImage(src, name); }
+  catch(e){
+    if(!/^https?:/i.test(src)) throw e;
+    const r=await fetch('/api/image?url='+encodeURIComponent(src)).catch(()=>null);
+    if(!r || !r.ok){ const msg=r && (await r.json().catch(()=>null))?.error; throw new Error(msg||''); }
+    return loadImage(URL.createObjectURL(await r.blob()), name);
+  }
+}
 async function setImage(src, name){
   try{
-    const im = await loadImage(src, name);
+    const im = await loadAnyImage(src, name);
     S.img = im; S.imgOrig = null; S.imgName = name || ''; S.imgHasAlpha = detectAlpha(im);
     if(!S.identManual) S.ident = slugify(name);
     S.tf = {}; fitAll(); renderPanel(); buildStage();
-  }catch(e){ toast('이미지를 불러오지 못했어요 (URL은 CORS 허용 주소만 가능)'); }
+  }catch(e){ toast(e.message ? `이미지를 불러오지 못했어요 — ${e.message}` : '이미지를 불러오지 못했어요. 파일로 내려받아 올려 주세요.'); }
 }
 /* 자동 누끼 — 가장자리에서 이어지는 단색 배경을 투명하게 만든다(브라우저 안에서만 처리).
    배경이 단색이 아니면(사진 배경 등) 처리하지 않고 디자이너 요청을 안내한다. */
@@ -394,7 +404,22 @@ function slugify(n){ return (n||'').replace(/\.[a-z0-9]+$/i,'').trim().replace(/
 function handleFile(f){ if(!f) return; if(!/^image\/(png|jpeg|webp)$/.test(f.type)) return toast('JPG · PNG · WebP만 올릴 수 있어요');
   const r=new FileReader(); r.onload=()=> setImage(r.result, f.name); r.readAsDataURL(f); }
 $('#file').addEventListener('change', e=>{ handleFile(e.target.files[0]); e.target.value=''; });
-document.addEventListener('paste', e=>{ const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/')); if(it) handleFile(it.getAsFile()); });
+// 다른 웹페이지에서 끌어오거나 복사한 이미지는 파일 대신 주소만 오는 경우가 많아 주소로도 받는다
+function urlFromTransfer(dt){
+  const html=dt.getData('text/html'), m=html && html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const u=(m && m[1].replace(/&amp;/g,'&')) || dt.getData('text/uri-list').split('\n').find(l=>l && !l.startsWith('#')) || dt.getData('text/plain');
+  return /^https?:\/\/\S+$/i.test((u||'').trim()) ? u.trim() : null;
+}
+function handleTransfer(dt){
+  const f=[...(dt.files||[])][0] || [...(dt.items||[])].find(i=>i.kind==='file' && i.type.startsWith('image/'))?.getAsFile();
+  if(f) return handleFile(f), true;
+  const u=urlFromTransfer(dt); if(u){ setImage(u, decodeURIComponent(u.split(/[?#]/)[0].split('/').pop()||'')); return true; }
+  return false;
+}
+document.addEventListener('paste', e=>{ const dt=e.clipboardData; if(!dt) return;
+  const hasFile=[...dt.items].some(i=>i.kind==='file' && i.type.startsWith('image/'));
+  if(!hasFile && e.target.closest && e.target.closest('input,textarea')) return;   // 입력칸에 글자 붙여넣기는 그대로
+  if(handleTransfer(dt)) e.preventDefault(); });
 
 /* ===================== 배치 계산 ====================== */
 function frameOf(board){ // 이미지가 그려질 영역
@@ -577,7 +602,7 @@ function buildStage(){
   if(!S.img){
     wrapEl.append(el('div',{class:'empty'}, el('div',{},`${p.name}${josa(p.name,'을','를')} 만들 이미지를 올려주세요`),
       el('button',{class:'btn primary',on:{click:()=>$('#file').click()}},'이미지 선택')));
-    wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleFile(e.dataTransfer.files[0]);};
+    wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleTransfer(e.dataTransfer);};
     return;
   }
   for(const b of p.boards){
@@ -599,7 +624,7 @@ function buildStage(){
     for(const d of [52,40]){ const cv=el('canvas',{class:'ro',width:d*3,height:d*3,style:`width:${d}px;height:${d}px`}); canvases['c'+d]={cv,d}; cs.append(el('div',{},cv,`${d===52?'데스크탑':'모바일'} ${d}px`)); }
     wrapEl.append(el('div',{class:'board'},el('div',{class:'bl'},'원형 노출 미리보기'),cs));
   }
-  wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleFile(e.dataTransfer.files[0]);};
+  wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleTransfer(e.dataTransfer);};
   draw();
 }
 function draw(){
@@ -696,7 +721,7 @@ function renderPanel(){
   // 이미지 입력
   const drop=el('div',{class:'drop',on:{click:()=>$('#file').click()}}, '파일 선택 또는 여기로 드래그 · 붙여넣기(⌘V)');
   drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')}); drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
-  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handleFile(e.dataTransfer.files[0]);});
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handleTransfer(e.dataTransfer);});
   const url=el('input',{class:'input',placeholder:'이미지 URL 붙여넣기 후 Enter'}); url.addEventListener('keydown',e=>{ if(e.key==='Enter'&&url.value) setImage(url.value.trim(), url.value.split('/').pop()); });
   const imgCard=card([p.template?'배경 이미지':'이미지',el('small',{},S.slot==='product'?'(누끼 PNG 권장)':'(JPG · PNG · WebP)')], drop, url);
   if(S.img){
