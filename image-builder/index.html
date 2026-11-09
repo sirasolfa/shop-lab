@@ -118,13 +118,18 @@ input[type=checkbox]:focus-visible{outline:2px solid var(--brand-default);outlin
 .toolbar .hint{flex:1;min-width:0;font-size:13px;color:var(--color-text-tertiary)}
 .toolbar .toggles{display:flex;align-items:center;gap:var(--gap-20)}
 .toolbar .check small{color:var(--color-text-muted);font-size:12px}
-.boards{flex:1;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;align-content:flex-start;justify-content:center;padding:40px 32px 120px}
+.boards{flex:1;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;align-content:flex-start;justify-content:center;padding:72px 32px 120px}
 .board{display:flex;flex-direction:column;align-items:center;gap:10px}
 .board .bl{font-size:14px;font-weight:600;color:var(--color-text-secondary)}
 .board .bl small{font-weight:400;color:var(--color-text-tertiary)}
 .board canvas{background:#fff;box-shadow:0 2px 12px rgba(23,28,36,.08);border-radius:2px;touch-action:none;cursor:grab}
 .board canvas.active{outline:2px solid var(--brand-default);outline-offset:3px}
 .board canvas.ro{cursor:default}
+.cvwrap{position:relative;line-height:0}
+.sel{position:absolute;border:1px solid var(--brand-default);pointer-events:none;box-sizing:border-box}
+.sel i{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;background:#fff;border:1.5px solid var(--brand-default);border-radius:2px;pointer-events:auto;touch-action:none}
+.sel i[data-c=nw]{left:0;top:0;cursor:nwse-resize}.sel i[data-c=ne]{left:100%;top:0;cursor:nesw-resize}
+.sel i[data-c=sw]{left:0;top:100%;cursor:nesw-resize}.sel i[data-c=se]{left:100%;top:100%;cursor:nwse-resize}
 .board.dim canvas{opacity:.55}
 .previews{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;width:100%}
 .sec-title{width:100%;text-align:center;font-size:13px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:-24px}
@@ -211,6 +216,37 @@ const ADMIN_PAGES = {
 function adminPage(){ return ADMIN_PAGES[S.slot]; }
 function adminLink(cls){ const a=adminPage(); return el('a',{class:cls||'btn outlined',href:ADMIN+a.path,target:'_blank',rel:'noopener noreferrer',title:`어드민 ${a.menu}`},'어드민에서 등록하기', el('span',{'aria-hidden':'true',style:'font-size:12px'},'↗')); }
 const PRESETS = {
+  product: {
+    name: '상품 썸네일', key: 'product', scale: 2, formats: ['png'], limitMB: 2,
+    boards: [{id:'MAIN', w:500, h:500}],
+    area: {x:90, y:90, w:320, h:320}, bgFixed: '#F3F3F6', fit: 'contain-area',
+    hint: '누끼 PNG를 올리면 320×320 영역 중앙에 맞춰져요 · 배경은 #F3F3F6 고정',
+    guide: {
+      title: '상품 썸네일 이미지 제작 가이드', ver: 'v1.0 · 2026.08', node: '77-3482',
+      basis: '기준 1000×1000 — Figma 가이드 = 운영 일치 105/411, 2026-09 등록분 59%',
+      sections: [
+        {t:'배경색', svg:'pBg', d:'#F3F3F6(RGB 243, 243, 246) 단색이에요. 이 툴에서는 고정이고, 배경색 변경이나 별도 편집이 필요하면 디자이너에게 요청해 주세요.'},
+        {t:'이미지 영역 · 여백', svg:'pArea', d:'500×500 캔버스 가운데 320×320 영역에 상품을 넣어요. 여백은 상하좌우 90px이고, 영역 밖은 잘려요.'},
+        {t:'상품 이미지 배치', svg:'pPlace', d:'상품 핵심이 가운데 오도록 놓아요. 배경 없는 누끼 이미지와 2배 이상 원본이 필요해요. 단색 배경 사진은 "자동 누끼"로 배경을 지울 수 있고, 배경이 있는 사진을 그대로 쓰면 모서리가 12px 둥글게 처리돼요.'},
+        {t:'내보내기', svg:'pExport', d:'2배로 내보내 1000×1000 PNG가 돼요. 어드민은 2MB를 넘으면 다시 압축하니 2MB 이하로 내보내요.'}
+      ],
+      checklist: ['상품 핵심 부분이 중앙에 배치됨']
+    }
+  },
+  artist: {
+    name: '아티스트 썸네일', key: 'artist', scale: 2, formats: ['png','jpg'], limitMB: 10,
+    boards: [{id:'MAIN', w:500, h:500}], fit: 'cover-center', bg: '#f4f6fb', circle: true,
+    hint: '원형으로 잘려 노출돼요 · 얼굴이 중앙 원 안에 오도록 맞춰 주세요',
+    guide: {
+      title: '아티스트 썸네일', ver: 'Figma 가이드 없음', node: null,
+      basis: '기준 1000×1000 — 운영 최빈값(37/93). 노출은 원형 모바일 40 / 데스크탑 52px',
+      sections: [
+        {t:'규격 · 원형 노출', svg:'artist', d:'정사각형 1000×1000으로 만들면 원형(지름 = 한 변)으로 잘려 노출돼요. 모서리는 보이지 않아요.'},
+        {t:'배치', d:'얼굴이나 로고를 가운데 원 안에 두세요. 운영 등록분은 100²~2000², 비정방형 16개로 제각각이에요.'}
+      ],
+      checklist: ['얼굴(또는 로고)이 원 안 중앙에 위치함']
+    }
+  },
   collection: {
     name: '컬렉션 배너', key: 'collection', scale: 2, formats: ['png','jpg'], limitMB: 10,
     boards: [{id:'MO', w:375, h:140}], fileTag: 'mobile',
@@ -247,37 +283,6 @@ const PRESETS = {
       checklist: []
     }
   },
-  product: {
-    name: '상품 썸네일', key: 'product', scale: 2, formats: ['png'], limitMB: 2,
-    boards: [{id:'MAIN', w:500, h:500}],
-    area: {x:90, y:90, w:320, h:320}, bgFixed: '#F3F3F6', fit: 'contain-area',
-    hint: '누끼 PNG를 올리면 320×320 영역 중앙에 맞춰져요 · 배경은 #F3F3F6 고정',
-    guide: {
-      title: '상품 썸네일 이미지 제작 가이드', ver: 'v1.0 · 2026.08', node: '77-3482',
-      basis: '기준 1000×1000 — Figma 가이드 = 운영 일치 105/411, 2026-09 등록분 59%',
-      sections: [
-        {t:'배경색', svg:'pBg', d:'#F3F3F6(RGB 243, 243, 246) 단색이에요. 이 툴에서는 고정이고, 배경색 변경이나 별도 편집이 필요하면 디자이너에게 요청해 주세요.'},
-        {t:'이미지 영역 · 여백', svg:'pArea', d:'500×500 캔버스 가운데 320×320 영역에 상품을 넣어요. 여백은 상하좌우 90px이고, 영역 밖은 잘려요.'},
-        {t:'상품 이미지 배치', svg:'pPlace', d:'상품 핵심이 가운데 오도록 놓아요. 배경 없는 누끼 이미지와 2배 이상 원본이 필요해요. 단색 배경 사진은 "자동 누끼"로 배경을 지울 수 있고, 배경이 있는 사진을 그대로 쓰면 모서리가 12px 둥글게 처리돼요.'},
-        {t:'내보내기', svg:'pExport', d:'2배로 내보내 1000×1000 PNG가 돼요. 어드민은 2MB를 넘으면 다시 압축하니 2MB 이하로 내보내요.'}
-      ],
-      checklist: ['상품 핵심 부분이 중앙에 배치됨']
-    }
-  },
-  artist: {
-    name: '아티스트 썸네일', key: 'artist', scale: 2, formats: ['png','jpg'], limitMB: 10,
-    boards: [{id:'MAIN', w:500, h:500}], fit: 'cover-center', bg: '#f4f6fb', circle: true,
-    hint: '원형으로 잘려 노출돼요 · 얼굴이 중앙 원 안에 오도록 맞춰 주세요',
-    guide: {
-      title: '아티스트 썸네일', ver: 'Figma 가이드 없음', node: null,
-      basis: '기준 1000×1000 — 운영 최빈값(37/93). 노출은 원형 모바일 40 / 데스크탑 52px',
-      sections: [
-        {t:'규격 · 원형 노출', svg:'artist', d:'정사각형 1000×1000으로 만들면 원형(지름 = 한 변)으로 잘려 노출돼요. 모서리는 보이지 않아요.'},
-        {t:'배치', d:'얼굴이나 로고를 가운데 원 안에 두세요. 운영 등록분은 100²~2000², 비정방형 16개로 제각각이에요.'}
-      ],
-      checklist: ['얼굴(또는 로고)이 원 안 중앙에 위치함']
-    }
-  },
   main: {
     // 일시 숨김 — 탭에서만 빠지고 기능은 그대로 유지
     name: '메인 배너', key: 'main-banner', hidden: true, scale: 2, formats: ['png','jpg'], limitMB: 10,
@@ -303,7 +308,7 @@ const PRESETS = {
 
 /* ========================= 상태 ========================= */
 const S = {
-  slot: 'collection', tab: 'edit',
+  slot: 'product', tab: 'edit',
   img: null, imgName: '', imgHasAlpha: false,
   tf: {},                    // board id → {x,y,s}
   targets: new Set(['MO','PC']),
@@ -335,13 +340,23 @@ function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on
 function loadImage(src, name){
   return new Promise((res,rej)=>{ const im=new Image(); im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=rej; im.src=src; im.dataset.name=name||''; });
 }
+// 외부 URL은 먼저 브라우저에서 바로 받고, CORS로 막히면 같은 출처의 프록시(api/image)로 다시 받는다
+async function loadAnyImage(src, name){
+  try{ return await loadImage(src, name); }
+  catch(e){
+    if(!/^https?:/i.test(src)) throw e;
+    const r=await fetch('/api/image?url='+encodeURIComponent(src)).catch(()=>null);
+    if(!r || !r.ok){ const msg=r && (await r.json().catch(()=>null))?.error; throw new Error(msg||''); }
+    return loadImage(URL.createObjectURL(await r.blob()), name);
+  }
+}
 async function setImage(src, name){
   try{
-    const im = await loadImage(src, name);
+    const im = await loadAnyImage(src, name);
     S.img = im; S.imgOrig = null; S.imgName = name || ''; S.imgHasAlpha = detectAlpha(im);
     if(!S.identManual) S.ident = slugify(name);
     S.tf = {}; fitAll(); renderPanel(); buildStage();
-  }catch(e){ toast('이미지를 불러오지 못했어요 (URL은 CORS 허용 주소만 가능)'); }
+  }catch(e){ toast(e.message ? `이미지를 불러오지 못했어요 — ${e.message}` : '이미지를 불러오지 못했어요. 파일로 내려받아 올려 주세요.'); }
 }
 /* 자동 누끼 — 가장자리에서 이어지는 단색 배경을 투명하게 만든다(브라우저 안에서만 처리).
    배경이 단색이 아니면(사진 배경 등) 처리하지 않고 디자이너 요청을 안내한다. */
@@ -389,7 +404,22 @@ function slugify(n){ return (n||'').replace(/\.[a-z0-9]+$/i,'').trim().replace(/
 function handleFile(f){ if(!f) return; if(!/^image\/(png|jpeg|webp)$/.test(f.type)) return toast('JPG · PNG · WebP만 올릴 수 있어요');
   const r=new FileReader(); r.onload=()=> setImage(r.result, f.name); r.readAsDataURL(f); }
 $('#file').addEventListener('change', e=>{ handleFile(e.target.files[0]); e.target.value=''; });
-document.addEventListener('paste', e=>{ const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/')); if(it) handleFile(it.getAsFile()); });
+// 다른 웹페이지에서 끌어오거나 복사한 이미지는 파일 대신 주소만 오는 경우가 많아 주소로도 받는다
+function urlFromTransfer(dt){
+  const html=dt.getData('text/html'), m=html && html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const u=(m && m[1].replace(/&amp;/g,'&')) || dt.getData('text/uri-list').split('\n').find(l=>l && !l.startsWith('#')) || dt.getData('text/plain');
+  return /^https?:\/\/\S+$/i.test((u||'').trim()) ? u.trim() : null;
+}
+function handleTransfer(dt){
+  const f=[...(dt.files||[])][0] || [...(dt.items||[])].find(i=>i.kind==='file' && i.type.startsWith('image/'))?.getAsFile();
+  if(f) return handleFile(f), true;
+  const u=urlFromTransfer(dt); if(u){ setImage(u, decodeURIComponent(u.split(/[?#]/)[0].split('/').pop()||'')); return true; }
+  return false;
+}
+document.addEventListener('paste', e=>{ const dt=e.clipboardData; if(!dt) return;
+  const hasFile=[...dt.items].some(i=>i.kind==='file' && i.type.startsWith('image/'));
+  if(!hasFile && e.target.closest && e.target.closest('input,textarea')) return;   // 입력칸에 글자 붙여넣기는 그대로
+  if(handleTransfer(dt)) e.preventDefault(); });
 
 /* ===================== 배치 계산 ====================== */
 function frameOf(board){ // 이미지가 그려질 영역
@@ -563,23 +593,25 @@ function renderExport(board, preview){
 }
 
 /* ===================== 스테이지 ====================== */
-const canvases = {};
+const canvases = {}, sels = {};
 function buildStage(){
   const p=P(), wrapEl=$('#boards'); wrapEl.innerHTML=''; $('#hint').textContent=p.hint;
   for(const k in canvases) delete canvases[k];
+  for(const k in sels) delete sels[k];
   wrapEl.classList.toggle('is-empty', !S.img);
   if(!S.img){
     wrapEl.append(el('div',{class:'empty'}, el('div',{},`${p.name}${josa(p.name,'을','를')} 만들 이미지를 올려주세요`),
       el('button',{class:'btn primary',on:{click:()=>$('#file').click()}},'이미지 선택')));
-    wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleFile(e.dataTransfer.files[0]);};
+    wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleTransfer(e.dataTransfer);};
     return;
   }
   for(const b of p.boards){
     const cv=el('canvas',{width:Math.round(b.w*2),height:Math.round(b.h*2),style:`width:${b.w}px;height:${b.h}px`});
     cv.dataset.id=b.id; attachDrag(cv,b); canvases[b.id]=cv;
+    const sel=el('div',{class:'sel'}, ['nw','ne','sw','se'].map(c=>el('i',{'data-c':c,title:'드래그해서 크기 조절 (비율 고정)'}))); sels[b.id]=sel; attachResize(sel,cv,b);
     const out=`${b.w*p.scale}×${b.h*p.scale}`;
     const lab = p.boards.length>1 ? `${DEVICE[b.id]} (${b.w}×${b.h})` : `${p.name} (${b.w}×${b.h})`;
-    wrapEl.append(el('div',{class:'board'+(p.boards.length>1&&!S.targets.has(b.id)?' dim':'')}, el('div',{class:'bl'}, lab, el('small',{},` → 출력 ${out}`)), cv));
+    wrapEl.append(el('div',{class:'board'+(p.boards.length>1&&!S.targets.has(b.id)?' dim':'')}, el('div',{class:'bl'}, lab, el('small',{},` → 출력 ${out}`)), el('div',{class:'cvwrap'},cv,sel)));
   }
   if(p.previews){
     wrapEl.append(el('div',{class:'sec-title'},'실제 노출 미리보기 (내보낼 이미지 기준)'));
@@ -592,7 +624,7 @@ function buildStage(){
     for(const d of [52,40]){ const cv=el('canvas',{class:'ro',width:d*3,height:d*3,style:`width:${d}px;height:${d}px`}); canvases['c'+d]={cv,d}; cs.append(el('div',{},cv,`${d===52?'데스크탑':'모바일'} ${d}px`)); }
     wrapEl.append(el('div',{class:'board'},el('div',{class:'bl'},'원형 노출 미리보기'),cs));
   }
-  wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleFile(e.dataTransfer.files[0]);};
+  wrapEl.ondragover=e=>{e.preventDefault()}; wrapEl.ondrop=e=>{e.preventDefault(); handleTransfer(e.dataTransfer);};
   draw();
 }
 function draw(){
@@ -601,6 +633,9 @@ function draw(){
     const cv=canvases[b.id]; if(!cv) continue; const ctx=cv.getContext('2d');
     ctx.setTransform(2,0,0,2,0,0); renderBoard(ctx,b,{guides:S.guides, system:S.system});
     cv.classList.toggle('active', p.boards.length>1 && S.targets.has(b.id));
+    const sel=sels[b.id], t=S.tf[b.id];
+    if(sel){ sel.hidden=!t || (p.boards.length>1 && !S.targets.has(b.id));
+      if(t) Object.assign(sel.style,{left:t.x+'px',top:t.y+'px',width:S.img.naturalWidth*t.s+'px',height:S.img.naturalHeight*t.s+'px'}); }
   }
   if(p.previews){
     const src=renderExport(p.boards[0], true);
@@ -623,6 +658,27 @@ function attachDrag(cv, board){
   cv.addEventListener('wheel',e=>{ e.preventDefault(); const q=pt(e), k=Math.exp(-e.deltaY*0.0015);
     for(const id of affected()){ const t=S.tf[id]; if(!t) continue; const b=P().boards.find(x=>x.id===id); const ax=q.x*b.w/board.w, ay=q.y*b.h/board.h; t.x=ax-(ax-t.x)*k; t.y=ay-(ay-t.y)*k; t.s*=k; }
     draw(); },{passive:false});
+}
+
+/* 모서리 핸들로 크기 조절 — 맞은편 모서리를 고정하고 비율은 항상 유지 */
+function attachResize(sel, cv, board){
+  let st=null;
+  const pt=e=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*board.w/r.width, y:(e.clientY-r.top)*board.h/r.height}; };
+  sel.addEventListener('pointerdown',e=>{ const c=e.target.dataset.c; if(!c) return; e.preventDefault(); e.stopPropagation();
+    const t=S.tf[board.id], iw=S.img.naturalWidth, ih=S.img.naturalHeight, w=iw*t.s, h=ih*t.s;
+    const right=c[1]==='e', bottom=c[0]==='s';
+    st={right,bottom, ax:right?t.x:t.x+w, ay:bottom?t.y:t.y+h, dx:right?w:-w, dy:bottom?h:-h, s0:t.s,
+        others:(P().boards.length>1?[...S.targets]:[board.id]).filter(id=>id!==board.id).map(id=>({id, s0:S.tf[id]?.s, x0:S.tf[id]?.x, y0:S.tf[id]?.y}))};
+    e.target.setPointerCapture(e.pointerId); });
+  sel.addEventListener('pointermove',e=>{ if(!st) return; const q=pt(e);
+    // 대각선 방향으로 투영한 비율만 반영 → 정비율
+    const k=Math.max(12/Math.hypot(st.dx,st.dy), ((q.x-st.ax)*st.dx+(q.y-st.ay)*st.dy)/(st.dx*st.dx+st.dy*st.dy));
+    const t=S.tf[board.id]; t.s=st.s0*k; const w=S.img.naturalWidth*t.s, h=S.img.naturalHeight*t.s;
+    t.x=st.right?st.ax:st.ax-w; t.y=st.bottom?st.ay:st.ay-h;
+    for(const o of st.others){ const u=S.tf[o.id]; if(u&&o.s0){ const cx=o.x0+S.img.naturalWidth*o.s0/2, cy=o.y0+S.img.naturalHeight*o.s0/2; u.s=o.s0*k; u.x=cx-S.img.naturalWidth*u.s/2; u.y=cy-S.img.naturalHeight*u.s/2; } }
+    draw(); });
+  const end=()=>{ st=null; };
+  sel.addEventListener('pointerup',end); sel.addEventListener('pointercancel',end);
 }
 
 /* ===================== 패널 ====================== */
@@ -665,15 +721,15 @@ function renderPanel(){
   // 이미지 입력
   const drop=el('div',{class:'drop',on:{click:()=>$('#file').click()}}, '파일 선택 또는 여기로 드래그 · 붙여넣기(⌘V)');
   drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')}); drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
-  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handleFile(e.dataTransfer.files[0]);});
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handleTransfer(e.dataTransfer);});
   const url=el('input',{class:'input',placeholder:'이미지 URL 붙여넣기 후 Enter'}); url.addEventListener('keydown',e=>{ if(e.key==='Enter'&&url.value) setImage(url.value.trim(), url.value.split('/').pop()); });
   const imgCard=card([p.template?'배경 이미지':'이미지',el('small',{},S.slot==='product'?'(누끼 PNG 권장)':'(JPG · PNG · WebP)')], drop, url);
   if(S.img){
     const iw=S.img.naturalWidth, ih=S.img.naturalHeight;
     imgCard.append(el('div',{class:'thumb'}, el('img',{src:S.img.src,alt:''}), el('button',{class:'x',title:'이미지 제거',on:{click:()=>{S.img=null;S.tf={};renderPanel();buildStage();}}},'✕')),
       el('div',{class:'meta'}, `${S.imgName||'이미지'} · ${iw}×${ih}${S.imgHasAlpha?' · 투명 배경':''}`));
-    if(S.slot==='product'){
-      if(!S.imgHasAlpha) imgCard.append(el('div',{class:'note warn'},`배경이 있는 이미지예요. 가이드는 누끼 이미지를 요구해요. 지금은 모서리를 ${FULL_IMAGE_RADIUS}px 둥글게 처리해 보여줘요.`));
+    if(S.slot==='product' && !S.imgHasAlpha) imgCard.append(el('div',{class:'note warn'},`배경이 있는 이미지예요. 가이드는 누끼 이미지를 요구해요. 지금은 모서리를 ${FULL_IMAGE_RADIUS}px 둥글게 처리해 보여줘요.`));
+    {
       const cut=el('button',{class:'btn sm secondary',on:{click:async()=>{ cut.disabled=true; cut.textContent='처리 중…'; await new Promise(r=>setTimeout(r,30)); await autoCutout(); cut.disabled=false; cut.textContent='자동 누끼'; }}},'자동 누끼');
       imgCard.append(el('div',{class:'row'}, S.imgOrig ? el('button',{class:'btn sm tertiary',on:{click:()=>{ S.img=S.imgOrig; S.imgOrig=null; S.imgHasAlpha=detectAlpha(S.img); fitAll(); renderPanel(); draw(); }}},'원본으로 되돌리기') : (!S.imgHasAlpha?cut:null),
         el('span',{class:'meta'}, S.imgOrig?'자동 누끼 적용됨':'단색 배경만 지원해요')));
