@@ -6,7 +6,7 @@
 | 목적 | 같은 아티스트·같은 유형 상품으로의 유입을 만들어 LIVE MD 연계 매출과 교차 탐색을 올립니다 |
 | 상태 | 진행 중 — 1차 배포 완료, 최종 UI 핸드오프 중. [남은 결정 사항](#9-남은-결정-사항) 확인 필요 |
 | 작성일 | 2026-11-10 (11-11 측정 방식 변경, 11-12 최종 UI·배포 현황 반영) |
-| 디자인 | [Figma — 상품 상세_PDP ⎯ 연관 상품](https://www.figma.com/design/nZLePLLrY5Yh9cLf7ZSHuk/-NOVERA-shop--Handoff?node-id=39-108195) |
+| 디자인 | [Figma — 상품 상세_PDP ⎯ 연관 상품](https://www.figma.com/design/nZLePLLrY5Yh9cLf7ZSHuk/-NOVERA-shop--Handoff?node-id=58-118717) |
 
 ## 1. 요약
 
